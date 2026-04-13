@@ -1,0 +1,30 @@
+export const ROUTES = {
+  login:        '/login',
+  unauthorized: '/unauthorized',
+  pos: {
+    tables:      '/pos/tables',
+    orderEntry:  '/pos/orders/new/:tableId?',
+    menu:        '/pos/menu', // Màn hình chọn món trực tiếp
+    orderDetail: '/pos/orders/:tableId',
+    payment:     '/pos/payment/:tableId',
+    reports:     '/pos/reports',
+    order:       (id: string) => `/pos/orders/${id}`,
+  },
+  kds:      '/kds',
+  admin: {
+    root:       '/admin',
+    dashboard:  '/admin/dashboard',
+    menu:       '/admin/menu',
+    promotions: '/admin/promotions',
+    tables:     '/admin/tables',
+    staff:      '/admin/staff',
+    reports:    '/admin/reports',
+    orders:     '/admin/orders',
+  },
+  customer: {
+    root:    '/',
+    menu:    '/menu',
+    status:  '/order-status',
+    payment: '/payment',
+  },
+} as const

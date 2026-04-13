@@ -1,0 +1,134 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-error-container: #fee2e2;
+  --color-on-primary: #ffffff;
+  --color-on-error-container: #7f1d1d;
+  --color-surface-tint: #2463eb;
+  --color-outline: #94a3b8;
+  --color-primary-fixed: #bfdbfe;
+  --color-on-tertiary-fixed: #fff3c9;
+  --color-secondary-container: #e2e8f0;
+  --color-tertiary-fixed: #ffb067;
+  --color-on-secondary-container: #334155;
+  --color-on-primary-fixed-variant: #1e40af;
+  --color-secondary-fixed: #cbd5e1;
+  --color-on-tertiary-container: #fffbeb;
+  --color-on-primary-fixed: #1e3a8a;
+  --color-surface: #f8fafc;
+  --color-surface-bright: #ffffff;
+  --color-primary-container: #dbeafe;
+  --color-inverse-primary: #93c5fd;
+  --color-surface-container: #f1f5f9;
+  --color-secondary: #0ea5e9; 
+  --color-on-error: #ffffff;
+  --color-on-tertiary-fixed-variant: #451a03;
+  --color-secondary-fixed-dim: #94a3b8;
+  --color-primary: #2463eb;
+  --color-on-secondary-fixed: #0f172a;
+  --color-tertiary: #d97706;
+  --color-outline-variant: #cbd5e1;
+  --color-on-secondary: #ffffff;
+  --color-primary-fixed-dim: #60a5fa;
+  --color-background: #f8fafc;
+  --color-on-primary-container: #1e3a8a;
+  --color-surface-container-high: #e2e8f0;
+  --color-on-surface-variant: #334155;
+  --color-surface-variant: #f1f5f9;
+  --color-on-secondary-fixed-variant: #1e293b;
+  --color-surface-container-highest: #cbd5e1;
+  --color-on-surface: #0f172a;
+  --color-inverse-on-surface: #f8fafc;
+  --color-surface-dim: #cbd5e1;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-fixed-dim: #fcd34d;
+  --color-tertiary-container: #d97706;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8fafc;
+  --color-inverse-surface: #0f172a;
+  --color-error: #ef4444;
+  --color-on-background: #0f172a;
+
+  --font-headline: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Manrope', sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Guest Theme Colors */
+  --color-guest-primary: #ff6933;
+  --color-guest-primary-light: #ff8559;
+  --color-guest-bg: #fffdf9;
+  --color-guest-bg-dark: #23140f;
+  --color-guest-surface: #ffffff;
+  --color-guest-surface-dark: #1e293b;
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    @apply bg-surface font-body text-on-surface antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline font-semibold text-on-surface;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  html, body {
+    @apply min-h-screen overflow-x-hidden;
+  }
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-outline-variant);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-outline);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-outline-variant) transparent;
+}
+
+/* Hide scrollbar but keep scroll — dùng cho mobile nav */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Fix Recharts focus outline - remove ugly black borders on click */
+.recharts-wrapper, .recharts-surface {
+  outline: none !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
