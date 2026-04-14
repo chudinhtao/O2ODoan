@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useCustomerSessionOrder } from '../../menu/hooks/useCustomerQueries'
-import { useCustomerRequestPayment, useCustomerApplyPromotion } from '../../menu/hooks/useCustomerMutations'
+import { useCustomerRequestPayment, useCustomerApplyPromotion, useCustomerCreatePayOSLink } from '../../menu/hooks/useCustomerMutations'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
@@ -24,12 +24,22 @@ export default function CustomerPaymentPage() {
   const { data: sessionOrder, isLoading, error: orderError } = useCustomerSessionOrder(token)
   const requestPaymentMutation = useCustomerRequestPayment(token)
   const applyPromoMutation = useCustomerApplyPromotion(token)
+  const createPayOSLinkMutation = useCustomerCreatePayOSLink(token)
 
   const [selectedMethod, setSelectedMethod] = useState<'TRANSFER' | 'CASH' | null>(null)
   const [voucherCode, setVoucherCode] = useState('')
 
   const fmt = (val: number | undefined) => new Intl.NumberFormat('vi-VN').format(val || 0)
-  const handleRequestPayment = () => { if (selectedMethod) requestPaymentMutation.mutate(selectedMethod) }
+  
+  const handleRequestPayment = () => { 
+    if (selectedMethod === 'CASH') {
+      requestPaymentMutation.mutate('CASH')
+    } else if (selectedMethod === 'TRANSFER') {
+       if (sessionOrder) {
+          createPayOSLinkMutation.mutate({ orderId: sessionOrder.id, amount: sessionOrder.total })
+       }
+    }
+  }
   const handleApplyPromotion = () => {
     if (!voucherCode.trim()) return
     applyPromoMutation.mutate(voucherCode, { onSuccess: () => setVoucherCode('') })
@@ -228,25 +238,22 @@ export default function CustomerPaymentPage() {
                     initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                     className="px-4 pb-4 border-t border-slate-100"
                   >
-                    <div className="mt-4 flex flex-col items-center bg-slate-50 rounded-2xl p-4">
-                      <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
-                        alt="QR Code"
-                        className="w-44 h-44 object-cover mb-3"
-                      />
-                      <p className="text-sm font-bold text-slate-700 mb-4">
-                        MB Bank — <span className="text-guest-primary">{fmt(order.total)}đ</span>
-                      </p>
+                    <div className="mt-4 flex flex-col items-center bg-slate-50 rounded-2xl p-4 text-center">
+                      <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center mb-3">
+                        <QrCode size={30} className="text-guest-primary" />
+                      </div>
+                      <p className="text-sm font-black text-slate-700 mb-1">Thanh toán an toàn qua PayOS</p>
+                      <p className="text-xs text-slate-500 mb-4 px-2">Hệ thống sẽ chuyển hướng bạn đến cổng thanh toán bảo mật để quét mã VietQR tự động.</p>
+                      
                       <button
                         onClick={handleRequestPayment}
-                        disabled={requestPaymentMutation.isPending}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-emerald-500 text-emerald-600 font-bold text-sm hover:bg-emerald-50 active:scale-[0.98] transition-all disabled:opacity-60"
+                        disabled={createPayOSLinkMutation.isPending}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-guest-primary to-orange-500 text-white font-bold text-sm hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.98] transition-all disabled:opacity-60"
                       >
-                        {requestPaymentMutation.isPending
-                          ? <Loader2 size={18} className="animate-spin" />
-                          : <Check size={18} strokeWidth={2.5} />
+                        {createPayOSLinkMutation.isPending
+                          ? <><Loader2 size={18} className="animate-spin" /> Đang tạo mã...</>
+                          : <><QrCode size={18} strokeWidth={2.5} /> Tiến hành Thanh toán ({fmt(order.total)}đ)</>
                         }
-                        {t('customer.payment.btnTransferred')}
                       </button>
                     </div>
                   </motion.div>

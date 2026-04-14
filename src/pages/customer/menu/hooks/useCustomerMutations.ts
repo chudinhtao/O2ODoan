@@ -94,6 +94,21 @@ export function useCustomerRequestPayment(token: string | null) {
   })
 }
 
+export function useCustomerCreatePayOSLink(token: string | null) {
+  return useMutation({
+    mutationFn: ({ orderId, amount }: { orderId: string, amount: number }) => customerService.createPayOSLink(token!, orderId, amount),
+    onSuccess: (res) => {
+      // Axios bọc dữ liệu trong .data
+      if (res.data && res.data.checkoutUrl) {
+        window.location.href = res.data.checkoutUrl
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Lỗi kết nối Cổng thanh toán PayOS. Vui lòng thử lại!')
+    }
+  })
+}
+
 export function useCustomerCallStaff(token: string | null) {
   return useMutation({
     mutationFn: ({ callType, note }: { callType: string, note?: string }) => customerService.callStaff(token!, callType, note),

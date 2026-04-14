@@ -5,10 +5,10 @@ import { useCustomerOpenSession } from '../../menu/hooks/useCustomerMutations'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { StaffSupportModal } from '../components/StaffSupportModal'
 import { RecentOrderSummary } from '../components/RecentOrderSummary'
-import { CustomerBottomNav } from '../../components/CustomerBottomNav'
-import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
 import { useTranslation } from 'react-i18next'
 import { QrCode, AlertTriangle, Coffee } from 'lucide-react'
+import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
+import { CustomerBottomNav } from '../../components/CustomerBottomNav'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=1200'
 

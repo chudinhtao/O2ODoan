@@ -45,6 +45,9 @@ export const customerService = {
   requestPayment: (token: string, paymentMethod: string) =>
     http.post<IApiResponse<any>>('/orders/request-payment', { paymentMethod }, CUSTOMER_HEADERS(token)),
 
+  createPayOSLink: (token: string, orderId: string, amount: number) =>
+    http.post<any>(`/payments/payos/create/${orderId}?amount=${amount}`, {}, CUSTOMER_HEADERS(token)),
+
   callStaff: (token: string, callType: string, note?: string) =>
     http.post<IApiResponse<any>>('/staff-calls', { callType, note }, CUSTOMER_HEADERS(token)),
 
