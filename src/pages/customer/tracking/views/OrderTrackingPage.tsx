@@ -208,13 +208,25 @@ export default function OrderTrackingPage() {
             </div>
           )}
 
-          {/* Grand total */}
-          <div className="bg-white rounded-2xl border border-slate-100 px-5 py-4 flex items-center justify-between shadow-sm">
-            <div>
-              <p className="text-slate-500 font-medium text-sm">{t('customer.tracking.grandTotal')}</p>
-              <p className="text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">Đã bao gồm VAT 8%</p>
-            </div>
-            <span className="text-guest-primary text-2xl font-black">{fmt(order.subtotal)}đ</span>
+          {/* Order Summary */}
+          <div className="bg-white rounded-2xl border border-slate-100 px-5 py-4 shadow-sm space-y-3">
+             <div className="flex justify-between text-sm text-slate-500">
+               <span>{t('customer.tracking.subtotal', 'Tạm tính')}</span>
+               <span className="font-semibold">{fmt(order.subtotal)}đ</span>
+             </div>
+             {(order.discount ?? 0) > 0 && (
+               <div className="flex justify-between text-sm text-green-600 font-bold">
+                 <span>{t('customer.tracking.discount', 'Khuyến mãi')}</span>
+                 <span>-{fmt(order.discount!)}đ</span>
+               </div>
+             )}
+             <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+               <div>
+                 <p className="text-slate-800 font-black text-base">{t('customer.tracking.grandTotal')}</p>
+                 <p className="text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">Đã bao gồm VAT 8%</p>
+               </div>
+               <span className="text-guest-primary text-2xl font-black">{fmt(order.total)}đ</span>
+             </div>
           </div>
         </div>
       </main>

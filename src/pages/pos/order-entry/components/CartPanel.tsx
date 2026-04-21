@@ -95,6 +95,21 @@ export function CartPanel({
 
       {/* ── Summary + Actions ── */}
       <div className="shrink-0 border-t border-outline-variant/30 bg-surface-container-lowest">
+        {!isEmpty && cart && (
+          <div className="px-4 py-2 border-b border-outline-variant/10 space-y-1">
+            <div className="flex justify-between text-[11px] text-outline font-medium">
+              <span>Tạm tính</span>
+              <span>{formatCurrency(cart.originalTotal)}</span>
+            </div>
+            {cart.automatedDiscount > 0 && (
+              <div className="flex justify-between text-[11px] text-success font-bold">
+                <span>Giảm giá tự động</span>
+                <span>-{formatCurrency(cart.automatedDiscount)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Total row */}
         <div className="px-4 py-3 flex items-center justify-between">
           <span className="text-sm font-bold text-on-surface-variant">{t('pos.cart.total', 'Tổng cộng')}</span>

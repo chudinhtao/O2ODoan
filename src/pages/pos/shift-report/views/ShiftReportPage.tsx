@@ -16,11 +16,17 @@ import { logout } from '@/store/slices/auth.slice'
 import { queryClient } from '@/providers/AppProviders'
 import { ROUTES } from '@/shared/constants/ROUTES'
 
+import { timeService } from '@/services/time.service'
+
 function ShiftReportContent() {
   const { t, i18n } = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+  
+  // Sử dụng giờ server để lấy ngày hiện tại
+  const serverNow = new Date(timeService.getNow())
+  const today = serverNow.toLocaleDateString('en-CA') // YYYY-MM-DD
+  
   const { data: report, isLoading, error } = useShiftReport(today)
   const [showEndShift, setShowEndShift] = useState(false)
   const reportRef = useRef<HTMLDivElement>(null)
@@ -78,7 +84,7 @@ function ShiftReportContent() {
           </h2>
           <p className="text-on-surface-variant text-sm mt-1 flex items-center gap-2 truncate">
             <Calendar className="size-4 shrink-0" />
-            {t('report.page.shiftTime', 'Ca hiện tại: {{date}}', { date: formatDisplayDate(new Date()) })}
+            {t('report.page.shiftTime', 'Ca hiện tại: {{date}}', { date: formatDisplayDate(serverNow) })}
           </p>
         </div>
         
@@ -102,7 +108,7 @@ function ShiftReportContent() {
         {/* Print Only Header */}
         <div className="hidden print:block text-center mb-6">
           <h1 className="text-2xl font-bold">{t('report.page.title', 'Báo cáo ca — Thu Ngân')}</h1>
-          <p className="text-sm mt-1">{formatDisplayDate(new Date())}</p>
+          <p className="text-sm mt-1">{formatDisplayDate(serverNow)}</p>
         </div>
 
         <SummaryCards

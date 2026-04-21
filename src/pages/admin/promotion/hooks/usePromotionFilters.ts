@@ -36,21 +36,18 @@ export function usePromotionFilters(initialData: IPromotion[] = []) {
 
   const filteredData = useMemo(() => {
     return initialData.filter((promo) => {
-      if (promo.type === 'FLASH_SALE') return false
-      
-      const isItemActive = promo.isActive ?? promo.active ?? false
-      // Filter status
-      if (filters.selectedStatus === 'ACTIVE' && !isItemActive) return false
-      if (filters.selectedStatus === 'INACTIVE' && isItemActive) return false
-      
-      // Filter search
+      // Filter by status
+      if (filters.selectedStatus === 'ACTIVE' && !promo.active) return false
+      if (filters.selectedStatus === 'INACTIVE' && promo.active) return false
+
+      // Filter by search (name or code)
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
-        const nameMatch = promo.name ? promo.name.toLowerCase().includes(searchLower) : false
-        const codeMatch = promo.code ? promo.code.toLowerCase().includes(searchLower) : false
+        const q = filters.search.toLowerCase()
+        const nameMatch = promo.name?.toLowerCase().includes(q) ?? false
+        const codeMatch = promo.code?.toLowerCase().includes(q) ?? false
         if (!nameMatch && !codeMatch) return false
       }
-      
+
       return true
     })
   }, [initialData, filters.selectedStatus, filters.search])

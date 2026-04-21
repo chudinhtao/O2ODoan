@@ -26,6 +26,7 @@ export interface IPosTable {
   currentSessionId: string | null
   currentSessionToken: string | null
   totalAmount: number
+  openedAt?: string
 }
 
 export interface ITableForm {

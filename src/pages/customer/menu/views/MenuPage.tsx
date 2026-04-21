@@ -7,7 +7,8 @@ import { MenuSection } from '../components/MenuSection'
 import { ItemDetailModal } from '../components/ItemDetailModal'
 import { CartDrawer } from '../components/CartDrawer'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
-import { useCustomerCategories, useCustomerItems, useCustomerCart } from '../hooks/useCustomerQueries'
+import { useCustomerCategories, useCustomerItems, useCustomerCart, CUSTOMER_QUERY_KEYS } from '../hooks/useCustomerQueries'
+import { useQueryClient } from '@tanstack/react-query'
 import { FilterDrawer, FilterState } from '../components/FilterDrawer'
 import {
   useCustomerAddToCart,
@@ -30,6 +31,14 @@ export default function CustomerMenuPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
   const [selectedMenuItem, setSelectedMenuItem] = useState<IMenuItem | null>(null)
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const handleOpenCart = () => {
+    if (token) {
+      queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
+    }
+    setIsCartDrawerOpen(true)
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -251,7 +260,7 @@ export default function CustomerMenuPage() {
       <CustomerBottomNav
         token={token || ''}
         activeTab="menu"
-        onCartClick={() => setIsCartDrawerOpen(true)}
+        onCartClick={handleOpenCart}
       />
 
       {/* ══ MODALS ══ */}
@@ -260,6 +269,7 @@ export default function CustomerMenuPage() {
         onClose={() => setSelectedMenuItem(null)}
         item={selectedMenuItem}
         onAddToCart={handleAddToCart}
+        isAdding={addToCartMutation.isPending}
       />
 
       <CartDrawer

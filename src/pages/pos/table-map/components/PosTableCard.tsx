@@ -13,6 +13,8 @@ interface PosTableCardProps {
   onMerge: (id: string) => void
 }
 
+import { useServerTime } from '@/shared/hooks/useServerTime'
+
 export function PosTableCard({
   table,
   onOpenSession,
@@ -23,6 +25,21 @@ export function PosTableCard({
   onMerge
 }: PosTableCardProps) {
   const { t } = useTranslation()
+  const { getRemaining } = useServerTime(60000) // Update every minute
+
+  const getElapsedTime = (openedAt?: string) => {
+    if (!openedAt) return '--'
+    const openedDate = new Date(openedAt)
+    const diffMs = Date.now() - openedDate.getTime() // Note: useServerTime logic handles the offset globally via interceptor
+    
+    // We want a positive duration, so we use getRemaining logic but inverted or just calculate
+    const minutes = Math.floor(Math.abs(diffMs) / 60000)
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    return `${hours}h ${minutes % 60}m`
+  }
+
+  const elapsed = getElapsedTime(table.openedAt)
 
   if (table.status === 'FREE') {
     return (
@@ -112,7 +129,7 @@ export function PosTableCard({
             {t('pos.table.status.occupied', 'Đang dùng')}
           </span>
           <span className="text-on-surface-variant text-[10px] mt-2 font-bold uppercase tracking-widest flex items-center gap-1">
-             <Clock className="size-3" /> --
+             <Clock className="size-3" /> {elapsed}
           </span>
         </div>
       </div>

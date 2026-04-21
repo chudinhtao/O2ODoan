@@ -1,5 +1,6 @@
-import { Flame, Plus, UtensilsCrossed } from 'lucide-react'
 import { IMenuItem } from '../types'
+import { CountdownTimer } from './CountdownTimer'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 interface MenuItemCardProps {
   item: IMenuItem
@@ -11,7 +12,17 @@ const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
 // ─── Vertical (Featured) Card ──────────────────────────────────────────────
 function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
-  const hasDiscount = !!(item.salePrice && item.salePrice < item.basePrice)
+  const { isExpired, isScheduleActive } = useServerTime(10000) // 10s check 1 lần cho danh sách để tối ưu
+  
+  const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
+  const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  
+  const hasDiscount = !!(
+    item.salePrice && 
+    item.salePrice < item.basePrice && 
+    !isSaleExpired && 
+    isCurrentlyInSchedule
+  )
   const discountPct = hasDiscount ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100) : 0
   const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
 
@@ -32,17 +43,22 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
 
         {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex gap-1.5 z-10">
-          {item.isFeatured && (
-            <span className="flex items-center gap-0.5 backdrop-blur-sm bg-white/20 border border-white/30 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-              <Flame size={11} fill="currentColor" />
-              Hot
-            </span>
-          )}
-          {hasDiscount && (
-            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-              -{discountPct}%
-            </span>
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 items-start">
+          <div className="flex gap-1.5">
+            {item.isFeatured && (
+              <span className="flex items-center gap-0.5 backdrop-blur-sm bg-white/20 border border-white/30 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                <Flame size={11} fill="currentColor" />
+                Hot
+              </span>
+            )}
+            {hasDiscount && (
+              <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                -{discountPct}%
+              </span>
+            )}
+          </div>
+          {hasDiscount && item.saleEndAt && (
+            <CountdownTimer endDate={item.saleEndAt} />
           )}
           {!item.isAvailable && (
             <span className="bg-slate-800/80 backdrop-blur-sm text-white text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -79,7 +95,17 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
 
 // ─── Horizontal (Regular) Card ─────────────────────────────────────────────
 function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
-  const hasDiscount = !!(item.salePrice && item.salePrice < item.basePrice)
+  const { isExpired, isScheduleActive } = useServerTime(10000)
+  
+  const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
+  const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  
+  const hasDiscount = !!(
+    item.salePrice && 
+    item.salePrice < item.basePrice && 
+    !isSaleExpired && 
+    isCurrentlyInSchedule
+  )
   const discountPct = hasDiscount ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100) : 0
   const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
 
@@ -118,8 +144,13 @@ function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem
 
         <div className="flex items-center justify-between mt-2">
           <div className="flex flex-col leading-none gap-0.5">
-            <span className={`font-black text-[15px] ${!item.isAvailable ? 'text-slate-300' : 'text-guest-primary'}`}>{fmt(displayPrice)}đ</span>
-            {hasDiscount && <span className="text-[10px] text-slate-400 line-through">{fmt(item.basePrice)}đ</span>}
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className={`font-black text-[15px] ${!item.isAvailable ? 'text-slate-300' : 'text-guest-primary'}`}>{fmt(displayPrice)}đ</span>
+              {hasDiscount && <span className="text-[10px] text-slate-400 line-through">{fmt(item.basePrice)}đ</span>}
+            </div>
+            {hasDiscount && item.saleEndAt && (
+              <CountdownTimer endDate={item.saleEndAt} className="!bg-orange-500/10 !text-orange-600 !border-orange-200" />
+            )}
           </div>
           {!item.isAvailable ? (
             <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Hết hàng</span>

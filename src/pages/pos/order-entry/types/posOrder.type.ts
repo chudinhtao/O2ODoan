@@ -21,6 +21,8 @@ export interface ICart {
   sessionToken: string
   items: ICartItem[]
   totalAmount: number
+  originalTotal: number
+  automatedDiscount: number
 }
 
 // ── Request types ──

@@ -247,10 +247,10 @@ export default function OrderDetailPage() {
               </div>
 
               <div className="mt-auto p-6 bg-surface-container-lowest border-t border-outline-variant/40 space-y-5">
-                <div className="space-y-2.5 px-1">
+                <div className="space-y-2.5 px-1 font-sans">
                   <div className="flex justify-between text-[11px] font-black text-outline uppercase tracking-widest opacity-60">
                     <span>{t('pos.orderDetail.summary_label', 'Tạm tính')}</span>
-                    <span className="tabular-nums">{(order.total + (order.discount || 0)).toLocaleString('vi-VN')}đ</span>
+                    <span className="tabular-nums">{(order.subtotal || 0).toLocaleString('vi-VN')}đ</span>
                   </div>
                   {(order.discount || 0) > 0 && (
                     <div className="flex justify-between text-[11px] text-emerald-600 font-black uppercase tracking-widest">

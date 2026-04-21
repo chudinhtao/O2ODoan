@@ -1,43 +1,20 @@
-import { useEffect, useState } from 'react';
-import { differenceInMinutes, differenceInSeconds } from 'date-fns';
 import { Clock } from 'lucide-react';
+import { useServerTime } from '@/shared/hooks/useServerTime';
 
 interface Props {
   createdAt: string;
 }
 
 export const TicketTimer = ({ createdAt }: Props) => {
-  const [elapsedString, setElapsedString] = useState('00:00');
-  const [minutes, setMinutes] = useState(0);
+  const { now } = useServerTime(1000);
+  const created = new Date(createdAt).getTime();
+  const diffSec = Math.max(0, Math.floor((now - created) / 1000));
+  const minutes = Math.floor(diffSec / 60);
+  
+  const m = Math.floor(diffSec / 60);
+  const s = diffSec % 60;
+  const elapsedString = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
-  useEffect(() => {
-    const calcTime = () => {
-      const now = new Date();
-      const created = new Date(createdAt);
-      
-      const diffSec = differenceInSeconds(now, created);
-      const diffMin = differenceInMinutes(now, created);
-      
-      if (diffSec < 0) {
-        setElapsedString('00:00');
-        setMinutes(0);
-        return;
-      }
-      
-      const m = Math.floor(diffSec / 60);
-      const s = diffSec % 60;
-      
-      setElapsedString(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-      setMinutes(diffMin);
-    };
-
-    // Calculate immediately
-    calcTime();
-    
-    // Update every second
-    const interval = setInterval(calcTime, 1000);
-    return () => clearInterval(interval);
-  }, [createdAt]);
 
   // Alert colors based on delay:
   // > 15 mins: red & pulse

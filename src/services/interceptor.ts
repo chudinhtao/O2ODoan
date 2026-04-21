@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import { timeService } from './time.service'
 import axiosRetry, { isNetworkOrIdempotentRequestError } from 'axios-retry'
 import { toast } from 'sonner'
 import { store } from '@/store'
@@ -62,8 +63,21 @@ const resolvePendingQueue = (token: string) => {
 }
 
 http.interceptors.response.use(
-  (res: AxiosResponse) => res,
+  (res: AxiosResponse) => {
+    // Tự động đồng bộ thời gian từ mọi ApiResponse
+    const serverTime = res.data?.serverTime
+    if (serverTime) {
+      timeService.sync(serverTime)
+    }
+    return res
+  },
   async (err: AxiosError) => {
+    // Ngay cả khi lỗi, nếu server vẫn trả về serverTime thì vẫn sync
+    const serverTime = (err.response?.data as any)?.serverTime
+    if (serverTime) {
+      timeService.sync(serverTime)
+    }
+
     const original = err.config as InternalAxiosRequestConfig & { _retry?: boolean }
     const status = err.response?.status
 

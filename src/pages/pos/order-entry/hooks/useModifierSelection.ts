@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { IMenuItem, IOptionGroup } from '@/pages/admin/menu/types/adminMenu.type'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 export function useModifierSelection(
   item: IMenuItem | null,
@@ -11,6 +12,7 @@ export function useModifierSelection(
   const [quantity, setQuantity] = useState(1)
   const [note, setNote] = useState('')
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({})
+  const { isExpired } = useServerTime(5000);
 
   useEffect(() => {
     if (isOpen && item) {
@@ -24,7 +26,6 @@ export function useModifierSelection(
               initialOptions[group.id!] = matchingOpts
            }
         } else {
-          // Default selection if no initial array provided
           if (group.type === 'SINGLE' && group.options.length > 0) {
             initialOptions[group.id!] = [group.options[0].id!]
           }
@@ -60,7 +61,13 @@ export function useModifierSelection(
     return total
   }, [item, selectedOptions])
 
-  const totalPrice = ((item?.basePrice ?? 0) + extraPrice) * quantity
+  // Logic giá chuẩn đồng bộ Server
+  const isSaleExpired = item?.saleEndAt ? isExpired(item.saleEndAt) : false
+  const effectiveBasePrice = (item?.salePrice && item.salePrice < item.basePrice && !isSaleExpired)
+    ? item.salePrice
+    : (item?.basePrice ?? 0);
+
+  const totalPrice = (effectiveBasePrice + extraPrice) * quantity
 
   const isValid = useMemo(() => {
     return item?.optionGroups?.filter(g => g.type === 'SINGLE' && g.isRequired).every(g => (selectedOptions[g.id!] || []).length > 0) ?? true

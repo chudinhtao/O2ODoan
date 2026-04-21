@@ -6,6 +6,12 @@ export interface ICategory {
   isActive: boolean
 }
 
+export interface ISchedule {
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+}
+
 export interface IMenuItemOption {
   id: string
   name: string
@@ -35,6 +41,8 @@ export interface IMenuItem {
   isAvailable: boolean
   isFeatured: boolean
   isActive: boolean
+  saleEndAt?: string
+  schedules?: ISchedule[]
   optionGroups?: IMenuItemOptionGroup[]
 }
 
@@ -54,12 +62,19 @@ export interface ICartItem {
   station: 'BAR' | 'KITCHEN'
   options: ICartItemOption[]
   lineTotal: number
+  hasFlashSale: boolean
+  discountPrice?: number
+  saleEndAt?: string
+  schedules?: ISchedule[]
 }
 
 export interface ICart {
   sessionToken: string
   items: ICartItem[]
   totalAmount: number
+  originalTotal: number
+  automatedDiscount: number
+  appliedPromotions: string[]
 }
 
 export interface ITicketItemOption {

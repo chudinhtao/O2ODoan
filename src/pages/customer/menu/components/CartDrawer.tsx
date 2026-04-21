@@ -99,16 +99,37 @@ export function CartDrawer({ isOpen, onClose, cart, onUpdateQuantity, onRemoveIt
             {/* Footer */}
             {cart && cart.items.length > 0 && (
               <div className="bg-white border-t border-slate-100 px-5 pt-4 pb-6 shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.07)]">
-                <div className="flex justify-between text-sm text-slate-500 mb-3">
+                <div className="flex justify-between text-sm text-slate-500 mb-2">
                   <span>{t('customer.cart.subtotal', { count: itemCount })}</span>
-                  <span className="font-semibold text-slate-700">{fmt(cart.totalAmount)}đ</span>
+                  <span className="font-semibold text-slate-700">{fmt(cart.originalTotal)}đ</span>
                 </div>
-                <div className="flex justify-between items-center mb-1">
+                
+                {cart.appliedPromotions?.length > 0 && (
+                  <div className="mb-2 space-y-1">
+                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-1.5">
+                      {t('customer.cart.appliedPromos', 'Ưu đãi đã áp dụng')}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.from(new Set(cart.appliedPromotions)).map((promo, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded-full border border-orange-100 shadow-sm">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+                          {promo}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600 pt-1.5 font-bold border-t border-green-100 mt-2">
+                      <span>{t('customer.cart.discount', 'Tổng cộng giảm')}</span>
+                      <span>-{fmt(cart.automatedDiscount)}đ</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center mb-1 border-t border-slate-50 pt-3">
                   <span className="font-bold text-slate-800">{t('customer.cart.total')}</span>
                   <span className="text-2xl font-black text-guest-primary">{fmt(cart.totalAmount)}đ</span>
                 </div>
                 <div className="text-right mb-4">
-                  <span className="text-[10px] text-slate-400 font-medium italic">(Giá đã bao gồm {fmt(Math.round(cart.totalAmount - (cart.totalAmount / 1.08)))}đ thuế VAT 8%)</span>
+                  <span className="text-[10px] text-slate-400 font-medium italic">(Giá đã bao gồm VAT)</span>
                 </div>
                 <button
                   onClick={onCheckout}

@@ -1,7 +1,7 @@
 import http from '@/services/interceptor'
 import type { IApiResponse, IPageResponse } from '@/shared/types/IApiResponse'
 import { API_ROUTES } from '@/shared/constants/API_ROUTES'
-import type { IPromotion, IPromotionForm, IFlashSaleForm } from '../types/adminPromotion.type'
+import type { IPromotion, IPromotionForm } from '../types/adminPromotion.type'
 
 class PromotionService {
   async getPromotions(
@@ -10,6 +10,13 @@ class PromotionService {
     const response = await http.get<IApiResponse<IPageResponse<IPromotion>>>(
       API_ROUTES.promotion.root,
       { params }
+    )
+    return response.data.data
+  }
+
+  async getPromotionById(id: string): Promise<IPromotion> {
+    const response = await http.get<IApiResponse<IPromotion>>(
+      API_ROUTES.promotion.byId(id)
     )
     return response.data.data
   }
@@ -30,24 +37,14 @@ class PromotionService {
     return response.data.data
   }
 
-  async createFlashSale(data: IFlashSaleForm): Promise<IPromotion> {
-    const response = await http.post<IApiResponse<IPromotion>>(
-      API_ROUTES.promotion.flashSale,
-      data
-    )
-    return response.data.data
-  }
-
   async deletePromotion(id: string): Promise<void> {
     await http.delete<IApiResponse<void>>(API_ROUTES.promotion.byId(id))
   }
 
-  async hardDeletePromotion(id: string): Promise<void> {
-    await http.delete<IApiResponse<void>>(API_ROUTES.promotion.hardDelete(id))
-  }
-
   async togglePromotionStatus(id: string): Promise<IPromotion> {
-    const response = await http.patch<IApiResponse<IPromotion>>(API_ROUTES.promotion.toggle(id))
+    const response = await http.patch<IApiResponse<IPromotion>>(
+      API_ROUTES.promotion.toggle(id)
+    )
     return response.data.data
   }
 }
