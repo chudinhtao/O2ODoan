@@ -34,8 +34,26 @@ export function SourcePieChart({ data, isLoading }: Props) {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Tooltip
-                formatter={(value: any) => [`${value.toLocaleString()} ₫`, t('admin.analytics.revenue')]}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload as ISourceReport;
+                    return (
+                      <div className="bg-white p-3 rounded-lg shadow-md border border-slate-200">
+                        <p className="font-semibold text-slate-800 mb-2">{data.source}</p>
+                        <p className="text-primary font-bold">
+                          Doanh thu: {data.revenue.toLocaleString()} ₫
+                        </p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Số đơn: <span className="font-medium text-slate-800">{data.totalOrders}</span>
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          Tỷ trọng: <span className="font-medium text-slate-800">{data.percentage ? data.percentage.toFixed(1) : 0}%</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
               <Pie
                 data={data}

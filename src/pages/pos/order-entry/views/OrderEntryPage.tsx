@@ -12,7 +12,7 @@ import { usePosCart, useAddCartItem, useUpdateCartItem, useRemoveCartItem } from
 import { usePosTables } from '@/pages/pos/table-map/hooks/usePosTables'
 import { useOrderCartLogic } from '../hooks/useOrderCartLogic'
 import { useOrderSubmitActions } from '../hooks/useOrderSubmitActions'
-import { useActiveSessionQuery } from '../hooks/useActiveSessionQuery'
+import { useActiveSessionQuery, useTakeawaySessionMutation } from '../hooks/useActiveSessionQuery'
 import { posMenuService } from '../services/posMenu.service'
 
 import { IMenuItem } from '@/pages/admin/menu/types/adminMenu.type'
@@ -37,9 +37,9 @@ export default function OrderEntryPage() {
     removeLocalItem,
     resetLocalCart
   } = useOrderCartLogic()
-
   const { data: tables } = usePosTables()
   const { data: activeSession } = useActiveSessionQuery(tableId)
+  const { mutate: createTakeawaySession } = useTakeawaySessionMutation()
   
   const [sessionToken, setSessionToken] = useState<string>(location.state?.sessionToken || '')
   const tableNumber = activeSession?.tableNumber || 0
@@ -47,16 +47,24 @@ export default function OrderEntryPage() {
   useEffect(() => {
     if (activeSession?.sessionToken) {
       setSessionToken(activeSession.sessionToken)
+    } else if ((!tableId || tableId === 'takeaway') && !sessionToken) {
+      // Auto upgrade Takeaway Local Cart to Takeaway Server Cart
+      createTakeawaySession(undefined, {
+        onSuccess: (data) => {
+           if (data?.sessionToken) {
+              setSessionToken(data.sessionToken)
+           }
+        }
+      })
     }
-  }, [activeSession])
-
+  }, [activeSession, tableId, sessionToken, createTakeawaySession])
   useEffect(() => {
     // Initialize Local Cart from location state if Takeaway
     const state = location.state as { cart?: ICart } | null
     if (state?.cart) {
       setLocalCart(state.cart)
     } else {
-      setLocalCart({ sessionToken: '', items: [], totalAmount: 0 } as ICart)
+      setLocalCart({ sessionToken: '', items: [], totalAmount: 0, originalTotal: 0, automatedDiscount: 0, appliedPromotions: [] } as ICart)
     }
   }, [location.state, setLocalCart])
 

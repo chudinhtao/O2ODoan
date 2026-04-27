@@ -1,5 +1,6 @@
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useCustomerSessionOrder, useCustomerCart } from '../../menu/hooks/useCustomerQueries'
 import { useCustomerOpenSession } from '../../menu/hooks/useCustomerMutations'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
@@ -9,8 +10,23 @@ import { useTranslation } from 'react-i18next'
 import { QrCode, AlertTriangle, Coffee } from 'lucide-react'
 import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
+import http from '@/services/interceptor'
+import { IApiResponse } from '@/shared/types/IApiResponse'
 
-const HERO_IMG = 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=1200'
+const DEFAULT_HERO = 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=1200'
+
+interface RestaurantProfile { name: string; slogan: string; bannerUrl?: string; logoUrl?: string }
+
+function useRestaurantProfile() {
+  return useQuery<RestaurantProfile>({
+    queryKey: ['restaurant-profile'],
+    queryFn: async () => {
+      const res = await http.get<IApiResponse<RestaurantProfile>>('/menu/profile')
+      return res.data.data
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
 
 export default function CustomerLandingPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -18,6 +34,11 @@ export default function CustomerLandingPage() {
   const sessionToken = searchParams.get('t')
   const navigate = useNavigate()
   const { t } = useTranslation()
+
+  const { data: profile } = useRestaurantProfile()
+  const storeName   = profile?.name      || t('customer.home.brand')
+  const storeSlogan = profile?.slogan    || t('customer.home.slogan')
+  const heroBanner  = profile?.bannerUrl || DEFAULT_HERO
 
   const openSessionMutation = useCustomerOpenSession()
   const [sessionError, setSessionError] = useState<string | null>(null)
@@ -124,7 +145,7 @@ export default function CustomerLandingPage() {
       <header className="fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100">
         <div className="flex items-center gap-2">
           <Coffee size={20} className="text-guest-primary" strokeWidth={2} />
-          <h1 className="font-black text-lg tracking-tight text-slate-900">{t('customer.home.brand')}</h1>
+          <h1 className="font-black text-lg tracking-tight text-slate-900">{storeName}</h1>
         </div>
         <div className="flex items-center gap-2">
           {tableNumber && (
@@ -141,13 +162,13 @@ export default function CustomerLandingPage() {
       <main className="max-w-md mx-auto pt-14">
         {/* ── Hero Banner ── */}
         <div className="relative h-52 w-full overflow-hidden">
-          <img src={HERO_IMG} alt="Hero" className="w-full h-full object-cover" />
+          <img src={heroBanner} alt="Hero" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-5 left-5 z-10">
             <h2 className="text-white text-3xl font-black leading-tight tracking-tight drop-shadow-md">
-              {t('customer.home.brand')}
+              {storeName}
             </h2>
-            <p className="text-white/80 text-sm font-medium mt-0.5">{t('customer.home.slogan')}</p>
+            <p className="text-white/80 text-sm font-medium mt-0.5">{storeSlogan}</p>
           </div>
           {/* "Order now" pill */}
           <button

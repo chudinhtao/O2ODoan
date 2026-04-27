@@ -43,9 +43,26 @@ export function HourlyTrafficChart({ data, isLoading }: Props) {
                 tick={{fill: '#6b7280', fontSize: 12}}
               />
               <Tooltip 
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: any, name: any) => [value, name === 'orderCount' ? t('admin.analytics.order_count') : t('admin.analytics.revenue')]}
-                labelFormatter={(label) => `${label}:00`}
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload as IHourlyTraffic;
+                    return (
+                      <div className="bg-white p-3 rounded-lg shadow-md border border-slate-200">
+                        <p className="font-semibold text-slate-800 mb-2">{label}:00</p>
+                        <p className="text-primary font-bold">
+                          Số đơn: {data.orderCount}
+                        </p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Doanh thu: <span className="font-medium text-slate-800">{data.revenue.toLocaleString()} ₫</span>
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          TB/Đơn: <span className="font-medium text-slate-800">{data.avgOrderValue ? data.avgOrderValue.toLocaleString() : 0} ₫</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
                 cursor={{fill: '#f4f4f5'}}
               />
               <Bar dataKey="orderCount" fill="#ff6933" radius={[4, 4, 0, 0]} />

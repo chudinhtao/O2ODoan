@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { TicketPercent, Edit, Trash2, Percent, Banknote, Zap, Ticket, ShoppingCart, Tag, Package, RotateCcw } from 'lucide-react'
+import { TicketPercent, Edit, Trash2, Trash, Percent, Banknote, Zap, Ticket, ShoppingCart, Tag, Package, RotateCcw } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
 import { SkeletonTable } from '@/shared/components/ui/Skeleton'
 import type { IPromotion, PromotionDiscountType, PromotionScope, PromotionTriggerType } from '../types/adminPromotion.type'
@@ -10,6 +10,7 @@ interface PromotionsTableProps {
   startIndex?: number
   onEdit: (promotion: IPromotion) => void
   onDelete: (id: string, name: string) => void
+  onHardDelete: (id: string, name: string) => void
   onToggle: (id: string) => void
 }
 
@@ -52,7 +53,7 @@ const statusBadge: Record<IPromotion['displayStatus'], { label: string; cls: str
 }
 
 export function PromotionsTable({
-  data, isLoading, startIndex = 0, onEdit, onDelete, onToggle
+  data, isLoading, startIndex = 0, onEdit, onDelete, onHardDelete, onToggle
 }: PromotionsTableProps) {
 
   if (isLoading) return <SkeletonTable rows={5} cols={9} />
@@ -177,10 +178,18 @@ export function PromotionsTable({
                         <Button
                           variant="ghost" size="icon"
                           onClick={() => onDelete(promo.id, promo.name)}
-                          className="!text-slate-400 hover:!text-red-500 hover:!bg-red-50 !p-2 !rounded-lg"
-                          title="Xóa"
+                          className="!text-slate-400 hover:!text-rose-500 hover:!bg-rose-50 !p-2 !rounded-lg"
+                          title="Tạm dừng / Xóa mềm"
                         >
                           <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => onHardDelete(promo.id, promo.name)}
+                          className="!text-slate-400 hover:!text-red-600 hover:!bg-red-100 !p-2 !rounded-lg"
+                          title="Xóa vĩnh viễn"
+                        >
+                          <Trash className="w-4 h-4 text-red-500 hover:text-red-600" />
                         </Button>
                       </div>
                     </td>

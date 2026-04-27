@@ -9,9 +9,17 @@ interface TopItemsListProps {
   data: ITopItemTarget[]
   isLoading: boolean
   isDashboard?: boolean
+  sortBy?: 'QUANTITY' | 'REVENUE'
+  onChangeSortBy?: (sort: 'QUANTITY' | 'REVENUE') => void
 }
 
-export const TopItemsList = ({ data, isLoading, isDashboard = false }: TopItemsListProps) => {
+export const TopItemsList = ({ 
+  data, 
+  isLoading, 
+  isDashboard = false,
+  sortBy = 'QUANTITY',
+  onChangeSortBy 
+}: TopItemsListProps) => {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
 
@@ -20,10 +28,29 @@ export const TopItemsList = ({ data, isLoading, isDashboard = false }: TopItemsL
 
   return (
     <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0 h-full">
-      <h3 className="text-lg font-bold text-on-surface mb-3 flex items-center gap-2">
-        <Trophy size={20} className="text-primary"/>
-        {t('admin.dashboard.top_items')}
-      </h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+          <Trophy size={20} className="text-primary"/>
+          {t('admin.dashboard.top_items')}
+        </h3>
+        
+        {!isDashboard && onChangeSortBy && (
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            <button 
+              onClick={() => onChangeSortBy('QUANTITY')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${sortBy === 'QUANTITY' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Số lượng
+            </button>
+            <button 
+              onClick={() => onChangeSortBy('REVENUE')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${sortBy === 'REVENUE' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Doanh thu
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="flex-1 w-full">
         {isLoading ? (

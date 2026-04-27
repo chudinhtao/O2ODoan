@@ -42,7 +42,8 @@
       "tables": "Bàn",
       "staff": "NV",
       "reports": "Báo cáo",
-      "orders": "Lịch sử Đơn"
+      "orders": "Lịch sử Đơn",
+      "settings": "Cài đặt"
     },
     "logout": "Đăng xuất",
     "menu": {
@@ -397,7 +398,9 @@
         "number": "Số bàn",
         "capacity": "Sức chứa",
         "qrDisable": "Vô hiệu QR",
-        "qrEmpty": "Chưa có QR"
+        "qrEmpty": "Chưa có QR",
+        "zone": "Khu vực",
+        "zonePlaceholder": "VD: Tầng 1, Ban công, VIP..."
       },
       "action": {
         "mergeTitle": "Gộp Bàn",
@@ -521,6 +524,32 @@
         "ADMIN": "Quản Lý",
         "CASHIER": "Thu Ngân",
         "KITCHEN": "Bếp"
+      }
+    },
+    "settings": {
+      "pageTitle": "Cài đặt Cửa hàng",
+      "save": "Lưu cài đặt",
+      "saveSuccess": "Đã lưu thành công!",
+      "saveError": "Lưu thất bại, thử lại sau!",
+      "brand": {
+        "sectionTitle": "Thương hiệu",
+        "nameLabel": "Tên cửa hàng *",
+        "namePlaceholder": "Vd: Ngọc Mai F&B",
+        "sloganLabel": "Khẩu hiệu (Slogan)",
+        "sloganPlaceholder": "Vd: Tinh hoa ẩm thực Việt"
+      },
+      "contact": {
+        "sectionTitle": "Liên hệ",
+        "addressLabel": "Địa chỉ",
+        "addressPlaceholder": "123 Đường Ẩm Thực, TP. HCM",
+        "phoneLabel": "Số điện thoại Hotline",
+        "phonePlaceholder": "0901234567"
+      },
+      "media": {
+        "logoTitle": "Logo",
+        "logoHint": "Ảnh vuông · hiển thị Header",
+        "bannerTitle": "Ảnh bìa (Banner)",
+        "bannerHint": "16:9 · 1200px+"
       }
     }
   },

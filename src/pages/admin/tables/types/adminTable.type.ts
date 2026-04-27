@@ -1,10 +1,11 @@
-export type TableStatus = 'FREE' | 'OCCUPIED' | 'PAYMENT_REQUESTED' | 'CLEANING'
+export type TableStatus = 'FREE' | 'OCCUPIED' | 'PAYMENT_REQUESTED' | 'CLEANING' | 'MERGED'
 
 export const TABLE_STATUS = {
   FREE: 'FREE',
   OCCUPIED: 'OCCUPIED',
   PAYMENT_REQUESTED: 'PAYMENT_REQUESTED',
   CLEANING: 'CLEANING',
+  MERGED: 'MERGED',
 } as const
 
 export interface ITable {
@@ -15,6 +16,7 @@ export interface ITable {
   capacity: number
   qrUrl: string | null
   active: boolean
+  zone: string | null
 }
 
 export interface IPosTable {
@@ -27,12 +29,15 @@ export interface IPosTable {
   currentSessionToken: string | null
   totalAmount: number
   openedAt?: string
+  parentTableId?: string | null
+  parentTableNumber?: number | null
 }
 
 export interface ITableForm {
   number: number
   name: string
   capacity: number
+  zone: string
 }
 
 export interface ITableActionForm {

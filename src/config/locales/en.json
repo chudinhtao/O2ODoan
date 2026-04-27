@@ -42,7 +42,8 @@
       "tables": "Tables",
       "staff": "Staff",
       "orders": "Orders",
-      "reports": "Reports"
+      "reports": "Reports",
+      "settings": "Settings"
     },
     "logout": "Logout",
     "menu": {
@@ -390,6 +391,8 @@
         "qrCurrent": "Current QR Code",
         "qrDisable": "Disable QR",
         "qrEmpty": "No QR Yet",
+        "zone": "Zone / Area",
+        "zonePlaceholder": "e.g. Floor 1, Balcony, VIP...",
         "qrDownload": "Download QR",
         "qrRegenerate": "Regenerate QR"
       },
@@ -536,6 +539,32 @@
         "reasonPlaceholder": "Customer changed mind, Wrong input...",
         "confirm": "Proceed to Cancel",
         "cancel": "Go Back"
+      }
+    },
+    "settings": {
+      "pageTitle": "Store Settings",
+      "save": "Save Settings",
+      "saveSuccess": "Saved successfully!",
+      "saveError": "Failed to save, please try again!",
+      "brand": {
+        "sectionTitle": "Brand",
+        "nameLabel": "Store Name *",
+        "namePlaceholder": "e.g. Ngoc Mai F&B",
+        "sloganLabel": "Slogan",
+        "sloganPlaceholder": "e.g. The essence of Vietnamese cuisine"
+      },
+      "contact": {
+        "sectionTitle": "Contact",
+        "addressLabel": "Address",
+        "addressPlaceholder": "123 Food Street, Ho Chi Minh City",
+        "phoneLabel": "Hotline",
+        "phonePlaceholder": "0901234567"
+      },
+      "media": {
+        "logoTitle": "Logo",
+        "logoHint": "Square image · shown in Header",
+        "bannerTitle": "Banner Image",
+        "bannerHint": "16:9 · min 1200px"
       }
     }
   },

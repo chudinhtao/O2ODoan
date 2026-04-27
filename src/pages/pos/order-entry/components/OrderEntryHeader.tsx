@@ -65,14 +65,22 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
 
   return (
     <header className="h-18 shrink-0 border-b border-outline-variant flex items-center px-6 bg-surface-bright shadow-sm z-10">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate(tableId && tableId !== 'takeaway' ? `/pos/orders/${tableId}` : '/pos/tables')}
-        className="mr-4 text-outline hover:bg-surface-variant"
-      >
-        <ArrowLeft className="size-5" />
-      </Button>
+      {tableId && tableId !== 'takeaway' && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1)
+            } else {
+              navigate('/pos/tables')
+            }
+          }}
+          className="mr-4 text-outline hover:bg-surface-variant"
+        >
+          <ArrowLeft className="size-5" />
+        </Button>
+      )}
       
       <div className="flex-1 flex items-center gap-4 border-none">
         <div className="flex items-center gap-3">

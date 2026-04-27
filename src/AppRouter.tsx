@@ -25,6 +25,7 @@ const AdminTables       = lazy(() => import('@/pages/admin/tables/views/TablesMa
 const AdminStaff        = lazy(() => import('@/pages/admin/staff/views/StaffManagementPage'))
 const AdminReports      = lazy(() => import('@/pages/admin/reports/views/ReportsManagementPage'))
 const AdminOrders       = lazy(() => import('@/pages/admin/orders/views/OrdersManagementPage'))
+const AdminSettings     = lazy(() => import('@/pages/admin/settings/views/SettingsPage'))
 const CustomerHomePage  = lazy(() => import('@/pages/customer/landing/views/HomePage'))
 const CustomerMenuPage  = lazy(() => import('@/pages/customer/menu/views/MenuPage'))
 const CustomerTrackingPage = lazy(() => import('@/pages/customer/tracking/views/OrderTrackingPage'))
@@ -82,6 +83,7 @@ export function AppRouter() {
               <Route path={ROUTES.admin.staff}     element={<AdminStaff />} />
               <Route path={ROUTES.admin.reports}   element={<AdminReports />} />
               <Route path={ROUTES.admin.orders}    element={<AdminOrders />} />
+              <Route path={ROUTES.admin.settings}  element={<AdminSettings />} />
             </Route>
           </Route>
 

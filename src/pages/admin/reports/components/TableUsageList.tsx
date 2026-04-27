@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useTranslation, Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Armchair } from 'lucide-react'
+import { Armchair, Users, Clock } from 'lucide-react'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import type { ITableUsage } from '../types/report.type'
 
@@ -37,20 +37,28 @@ export const TableUsageList = ({ data, isLoading, isDashboard = false }: TableUs
         ) : (
           <ul className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
             {displayData.map((item: ITableUsage, index: number) => (
-              <li key={item.tableNumber || index} className="flex items-center justify-between gap-2 overflow-hidden bg-surface p-3 rounded-xl border border-primary/5">
-                <div className="flex flex-col min-w-0">
-                  <span className="font-semibold text-on-surface truncate" title={item.tableName}>
-                    {index + 1}. {item.tableName}
-                  </span>
-                  <span className="text-xs text-on-surface/50">
-                     <Trans i18nKey="admin.dashboard.sessions_count" values={{ count: item.sessionsCount }}>
-                       {{count: item.sessionsCount}} lượt khách
-                     </Trans>
+              <li key={item.tableNumber || index} className="flex flex-col gap-2 overflow-hidden bg-surface p-3 rounded-xl border border-primary/5 hover:border-primary/20 transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-on-surface truncate" title={item.tableName}>
+                      {index + 1}. {item.tableName} {item.zone ? `(${item.zone})` : ''}
+                    </span>
+                    <span className="text-xs text-on-surface/50 flex items-center gap-1 mt-0.5">
+                       <Users size={12} />
+                       {item.capacity ? `${item.capacity} chỗ` : 'Không rõ'} • {item.sessionsCount} lượt khách
+                    </span>
+                  </div>
+                  <span className="font-bold text-primary flex-shrink-0 text-right">
+                    {item.totalRevenue.toLocaleString()} ₫
                   </span>
                 </div>
-                <span className="font-bold text-primary flex-shrink-0">
-                  {item.totalRevenue.toLocaleString()} ₫
-                </span>
+                
+                {item.avgSessionMinutes && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 p-1.5 rounded-md mt-1 w-max">
+                    <Clock size={12} className="text-orange-500" />
+                    <span>TB/lượt: <b>{Math.round(item.avgSessionMinutes)}</b> phút</span>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

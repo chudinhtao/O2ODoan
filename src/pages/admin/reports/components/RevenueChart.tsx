@@ -67,9 +67,26 @@ export function RevenueChart({ data, isLoading, totalRevenue }: Props) {
                 width={60}
               />
               <Tooltip
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: any) => [`${value.toLocaleString()} ₫`, t('admin.analytics.revenue')]}
-                labelFormatter={(label) => format(new Date(label), 'dd/MM/yyyy')}
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload as IRevenueReport;
+                    return (
+                      <div className="bg-white p-3 rounded-lg shadow-md border border-slate-200">
+                        <p className="font-semibold text-slate-800 mb-2">{label ? format(new Date(label as string | number), 'dd/MM/yyyy') : ''}</p>
+                        <p className="text-primary font-bold">
+                          Doanh thu: {data.revenue.toLocaleString()} ₫
+                        </p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Số đơn: <span className="font-medium text-slate-800">{data.totalOrders}</span>
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          TB/Đơn: <span className="font-medium text-slate-800">{data.avgOrderValue ? data.avgOrderValue.toLocaleString() : 0} ₫</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
                 cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
               />
               <Line

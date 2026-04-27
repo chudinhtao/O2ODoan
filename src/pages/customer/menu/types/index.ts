@@ -41,6 +41,7 @@ export interface IMenuItem {
   isAvailable: boolean
   isFeatured: boolean
   isActive: boolean
+  saleStartAt?: string
   saleEndAt?: string
   schedules?: ISchedule[]
   optionGroups?: IMenuItemOptionGroup[]

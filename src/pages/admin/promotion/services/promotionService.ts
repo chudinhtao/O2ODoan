@@ -41,6 +41,10 @@ class PromotionService {
     await http.delete<IApiResponse<void>>(API_ROUTES.promotion.byId(id))
   }
 
+  async hardDeletePromotion(id: string): Promise<void> {
+    await http.delete<IApiResponse<void>>(API_ROUTES.promotion.hardDelete(id))
+  }
+
   async togglePromotionStatus(id: string): Promise<IPromotion> {
     const response = await http.patch<IApiResponse<IPromotion>>(
       API_ROUTES.promotion.toggle(id)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -22,55 +22,64 @@ interface PromotionFormModalProps {
   editingPromo: IPromotion | null
 }
 
-const optNum = z.union([z.number(), z.string(), z.undefined(), z.null()])
-  .transform(v => (v === '' || v === null || v === undefined || Number.isNaN(Number(v)) ? undefined : Number(v)))
-  .refine(v => v === undefined || v >= 0, { message: 'Giá trị phải >= 0' })
+import { useTranslation } from 'react-i18next'
 
-const promotionSchema = z.object({
-  name: z.string().min(1, 'Tên không được để trống'),
-  code: z.string().optional(),
-  scope: z.enum(['PRODUCT', 'ORDER', 'BUNDLE']),
-  triggerType: z.enum(['AUTO', 'COUPON']),
-  discountType: z.enum(['PERCENT', 'FIX_AMOUNT', 'FIX_PRICE']),
-  discountValue: optNum,
-  maxDiscount: optNum.optional(),
-  usageLimit: optNum.optional(),
-  priority: z.coerce.number().min(0).default(0),
-  startAt: z.string().optional(),
-  endAt: z.string().optional(),
-  stackable: z.boolean().default(false),
-  // Mở rộng schema
-  minOrderAmount: optNum.optional(),
-  targetType: z.enum(['GLOBAL', 'CATEGORY', 'ITEM']).default('GLOBAL'),
-  targetId: z.string().nullable().optional(),
-  bundleItems: z.array(z.object({
-    itemId: z.string().min(1, 'Bắt buộc chọn món'),
-    quantity: z.coerce.number().min(1, 'SL > 0'),
-    role: z.enum(['BUY', 'GET'])
-  })).default([]),
-  schedules: z.array(z.object({
-    days: z.array(z.number()).min(1, 'Chọn ít nhất 1 ngày'),
-    startTime: z.string().min(1, 'Giờ bắt đầu'),
-    endTime: z.string().min(1, 'Giờ kết thúc')
-  })).default([]),
-}).refine(data => {
-  if (data.triggerType === 'COUPON' && (!data.code || data.code.trim() === '')) return false
-  return true
-}, { message: 'Cần nhập mã coupon khi chọn Trigger = Mã coupon', path: ['code'] })
-  .refine(data => {
-    if (data.discountType === 'PERCENT' && data.discountValue != null && data.discountValue > 100) return false
-    return true
-  }, { message: 'Giảm theo % không được vượt quá 100', path: ['discountValue'] })
-  .refine(data => {
-    if (data.scope === 'BUNDLE' && data.bundleItems.length === 0) return false
-    return true
-  }, { message: 'CTKM Combo yêu cầu ít nhất 1 món điều kiện', path: ['bundleItems'] })
-  .refine(data => {
-    if (data.startAt && data.endAt && new Date(data.startAt) > new Date(data.endAt)) return false
-    return true
-  }, { message: 'Ngày bắt đầu phải trước ngày kết thúc', path: ['endAt'] })
+const createPromotionSchema = (t: any) => {
+  const optNum = z.union([z.number(), z.string(), z.undefined(), z.null()])
+    .transform(v => (v === '' || v === null || v === undefined || Number.isNaN(Number(v)) ? undefined : Number(v)))
+    .refine(v => v === undefined || v >= 0, { message: t('admin.promotion.validation.positiveNumber', 'Giá trị phải >= 0') })
 
-type FormValues = z.infer<typeof promotionSchema>
+  return z.object({
+    name: z.string().min(1, t('admin.promotion.validation.requiredName', 'Tên không được để trống')),
+    code: z.string().optional(),
+    scope: z.enum(['PRODUCT', 'ORDER', 'BUNDLE'], {
+      message: t('admin.promotion.validation.invalidScope', 'Scope phải là PRODUCT, ORDER hoặc BUNDLE')
+    }),
+    triggerType: z.enum(['AUTO', 'COUPON'], {
+      message: t('admin.promotion.validation.invalidTriggerType', 'triggerType phải là AUTO hoặc COUPON')
+    }),
+    discountType: z.enum(['PERCENT', 'FIX_AMOUNT', 'FIX_PRICE'], {
+      message: t('admin.promotion.validation.invalidDiscountType', 'Loại giảm giá không hợp lệ')
+    }),
+    discountValue: optNum.refine((v) => v !== undefined, { message: t('admin.promotion.validation.greaterThanZero', 'Bắt buộc nhập số') }),
+    maxDiscount: optNum.optional(),
+    usageLimit: optNum.optional(),
+    priority: z.coerce.number().min(0, t('admin.promotion.validation.positiveNumber', 'Phải >= 0')).default(0),
+    startAt: z.string().optional(),
+    endAt: z.string().optional(),
+    stackable: z.boolean().default(false),
+    minOrderAmount: optNum.optional(),
+    targetType: z.enum(['GLOBAL', 'CATEGORY', 'ITEM']).default('GLOBAL'),
+    targetId: z.string().nullable().optional(),
+    bundleItems: z.array(z.object({
+      itemId: z.string().min(1, t('admin.promotion.validation.requiredItem', 'Bắt buộc chọn món')),
+      quantity: z.coerce.number().min(1, t('admin.promotion.validation.greaterThanZero', 'SL > 0')),
+      role: z.enum(['BUY', 'GET'])
+    })).default([]),
+    schedules: z.array(z.object({
+      days: z.array(z.number()).min(1, t('admin.promotion.validation.requiredDays', 'Chọn ít nhất 1 ngày')),
+      startTime: z.string().min(1, t('admin.promotion.validation.requiredStart', 'Giờ bắt đầu')),
+      endTime: z.string().min(1, t('admin.promotion.validation.requiredEnd', 'Giờ kết thúc'))
+    })).default([]),
+  }).refine(data => {
+    if (data.triggerType === 'COUPON' && (!data.code || data.code.trim() === '')) return false
+    return true
+  }, { message: t('admin.promotion.validation.requiredCodeForCoupon', 'Cần nhập mã coupon khi chọn Trigger = Mã coupon'), path: ['code'] })
+    .refine(data => {
+      if (data.discountType === 'PERCENT' && data.discountValue != null && data.discountValue > 100) return false
+      return true
+    }, { message: t('admin.promotion.validation.percentMax', 'Giảm theo % không được vượt quá 100'), path: ['discountValue'] })
+    .refine(data => {
+      if (data.scope === 'BUNDLE' && data.bundleItems.length === 0) return false
+      return true
+    }, { message: t('admin.promotion.validation.bundleRequired', 'CTKM Combo yêu cầu ít nhất 1 món điều kiện'), path: ['bundleItems'] })
+    .refine(data => {
+      if (data.startAt && data.endAt && new Date(data.startAt) > new Date(data.endAt)) return false
+      return true
+    }, { message: t('admin.promotion.validation.endAfterStart', 'Ngày bắt đầu phải trước ngày kết thúc'), path: ['endAt'] })
+}
+
+type FormValues = z.infer<ReturnType<typeof createPromotionSchema>>
 
 const getInitialDefaults = () => {
   const serverNow = timeService.getNow()
@@ -96,6 +105,7 @@ const getInitialDefaults = () => {
 }
 
 export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionFormModalProps) {
+  const { t } = useTranslation()
   const createMutation = useCreatePromotion()
   const updateMutation = useUpdatePromotion()
   const [activeTab, setActiveTab] = useState<'basic' | 'schedule'>('basic')
@@ -106,6 +116,8 @@ export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionF
   const categories = catData?.content || []
   const menuItems = itemData?.content || []
 
+  const schemaResolver = useMemo(() => zodResolver(createPromotionSchema(t)), [t])
+
   const {
     register,
     handleSubmit,
@@ -115,9 +127,12 @@ export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionF
     control,
     formState: { errors }
   } = useForm<FormValues>({
-    resolver: zodResolver(promotionSchema) as any,
+    resolver: schemaResolver as any,
     defaultValues: getInitialDefaults()
   })
+
+  // Watch trước mọi side-effects (Rules of Hooks)
+  const watchedDiscountType = watch('discountType')
 
   const { now } = useServerTime(30000) // Update clock every 30s
   const serverTimeStr = format(new Date(now), 'HH:mm dd/MM/yyyy')
@@ -172,6 +187,13 @@ export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionF
     }
   }, [isOpen, editingPromo, reset])
 
+  // Clear maxDiscount khi đổi sang type không phải PERCENT
+  useEffect(() => {
+    if (watchedDiscountType && watchedDiscountType !== 'PERCENT') {
+      setValue('maxDiscount', undefined)
+    }
+  }, [watchedDiscountType, setValue])
+
   const onSubmit = (data: FormValues) => {
     // Map về IPromotionForm schema của API Backend
     const payload: IPromotionForm = {
@@ -207,6 +229,9 @@ export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionF
 
   const onError = (errors: any) => {
     console.error('Validation Errors:', errors)
+    import('sonner').then(({ toast }) => {
+      toast.error(t('admin.promotion.validation.formInvalid', 'Vui lòng kiểm tra lại các trường báo lỗi đỏ!'))
+    })
   }
 
   if (!isOpen) return null
@@ -214,7 +239,7 @@ export function PromotionFormModal({ isOpen, onClose, editingPromo }: PromotionF
   const isSubmitting = createMutation.isPending || updateMutation.isPending
   const currentScope = watch('scope')
   const currentTrigger = watch('triggerType')
-  const currentDiscountType = watch('discountType')
+  const currentDiscountType = watchedDiscountType
   const isStackable = watch('stackable')
 
   const scopeOptions: { value: PromotionScope; icon: typeof Tag; color: string }[] = [

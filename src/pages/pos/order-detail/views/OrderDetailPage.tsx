@@ -111,7 +111,13 @@ export default function OrderDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(tableId ? `/pos/orders/new/${tableId}` : ROUTES.pos.tables)}
+            onClick={() => {
+              if (window.history.length > 2) {
+                navigate(-1)
+              } else {
+                navigate(ROUTES.pos.tables)
+              }
+            }}
             className="size-8 rounded-lg hover:bg-surface-variant transition-colors"
           >
             <ArrowLeft className="size-4 text-on-surface-variant" />

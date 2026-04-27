@@ -12,9 +12,6 @@ interface PosTableCardProps {
   onTransfer: (id: string) => void
   onMerge: (id: string) => void
 }
-
-import { useServerTime } from '@/shared/hooks/useServerTime'
-
 export function PosTableCard({
   table,
   onOpenSession,
@@ -25,7 +22,6 @@ export function PosTableCard({
   onMerge
 }: PosTableCardProps) {
   const { t } = useTranslation()
-  const { getRemaining } = useServerTime(60000) // Update every minute
 
   const getElapsedTime = (openedAt?: string) => {
     if (!openedAt) return '--'
@@ -59,6 +55,32 @@ export function PosTableCard({
             {t('pos.table.action.open', 'Mở bàn')}
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  if (table.status === 'MERGED') {
+    return (
+      <div className="bg-[#F3E8FF] border-2 border-[#A855F7] rounded-2xl p-6 flex flex-col justify-between min-h-[220px] shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#A855F7]"></div>
+        <div className="flex justify-between items-start">
+          <h3 className="text-4xl font-black font-headline text-[#A855F7]/80 group-hover:text-[#A855F7] transition-colors">{table.number}</h3>
+          <span className="bg-[#A855F7] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
+            <Link className="size-3" /> {t('pos.table.status.merged', 'Đã ghép')}
+          </span>
+        </div>
+        <div className="text-center py-4 mt-auto">
+          <p className="text-[#A855F7] font-bold text-sm bg-white/60 p-2 rounded-lg border border-[#A855F7]/20 flex items-center justify-center gap-2">
+            🔗 {t('pos.table.status.mergedWith', 'Đang gộp vào Bàn')} {table.parentTableNumber}
+          </p>
+        </div>
+        <Button 
+          variant="primary"
+          onClick={(e: React.MouseEvent) => { e.stopPropagation(); if(table.parentTableId) onViewOrder(table.parentTableId) }}
+          className="w-full bg-[#A855F7] text-white py-3 rounded-xl font-bold text-sm hover:brightness-110 transition-all font-body tracking-wider shadow-lg shadow-[#A855F7]/30"
+        >
+          {t('pos.table.action.viewParent', 'Xem Bàn Gốc')}
+        </Button>
       </div>
     )
   }

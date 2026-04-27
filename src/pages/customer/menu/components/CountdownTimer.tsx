@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Clock } from 'lucide-react'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 interface CountdownTimerProps {
   endDate: string
@@ -8,10 +9,8 @@ interface CountdownTimerProps {
   className?: string
 }
 
-import { useServerTime } from '@/shared/hooks/useServerTime'
-
 export function CountdownTimer({ endDate, onExpire, showIcon = true, className = "" }: CountdownTimerProps) {
-  const { now, getRemaining } = useServerTime(1000)
+  const { getRemaining } = useServerTime(1000)
   const difference = getRemaining(endDate)
   
   const hours = Math.floor(difference / (1000 * 60 * 60))

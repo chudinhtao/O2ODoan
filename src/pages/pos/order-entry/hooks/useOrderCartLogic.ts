@@ -6,7 +6,10 @@ export function useOrderCartLogic() {
   const [localCart, setLocalCart] = useState<ICart>({
     sessionToken: '',
     items: [],
-    totalAmount: 0
+    totalAmount: 0,
+    originalTotal: 0,
+    automatedDiscount: 0,
+    appliedPromotions: []
   })
 
   // Function to add item to local cart
@@ -42,6 +45,9 @@ export function useOrderCartLogic() {
         return {
           ...prev,
           totalAmount: prev.totalAmount + itemTotal,
+          originalTotal: prev.originalTotal + itemTotal,
+          automatedDiscount: 0,
+          appliedPromotions: [],
           items: newItems
         };
       }
@@ -60,6 +66,9 @@ export function useOrderCartLogic() {
       return {
         ...prev,
         totalAmount: prev.totalAmount + itemTotal,
+        originalTotal: prev.originalTotal + itemTotal,
+        automatedDiscount: 0,
+        appliedPromotions: [],
         items: [...newItems, newItem]
       }
     })
@@ -76,13 +85,19 @@ export function useOrderCartLogic() {
         return {
           ...prev,
           items: prev.items.filter(i => i.cartItemId !== cartItemId),
-          totalAmount: prev.totalAmount - item.lineTotal
+          totalAmount: prev.totalAmount - item.lineTotal,
+          originalTotal: prev.originalTotal - item.lineTotal,
+          automatedDiscount: 0,
+          appliedPromotions: []
         }
       }
       return {
         ...prev,
         items: prev.items.map(i => i.cartItemId === cartItemId ? { ...i, quantity: newQty, lineTotal: newQty * unitPrice } : i),
-        totalAmount: prev.totalAmount - (item.lineTotal) + (newQty * unitPrice)
+        totalAmount: prev.totalAmount - (item.lineTotal) + (newQty * unitPrice),
+        originalTotal: prev.originalTotal - (item.lineTotal) + (newQty * unitPrice),
+        automatedDiscount: 0,
+        appliedPromotions: []
       }
     })
   }, [])
@@ -95,13 +110,16 @@ export function useOrderCartLogic() {
       return {
         ...prev,
         items: prev.items.filter(it => it.cartItemId !== cartItemId),
-        totalAmount: prev.totalAmount - item.lineTotal
+        totalAmount: prev.totalAmount - item.lineTotal,
+        originalTotal: prev.originalTotal - item.lineTotal,
+        automatedDiscount: 0,
+        appliedPromotions: []
       }
     })
   }, [])
   
   const resetLocalCart = useCallback(() => {
-    setLocalCart({ sessionToken: '', items: [], totalAmount: 0 })
+    setLocalCart({ sessionToken: '', items: [], totalAmount: 0, originalTotal: 0, automatedDiscount: 0, appliedPromotions: [] })
   }, [])
 
   return {

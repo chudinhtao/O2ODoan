@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import http from '@/services/interceptor'
 import { IApiResponse } from '@/shared/types/IApiResponse'
 
@@ -15,5 +15,14 @@ export function useActiveSessionQuery(tableId?: string) {
       return res.data.data
     },
     enabled: !!tableId && tableId !== 'takeaway',
+  })
+}
+
+export function useTakeawaySessionMutation() {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await http.post<IApiResponse<ActiveSessionData>>('/sessions/open/takeaway')
+      return res.data.data
+    }
   })
 }

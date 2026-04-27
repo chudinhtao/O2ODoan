@@ -18,6 +18,7 @@ const tableSchema = z.object({
   name: z.string().max(50, 'admin.tables.validation.maxName'),
   capacity: z.union([z.number(), z.nan().transform(() => 0)])
     .pipe(z.number().min(1, 'admin.tables.validation.minCapacity').max(100)),
+  zone: z.string().max(50),
 })
 
 type TableFormSchema = z.infer<typeof tableSchema>
@@ -28,7 +29,7 @@ interface TableFormModalProps {
   editingTable: ITable | null
 }
 
-const defaultValues: ITableForm = { number: 1, name: '', capacity: 4 }
+const defaultValues = { number: 1, name: '', capacity: 4, zone: '' }
 
 export function TableFormModal({ isOpen, onClose, editingTable }: TableFormModalProps) {
   const { t } = useTranslation()
@@ -46,13 +47,13 @@ export function TableFormModal({ isOpen, onClose, editingTable }: TableFormModal
   useEffect(() => {
     if (!isOpen) return
     reset(editingTable
-      ? { number: editingTable.number, name: editingTable.name ?? '', capacity: editingTable.capacity }
+      ? { number: editingTable.number, name: editingTable.name ?? '', capacity: editingTable.capacity, zone: editingTable.zone ?? '' }
       : defaultValues
     )
   }, [isOpen, editingTable, reset])
 
   const onSubmit = (data: TableFormSchema) => {
-    const payload: ITableForm = { ...data }
+    const payload: ITableForm = { ...data, zone: data.zone ?? '' }
     if (editingTable) {
       updateMutation.mutate({ id: editingTable.id, data: payload }, { onSuccess: onClose })
     } else {
@@ -124,6 +125,13 @@ export function TableFormModal({ isOpen, onClose, editingTable }: TableFormModal
                   className="!py-3"
                 />
               </div>
+
+              <Input
+                label={t('admin.tables.drawer.zone', 'Khu vực')}
+                {...register('zone')}
+                placeholder={t('admin.tables.drawer.zonePlaceholder', 'VD: Tầng 1, Ban công, VIP...')}
+                className="!py-3"
+              />
 
               <div className="pt-8 flex gap-3">
                 <Button type="button" isLoading={isSubmitting} onClick={handleSubmit(onSubmit)} className="flex-1 !rounded-2xl !py-3.5 !text-base bg-primary hover:bg-primary/90 text-white font-bold shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5 active:translate-y-0">

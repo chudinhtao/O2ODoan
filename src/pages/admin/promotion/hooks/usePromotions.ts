@@ -75,6 +75,22 @@ export const useDeletePromotion = () => {
   })
 }
 
+export const useHardDeletePromotion = () => {
+  const queryClient = useQueryClient()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: (id: string) => adminPromotionService.hardDeletePromotion(id),
+    onSuccess: () => {
+      toast.success(t('admin.promotion.hardDeleteSuccess', 'Đã xóa vĩnh viễn khuyến mãi thành công!'))
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
+    },
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, t('common.error')))
+    }
+  })
+}
+
 export const useTogglePromotionStatus = () => {
   const queryClient = useQueryClient()
   const { t } = useTranslation()

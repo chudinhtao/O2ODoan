@@ -44,6 +44,30 @@ export const useServerTime = (refreshMs: number = 1000) => {
         const end = s.endTime.length === 5 ? `${s.endTime}:59` : s.endTime;
         return currentTime >= start && currentTime <= end;
       });
+    },
+    // Trả về thời gian kết thúc của Schedule đang active (nếu có)
+    getActiveScheduleEndTime: (schedules?: any[]): Date | null => {
+      if (!schedules || schedules.length === 0) return null;
+      const d = new Date(now);
+      const day = d.getDay();
+      const currentTime = d.getHours().toString().padStart(2, '0') + ':' + 
+                          d.getMinutes().toString().padStart(2, '0') + ':' + 
+                          d.getSeconds().toString().padStart(2, '0');
+      
+      const activeSchedule = schedules.find(s => {
+        if (s.dayOfWeek !== day) return false;
+        const start = s.startTime.length === 5 ? `${s.startTime}:00` : s.startTime;
+        const end = s.endTime.length === 5 ? `${s.endTime}:59` : s.endTime;
+        return currentTime >= start && currentTime <= end;
+      });
+
+      if (activeSchedule) {
+         const dEnd = new Date(now);
+         const parts = activeSchedule.endTime.split(':');
+         dEnd.setHours(parseInt(parts[0]), parseInt(parts[1]), parts.length > 2 ? parseInt(parts[2]) : 59, 999);
+         return dEnd;
+      }
+      return null;
     }
   };
 };

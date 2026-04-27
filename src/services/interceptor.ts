@@ -13,7 +13,7 @@ const http = axios.create({
   baseURL: ENV.VITE_API_BASE_URL,
   timeout: ENV.VITE_API_TIMEOUT_MS,
   withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json; charset=utf-8' },
 })
 
 // === CƠ CHẾ TÁI THỬ CHỈ DÀNH CHO GET (axios-retry) ===

@@ -20,6 +20,7 @@ export const ROUTES = {
     staff:      '/admin/staff',
     reports:    '/admin/reports',
     orders:     '/admin/orders',
+    settings:   '/admin/settings',
   },
   customer: {
     root:    '/',

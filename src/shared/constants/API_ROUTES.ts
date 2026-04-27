@@ -58,12 +58,16 @@ export const API_ROUTES = {
     transfer:  `${BASE}tables/transfer`,
   },
   report: {
-    revenue:      `${BASE}reports/revenue`,
-    topItems:     `${BASE}reports/top-items`,
-    bySource:     `${BASE}reports/by-source`,
-    byHour:       `${BASE}reports/by-hour`,
-    tables:       `${BASE}reports/tables`,
-    cashierShift: `${BASE}reports/cashier-shift`
+    revenue:                `${BASE}reports/revenue`,
+    topItems:               `${BASE}reports/top-items`,
+    bySource:               `${BASE}reports/by-source`,
+    byHour:                 `${BASE}reports/by-hour`,
+    tables:                 `${BASE}reports/tables`,
+    cashierShift:           `${BASE}reports/cashier-shift`,
+    promotionEffectiveness: `${BASE}reports/promotion-effectiveness`,
+    staffCalls:             `${BASE}reports/staff-calls`,
+    kitchenPerformance:     `${BASE}reports/kitchen-performance`,     // 1.4: mới
+    cancelledDrilldown:     `${BASE}reports/cancelled-drilldown`,     // 1.4: mới
   },
   promotion: {
     root:      `${BASE}admin/promotions`,
@@ -77,5 +81,9 @@ export const API_ROUTES = {
     root:   `${BASE}admin/staff`,
     byId:   (id: string) => `${BASE}admin/staff/${id}`,
     toggle: (id: string) => `${BASE}admin/staff/${id}/toggle`,
+  },
+  ai: {
+    customerChat: `${BASE}customer/ai/chat`,
+    adminChat:    `${BASE}admin/ai/chat`, // Admin AI Agent
   },
 } as const

@@ -1,6 +1,7 @@
 import { IMenuItem } from '../types'
 import { CountdownTimer } from './CountdownTimer'
 import { useServerTime } from '@/shared/hooks/useServerTime'
+import { UtensilsCrossed, Flame, Plus } from 'lucide-react'
 
 interface MenuItemCardProps {
   item: IMenuItem
@@ -12,10 +13,11 @@ const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
 // ─── Vertical (Featured) Card ──────────────────────────────────────────────
 function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
-  const { isExpired, isScheduleActive } = useServerTime(10000) // 10s check 1 lần cho danh sách để tối ưu
+  const { isExpired, isScheduleActive, getActiveScheduleEndTime } = useServerTime(10000) // 10s check 1 lần cho danh sách để tối ưu
   
   const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
   const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  const activeScheduleEnd = getActiveScheduleEndTime(item.schedules)
   
   const hasDiscount = !!(
     item.salePrice && 
@@ -25,6 +27,8 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
   )
   const discountPct = hasDiscount ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100) : 0
   const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
+  
+  const countdownEndDate = activeScheduleEnd ? activeScheduleEnd.toISOString() : item.saleEndAt
 
   return (
     <div
@@ -57,8 +61,8 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
               </span>
             )}
           </div>
-          {hasDiscount && item.saleEndAt && (
-            <CountdownTimer endDate={item.saleEndAt} />
+          {hasDiscount && countdownEndDate && (
+            <CountdownTimer endDate={countdownEndDate} />
           )}
           {!item.isAvailable && (
             <span className="bg-slate-800/80 backdrop-blur-sm text-white text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -95,10 +99,11 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
 
 // ─── Horizontal (Regular) Card ─────────────────────────────────────────────
 function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
-  const { isExpired, isScheduleActive } = useServerTime(10000)
+  const { isExpired, isScheduleActive, getActiveScheduleEndTime } = useServerTime(10000)
   
   const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
   const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  const activeScheduleEnd = getActiveScheduleEndTime(item.schedules)
   
   const hasDiscount = !!(
     item.salePrice && 
@@ -108,6 +113,8 @@ function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem
   )
   const discountPct = hasDiscount ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100) : 0
   const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
+  
+  const countdownEndDate = activeScheduleEnd ? activeScheduleEnd.toISOString() : item.saleEndAt
 
   return (
     <div
@@ -148,8 +155,8 @@ function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem
               <span className={`font-black text-[15px] ${!item.isAvailable ? 'text-slate-300' : 'text-guest-primary'}`}>{fmt(displayPrice)}đ</span>
               {hasDiscount && <span className="text-[10px] text-slate-400 line-through">{fmt(item.basePrice)}đ</span>}
             </div>
-            {hasDiscount && item.saleEndAt && (
-              <CountdownTimer endDate={item.saleEndAt} className="!bg-orange-500/10 !text-orange-600 !border-orange-200" />
+            {hasDiscount && countdownEndDate && (
+              <CountdownTimer endDate={countdownEndDate} className="!bg-orange-500/10 !text-orange-600 !border-orange-200" />
             )}
           </div>
           {!item.isAvailable ? (

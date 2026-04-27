@@ -26,16 +26,18 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
 
   const prepareSession = async (): Promise<string | null> => {
     if (sessionToken) return sessionToken;
-    if (tableId && tableId !== 'takeaway') {
-      try {
+    try {
+      if (tableId && tableId !== 'takeaway') {
         const res = await http.post<IApiResponse<{ sessionToken: string }>>(API_ROUTES.posSession.openManual(tableId));
         return res.data.data.sessionToken;
-      } catch (err) {
-        toast.error(t('pos.order.openSessionError', 'Lỗi khi mở phiên làm việc.'));
-        return null;
+      } else {
+        const res = await http.post<IApiResponse<{ sessionToken: string }>>('/sessions/open/takeaway');
+        return res.data.data.sessionToken;
       }
+    } catch (err) {
+      toast.error(t('pos.order.openSessionError', 'Lỗi khi mở phiên làm việc.'));
+      return null;
     }
-    return null;
   }
 
   const syncLocalCartToSession = async (token: string) => {
@@ -61,9 +63,13 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
         await posOrderService.submitTicket(token);
         toast.success(t('pos.cart.submitSuccess', 'Đã ghi nhận Order thành công!'));
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all });
-        navigate(`/pos/orders/${tableId}`, { state: { sessionToken: token } });
+        if (!tableId || tableId === 'takeaway') {
+           navigate('/pos/payment/takeaway', { state: { sessionToken: token } });
+        } else {
+           navigate(`/pos/orders/${tableId}`, { state: { sessionToken: token } });
+        }
       } else {
-        navigate('/pos/payment/takeaway', { state: { cart: localCart } });
+        toast.error(t('pos.order.sessionRequired', 'Không thể khởi tạo phiên làm việc.'));
       }
     } catch (err: unknown) {
       const errorResponse = err as { response?: { data?: { message?: string } }, message: string }
@@ -77,18 +83,21 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
     if (cart.items.length === 0) return
     setIsSubmitting(true)
     try {
-      if (!tableId || tableId === 'takeaway') {
-         navigate('/pos/payment/takeaway', { state: { cart: localCart } })
-      } else {
-         const token = await prepareSession();
-         if (token) {
-           await syncLocalCartToSession(token);
-           if (localCart.items.length > 0) {
-             await posOrderService.submitTicket(token);
-             setLocalCart({ items: [], totalAmount: 0, sessionToken: '' } as unknown as ICart);
-           }
+      const token = await prepareSession();
+      if (token) {
+         await syncLocalCartToSession(token);
+         if (localCart.items.length > 0) {
+           await posOrderService.submitTicket(token);
+           setLocalCart({ items: [], totalAmount: 0, sessionToken: '' } as unknown as ICart);
          }
-         navigate(`/pos/payment/${tableId}`);
+         
+         if (!tableId || tableId === 'takeaway') {
+            navigate('/pos/payment/takeaway', { state: { sessionToken: token } })
+         } else {
+            navigate(`/pos/payment/${tableId}`);
+         }
+      } else {
+         toast.error(t('pos.order.sessionRequired', 'Không thể khởi tạo phiên làm việc.'));
       }
     } catch (err: unknown) {
       toast.error(t('pos.order.checkoutProcessError', 'Lỗi khi xử lý thanh toán'))

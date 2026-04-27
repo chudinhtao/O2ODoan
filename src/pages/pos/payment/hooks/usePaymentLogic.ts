@@ -27,6 +27,8 @@ export function usePaymentLogic(
   const { mutate: applyPromoServer, isPending: isApplyingPromoServer } = usePosApplyPromotion()
 
   const order = useMemo<IOrder | null>(() => {
+    if (serverOrder) return serverOrder as IOrder
+
     if (tableId === 'takeaway') {
       const cart = location.state?.cart
       if (!cart) return null
@@ -63,7 +65,7 @@ export function usePaymentLogic(
         } as unknown as IOrderTicket]
       } as unknown as IOrder
     }
-    return serverOrder as IOrder | null
+    return null
   }, [tableId, location.state?.cart, serverOrder, t, takeawayPromo])
 
   const aggregatedItems = useMemo<AggregatedItem[]>(() => {
@@ -137,7 +139,7 @@ export function usePaymentLogic(
   const handlePaymentSubmit = () => {
     if (!order) return
     
-    if (tableId === 'takeaway') {
+    if (tableId === 'takeaway' && (!serverOrder || !sessionToken)) {
       const takeawayReq = {
         note: "",
         promotionCode: takeawayPromo?.code || "",

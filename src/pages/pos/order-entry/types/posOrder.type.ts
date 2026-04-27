@@ -23,6 +23,7 @@ export interface ICart {
   totalAmount: number
   originalTotal: number
   automatedDiscount: number
+  appliedPromotions: string[]
 }
 
 // ── Request types ──

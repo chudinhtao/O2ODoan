@@ -3,6 +3,7 @@ import { Plus, Search, Filter, FilterX } from 'lucide-react'
 import {
   usePromotions,
   useDeletePromotion,
+  useHardDeletePromotion,
   useTogglePromotionStatus,
 } from '../hooks/usePromotions'
 import { usePromotionFilters } from '../hooks/usePromotionFilters'
@@ -30,11 +31,15 @@ export default function PromotionManagementPage() {
   } = usePromotionFilters(pageData?.content || [])
 
   const deleteMutation = useDeletePromotion()
+  const hardDeleteMutation = useHardDeletePromotion()
   const toggleMutation = useTogglePromotionStatus()
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingPromo, setEditingPromo] = useState<IPromotion | null>(null)
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false, id: '', name: ''
+  })
+  const [hardDeleteDialog, setHardDeleteDialog] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false, id: '', name: ''
   })
 
@@ -130,6 +135,7 @@ export default function PromotionManagementPage() {
                 startIndex={filters.currentPage * filters.pageSize}
                 onEdit={openEditDrawer}
                 onDelete={(id, name) => setDeleteDialog({ isOpen: true, id, name })}
+                onHardDelete={(id, name) => setHardDeleteDialog({ isOpen: true, id, name })}
                 onToggle={(id) => toggleMutation.mutate(id)}
               />
             </div>
@@ -154,8 +160,8 @@ export default function PromotionManagementPage() {
 
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
-        title="Xóa khuyến mãi"
-        description={`Bạn có chắc muốn xóa "${deleteDialog.name}"? Hành động này không thể hoàn tác.`}
+        title="Tạm dừng khuyến mãi"
+        description={`Bạn có chắc muốn tạm dừng / xóa mềm "${deleteDialog.name}"? Bạn có thể kích hoạt lại sau.`}
         onConfirm={() => {
           deleteMutation.mutate(deleteDialog.id, {
             onSuccess: () => setDeleteDialog({ isOpen: false, id: '', name: '' })
@@ -163,6 +169,19 @@ export default function PromotionManagementPage() {
         }}
         onCancel={() => setDeleteDialog({ isOpen: false, id: '', name: '' })}
         isLoading={deleteMutation.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={hardDeleteDialog.isOpen}
+        title="Xóa vĩnh viễn khuyến mãi"
+        description={`Bạn có chắc muốn xóa vĩnh viễn "${hardDeleteDialog.name}"? Hành động này không thể hoàn tác và sẽ xóa hoàn toàn khỏi cơ sở dữ liệu.`}
+        onConfirm={() => {
+          hardDeleteMutation.mutate(hardDeleteDialog.id, {
+            onSuccess: () => setHardDeleteDialog({ isOpen: false, id: '', name: '' })
+          })
+        }}
+        onCancel={() => setHardDeleteDialog({ isOpen: false, id: '', name: '' })}
+        isLoading={hardDeleteMutation.isPending}
       />
     </>
   )
