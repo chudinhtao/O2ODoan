@@ -53,11 +53,11 @@ export const TicketCard = ({
   const isCancelled = ticket.status === 'CANCELLED';
   
   let headerBg = isPending ? 'bg-[#ff9f43]' : 'bg-[#2ed573]';
-  let badgeText = isPending ? 'Mới nhận' : 'Đang nấu';
+  let badgeText = isPending ? t('kds.ticket.status.pending') : t('kds.ticket.status.preparing');
   
   if (isCancelled) {
     headerBg = 'bg-[#ff4757]';
-    badgeText = 'Yêu cầu hủy';
+    badgeText = t('kds.ticket.status.cancelled');
   }
   
   const timeFormatted = format(new Date(ticket.createdAt), 'HH:mm');
@@ -75,7 +75,7 @@ export const TicketCard = ({
         {isCancelled && (
            <div className="flex justify-center items-center gap-2 mb-2 bg-white/20 py-1 rounded">
              <AlertOctagon className="w-4 h-4" />
-             <span className="font-bold text-sm uppercase tracking-widest text-[#fff]">YÊU CẦU HỦY</span>
+             <span className="font-bold text-sm uppercase tracking-widest text-[#fff]">{t('kds.ticket.status.cancelled')}</span>
            </div>
         )}
         <div className="flex justify-between items-center mb-1">
@@ -90,7 +90,7 @@ export const TicketCard = ({
 
       {ticket.note && (
         <div className="bg-red-50 text-red-600 px-4 py-2 text-sm font-medium border-b border-red-100 flex items-center gap-1.5">
-          <span className="bg-red-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Lưu ý</span>
+          <span className="bg-red-600 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">{t('kds.ticket.noteLabel')}</span>
           {ticket.note}
         </div>
       )}
@@ -126,7 +126,7 @@ export const TicketCard = ({
               className="flex-1 !bg-white !text-red-600 hover:!bg-red-50 font-bold py-6 !rounded-lg !border-2 !border-red-500 shadow-sm"
               onClick={() => onHideTicket(ticket.id)}
             >
-              Đồng ý Hủy (Ẩn vé)
+              {t('kds.actions.hide')}
             </Button>
           </div>
         ) : !isAllDone ? (
@@ -138,7 +138,7 @@ export const TicketCard = ({
                 onClick={handleRejectTicket}
                 disabled={isLoading}
               >
-                Từ chối
+                {t('kds.actions.reject')}
               </Button>
             )}
             <Button 
@@ -151,7 +151,7 @@ export const TicketCard = ({
               {isPending ? (
                 <>
                   <Play className="w-5 h-5 mr-2 fill-current" />
-                  {t('kds.ticket.startPrep', 'Chuẩn bị')}
+                  {t('kds.ticket.startPrep')}
                 </>
               ) : (
                 <>

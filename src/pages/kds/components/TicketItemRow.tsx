@@ -1,5 +1,6 @@
 import { IKdsTicketItem } from '../types/kds.type';
 import { CheckSquare, Square, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   item: IKdsTicketItem;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelRequest, isLoading, isTicketPending }: Props) => {
+  const { t } = useTranslation();
   const isDone = item.status === 'DONE' || item.status === 'SERVED';
   const isCancelled = item.status === 'CANCELLED' || item.status === 'RETURNED';
 
@@ -59,13 +61,13 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
             
             {isPreparing && !isCancelled && !isDone && (
               <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase bg-blue-100 text-blue-700">
-                Đang Nấu
+                {t('kds.item.status.preparing')}
               </span>
             )}
 
             {isCancelled && (
               <span className={`inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${item.status === 'RETURNED' ? 'bg-amber-100/50 text-amber-600' : 'bg-red-100 text-red-600'}`}>
-                {item.status === 'RETURNED' ? 'Bị Trả Lại' : 'Đã Hủy'}
+                {item.status === 'RETURNED' ? t('kds.item.status.returned') : t('kds.item.status.cancelled')}
               </span>
             )}
           </div>
@@ -82,7 +84,7 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
               <button 
                 onClick={handleCancel}
                 className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-                title="Từ chối món"
+                title={t('kds.actions.reject')}
               >
                 <X className="w-4 h-4" strokeWidth={3} />
               </button>

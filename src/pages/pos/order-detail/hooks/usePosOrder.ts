@@ -61,16 +61,25 @@ export function usePosCheckout() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ orderId, releaseTable = true }: { orderId: string, releaseTable?: boolean }) =>
-      orderService.checkoutOrder(orderId, releaseTable),
+    mutationFn: ({
+      orderId,
+      releaseTable = true,
+      paymentMethod = 'CASH',
+      paymentDetail,
+    }: {
+      orderId: string
+      releaseTable?: boolean
+      paymentMethod?: string
+      paymentDetail?: Record<string, number> | null
+    }) => orderService.checkoutOrder(orderId, releaseTable, paymentMethod, paymentDetail),
     onSuccess: (_, variables) => {
-      // Nếu giải phóng bàn (đóng session), xóa hẳn query đơn hàng này để tránh refetch lỗi 400
       if (variables.releaseTable) {
         queryClient.removeQueries({ queryKey: QUERY_KEYS.order.all })
       } else {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all })
       }
       queryClient.invalidateQueries({ queryKey: ['pos-tables'] })
+      queryClient.invalidateQueries({ queryKey: ['pos-takeaways'] })
     },
     onError: (e: unknown) => {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -89,6 +98,7 @@ export function usePosCancelOrder() {
       toast.success(i18n.t('pos.orderDetail.cancelSuccess', 'Đã huỷ đơn hàng'))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all })
       queryClient.invalidateQueries({ queryKey: ['pos-tables'] })
+      queryClient.invalidateQueries({ queryKey: ['pos-takeaways'] })
     },
     onError: () => toast.error(i18n.t('pos.orderDetail.cancelError', 'Huỷ đơn thất bại')),
   })
@@ -103,6 +113,7 @@ export function usePosRequestPayment() {
       toast.success(i18n.t('pos.orderDetail.requestPaymentSuccess', 'Đã yêu cầu tính tiền (Tạm tính)'))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all })
       queryClient.invalidateQueries({ queryKey: ['pos-tables'] })
+      queryClient.invalidateQueries({ queryKey: ['pos-takeaways'] })
     },
     onError: () => toast.error(i18n.t('pos.orderDetail.requestPaymentError', 'Yêu cầu tính tiền thất bại')),
   })

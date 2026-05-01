@@ -1,14 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import { CheckCircle, AlertCircle, Coins, Smartphone, Landmark, Printer, PauseCircle, Verified, Bell } from 'lucide-react'
+import { CheckCircle, AlertCircle, Coins, Smartphone, Printer, PauseCircle, Verified, Bell, Loader2, QrCode, SplitSquareHorizontal } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
 import { Input } from '@/shared/components/ui/Input'
 import { formatCurrency } from '@/shared/utils/formatCurrency'
 
-export type PaymentMethod = 'CASH' | 'QR' | 'TRANSFER'
+export type PaymentMethod = 'CASH' | 'QR' | 'MIXED'
 
 interface PaymentActionPanelProps {
   orderTotal: number
-  orderId: string
   paymentMethod: PaymentMethod
   setPaymentMethod: (m: PaymentMethod) => void
   cashGiven: number
@@ -17,19 +16,31 @@ interface PaymentActionPanelProps {
   releaseTable: boolean
   setReleaseTable: (val: boolean) => void
   isCheckingOut: boolean
-  handlePaymentSubmit: () => void
+  handlePaymentSubmit: (method: string) => void
   onHoldOrder: () => void
   onPrintBeforeClose: () => void
   isTakeaway: boolean
+  // QR PayOS (full amount)
+  qrPayosUrl: string | null
+  isCreatingQrPayos: boolean
+  handleQrCreateLink: () => void
+  // Mixed
+  mixedQrUrl: string | null
+  isCreatingQr: boolean
+  qrAmount: number
+  isMixedReady: boolean
+  handleMixedCreateQr: () => void
 }
 
 const QUICK_CASH_DENOMS = [20000, 50000, 100000, 200000, 500000]
 
 export function PaymentActionPanel({
-  orderTotal, orderId, paymentMethod, setPaymentMethod,
+  orderTotal, paymentMethod, setPaymentMethod,
   cashGiven, setCashGivenStr, handleCashGivenChange,
   releaseTable, setReleaseTable, isCheckingOut, handlePaymentSubmit,
-  onHoldOrder, onPrintBeforeClose, isTakeaway
+  onHoldOrder, onPrintBeforeClose, isTakeaway,
+  qrPayosUrl, isCreatingQrPayos, handleQrCreateLink,
+  mixedQrUrl, isCreatingQr, qrAmount, isMixedReady, handleMixedCreateQr
 }: PaymentActionPanelProps) {
   const { t } = useTranslation()
 
@@ -38,9 +49,24 @@ export function PaymentActionPanel({
 
   const paymentMethods = [
     { id: 'CASH' as PaymentMethod, label: t('pos.payment.methods.cash', 'Tiền mặt'), icon: Coins },
-    { id: 'QR' as PaymentMethod, label: t('pos.payment.methods.qr', 'QR Scan'), icon: Smartphone },
-    { id: 'TRANSFER' as PaymentMethod, label: t('pos.payment.methods.transfer', 'Chuyển khoản'), icon: Landmark },
+    { id: 'QR' as PaymentMethod, label: t('pos.payment.methods.qr', 'PayOS / QR'), icon: Smartphone },
+    { id: 'MIXED' as PaymentMethod, label: t('pos.payment.methods.mixed', 'Hỗn hợp'), icon: SplitSquareHorizontal },
   ]
+
+  // Logic button xác nhận
+  const isConfirmDisabled = (() => {
+    if (isCheckingOut) return true
+    if (paymentMethod === 'CASH') return !isSufficient
+    if (paymentMethod === 'QR') return !qrPayosUrl   // Phải tạo QR PayOS trước
+    if (paymentMethod === 'MIXED') return !mixedQrUrl  // Phải tạo QR trước
+    return false
+  })()
+
+  const confirmLabel = (() => {
+    if (paymentMethod === 'QR') return t('pos.payment.btnQRDone', 'Xác nhận thủ công (Fallback)')
+    if (paymentMethod === 'MIXED') return t('pos.payment.btnMixedDone', 'Xác nhận đã nhận đủ tiền')
+    return t('pos.payment.confirm', 'Xác nhận thanh toán')
+  })()
 
   return (
     <div className="flex flex-col h-full bg-surface">
@@ -80,6 +106,8 @@ export function PaymentActionPanel({
 
         {/* Dynamic Payment Input Section */}
         <div className="space-y-4">
+
+          {/* === CASH === */}
           {paymentMethod === 'CASH' && (
             <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="space-y-1.5">
@@ -98,7 +126,6 @@ export function PaymentActionPanel({
                 </div>
               </div>
 
-              {/* Quick Cash Buttons */}
               <div className="grid grid-cols-5 gap-2">
                 {QUICK_CASH_DENOMS.map(denom => (
                   <button
@@ -111,7 +138,6 @@ export function PaymentActionPanel({
                 ))}
               </div>
 
-              {/* Cash Result calculation */}
               <div className={`p-4 rounded-2xl border flex justify-between items-center transition-all duration-300 ${
                 isSufficient 
                 ? 'bg-success/5 border-success/20 shadow-sm shadow-success/5' 
@@ -132,24 +158,172 @@ export function PaymentActionPanel({
             </div>
           )}
 
+          {/* === QR THUẦN === */}
+          {/* === QR PayOS (full amount) === */}
           {paymentMethod === 'QR' && (
-            <div className="bg-surface-container-low/50 rounded-[2.5rem] p-8 flex flex-col items-center justify-center space-y-6 border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-500">
-               <div className="text-center space-y-2">
-                  <p className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">{t('pos.payment.qrTitle', 'Quét mã QR Pay')}</p>
-                  <p className="text-base font-bold text-on-surface tracking-tight">
-                    {t('pos.payment.qrPrompt', 'Hệ thống tự động tạo mã cho')} <span className="text-primary font-black font-headline text-lg ml-1">{formatCurrency(orderTotal)}</span>
+            <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+              {/* Chưa tạo QR: hiển thị tóm tắt và nút tạo */}
+              {!qrPayosUrl && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 flex justify-between items-center">
+                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">Tổng cần thanh toán</span>
+                    <span className="text-xl font-black text-primary tabular-nums">{formatCurrency(orderTotal)}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-2xl border-primary/30 text-primary font-black text-sm hover:bg-primary hover:text-white transition-all gap-2"
+                    onClick={handleQrCreateLink}
+                    disabled={isCreatingQrPayos}
+                  >
+                    {isCreatingQrPayos ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <QrCode className="size-4" />
+                    )}
+                    {isCreatingQrPayos
+                      ? t('pos.payment.qrCreating', 'Đang tạo mã QR PayOS...')
+                      : t('pos.payment.qrCreate', `Tạo mã QR – ${formatCurrency(orderTotal)}`)}
+                  </Button>
+                  <p className="text-[10px] text-center text-outline-variant font-bold">
+                    {t('pos.payment.qrHint', 'Hệ thống sẽ tự đóng bill khi nhận được biến động số dư từ ngân hàng.')}
                   </p>
-               </div>
-               <div className="p-4 bg-white border-2 border-primary/10 rounded-3xl shadow-2xl shadow-primary/5 transition-all hover:scale-105 duration-300">
-                  <img 
-                    src={`https://img.vietqr.io/image/970436-096000000-compact2.png?amount=${orderTotal}&addInfo=Thanh toan FNB ${orderId}&accountName=NHA HANG FNB`} 
-                    alt="VietQR code" 
-                    className="w-40 h-40 md:w-48 md:h-48 object-contain"
+                </div>
+              )}
+
+              {/* QR đã tạo: hiển thị mã QR cho khách quét */}
+              {qrPayosUrl && (
+                <div className="bg-surface-container-low/50 rounded-[2.5rem] p-6 flex flex-col items-center space-y-4 border-2 border-primary/15 animate-in zoom-in-95 duration-500">
+                  <div className="text-center space-y-1">
+                    <p className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                      {t('pos.payment.qrScanTitle', 'Mã QR PayOS')}
+                    </p>
+                    <p className="text-xl font-black text-primary font-headline tabular-nums">{formatCurrency(orderTotal)}</p>
+                  </div>
+                  {/* Render QR từ checkoutUrl của PayOS thông qua QR generator API */}
+                  <div className="p-3 bg-white rounded-2xl shadow-xl border-2 border-primary/10">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrPayosUrl)}`}
+                      alt="PayOS QR"
+                      className="w-44 h-44 object-contain"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-400/30 rounded-xl w-full">
+                    <div className="size-2 bg-amber-500 rounded-full animate-pulse shrink-0" />
+                    <p className="text-[10px] font-bold text-amber-700">
+                      {t('pos.payment.qrWaiting', 'Đang chờ khách quét — Hệ thống tự đóng bill khi nhận tiền')}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-center text-outline-variant font-bold max-w-[260px]">
+                    {t('pos.payment.qrFallbackHint', 'Nếu webhook chậm, dùng nút bên dưới để xác nhận thủ công.')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* === MIXED: Tiền mặt + QR === */}
+          {paymentMethod === 'MIXED' && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+              {/* Bước 1: Nhập tiền mặt */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-outline uppercase tracking-widest px-1">
+                  {t('pos.payment.mixedCash', 'Bước 1 — Tiền mặt khách đưa')}
+                </label>
+                <div className="relative group">
+                  <Input
+                    className="w-full bg-surface-container-low border-outline-variant/50 hover:border-primary rounded-2xl h-14 px-5 font-black text-on-surface text-xl focus:ring-primary focus:border-primary transition-all tabular-nums"
+                    type="text"
+                    placeholder="0"
+                    value={cashGiven > 0 ? cashGiven.toLocaleString('vi-VN') : ''}
+                    onChange={(e) => handleCashGivenChange(e.target.value)}
                   />
-               </div>
-               <p className="text-[10px] text-center text-outline-variant font-bold max-w-[240px]">
-                 {t('pos.payment.qrNotice', '(Nhận diện tự động, bạn không cần làm gì khác sau khi khách quét)')}
-               </p>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 font-black text-outline">{t('common.units.currency', 'đ')}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 pt-1">
+                  {QUICK_CASH_DENOMS.map(denom => (
+                    <button
+                      key={denom}
+                      className="h-9 text-[10px] font-black text-on-surface-variant bg-surface-container-low border border-outline-variant/30 rounded-xl hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95"
+                      onClick={() => setCashGivenStr(denom.toString())}
+                    >
+                      {denom >= 1000 ? `${denom / 1000}k` : denom}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tóm tắt phần QR */}
+              {isMixedReady && (
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/15 space-y-3 animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">Tiền mặt</span>
+                    <span className="font-black text-on-surface tabular-nums">{formatCurrency(cashGiven)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Còn cần quét QR</span>
+                    <span className="font-black text-primary text-lg tabular-nums">{formatCurrency(qrAmount)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Bước 2: Tạo mã QR */}
+              {isMixedReady && !mixedQrUrl && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-outline uppercase tracking-widest px-1">
+                    {t('pos.payment.mixedQrStep', 'Bước 2 — Tạo mã QR cho phần còn thiếu')}
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-2xl border-primary/30 text-primary font-black text-sm hover:bg-primary hover:text-white transition-all gap-2"
+                    onClick={handleMixedCreateQr}
+                    disabled={isCreatingQr}
+                  >
+                    {isCreatingQr ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <QrCode className="size-4" />
+                    )}
+                    {isCreatingQr
+                      ? t('pos.payment.mixedCreating', 'Đang tạo mã QR...')
+                      : t('pos.payment.mixedCreateQr', `Tạo QR ${formatCurrency(qrAmount)}`)}
+                  </Button>
+                </div>
+              )}
+
+              {/* QR đã tạo — hiển thị cho khách quét */}
+              {mixedQrUrl && (
+                <div className="bg-surface-container-low/50 rounded-[2.5rem] p-6 flex flex-col items-center space-y-4 border-2 border-primary/20 animate-in zoom-in-95 duration-500">
+                  <div className="text-center space-y-1">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                      {t('pos.payment.mixedQrReady', 'Mã QR phần chuyển khoản')}
+                    </p>
+                    <p className="text-xl font-black text-primary font-headline tabular-nums">{formatCurrency(qrAmount)}</p>
+                  </div>
+                  <div className="p-3 bg-white rounded-2xl shadow-xl border-2 border-primary/10">
+                    <img
+                      src={mixedQrUrl}
+                      alt="PayOS QR"
+                      className="w-44 h-44 object-contain"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-400/30 rounded-xl">
+                    <div className="size-2 bg-amber-500 rounded-full animate-pulse" />
+                    <p className="text-[10px] font-bold text-amber-700">
+                      {t('pos.payment.mixedWaiting', 'Đang chờ khách quét — Hệ thống tự đóng bill khi nhận tiền')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Nếu tiền mặt >= tổng bill, không cần QR */}
+              {cashGiven >= orderTotal && cashGiven > 0 && (
+                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
+                  <CheckCircle className="size-5 text-emerald-500 shrink-0" />
+                  <p className="text-[11px] font-bold text-emerald-700">
+                    {t('pos.payment.mixedFullCash', 'Tiền mặt đã đủ — Không cần tạo QR, hãy chuyển sang phương thức Tiền mặt')}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -176,16 +350,14 @@ export function PaymentActionPanel({
         
         <div className="space-y-3">
           <Button
-            onClick={handlePaymentSubmit}
-            disabled={isCheckingOut || (paymentMethod === 'CASH' && !isSufficient)}
+            onClick={() => handlePaymentSubmit(paymentMethod)}
+            disabled={isConfirmDisabled}
             isLoading={isCheckingOut}
-            variant={(paymentMethod === 'CASH' && !isSufficient) ? "outline" : "primary"}
+            variant={isConfirmDisabled ? 'outline' : 'primary'}
             className="w-full h-15 rounded-2xl shadow-xl shadow-primary/20 text-base font-black uppercase tracking-tight transition-all active:scale-[0.98] flex items-center justify-center gap-3"
           >
             {paymentMethod === 'QR' ? <Bell className="size-5" /> : <Verified className="size-5" />}
-            {paymentMethod === 'QR' 
-               ? t('pos.payment.btnQRDone', 'Đã nhận tiền & Đóng Bill') 
-               : t('pos.payment.confirm', 'Xác nhận thanh toán')}
+            {confirmLabel}
           </Button>
           
           <div className="grid grid-cols-2 gap-3">
@@ -193,7 +365,7 @@ export function PaymentActionPanel({
               variant="outline"
               size="sm"
               onClick={onPrintBeforeClose} 
-              disabled={!isSufficient || isCheckingOut} 
+              disabled={isCheckingOut} 
               className="h-10 text-[11px] font-black uppercase rounded-xl border-outline-variant bg-surface hover:bg-surface-container transition-all"
             >
               <Printer className="size-3.5 mr-2" />

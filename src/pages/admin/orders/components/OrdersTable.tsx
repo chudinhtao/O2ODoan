@@ -65,7 +65,7 @@ export function OrdersTable({ orders, isLoading, onViewDetail }: Props) {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-slate-700">
-                    {order.tableNumber || '-'}
+                    {order.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (order.tableNumber || '-')}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-orange-600">
                     {order.total.toLocaleString()}đ

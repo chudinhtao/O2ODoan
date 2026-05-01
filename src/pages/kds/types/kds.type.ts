@@ -4,6 +4,7 @@ export interface IKdsTicketItem {
   itemName: string;
   quantity: number;
   status: 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED';
+  station: string;
   note?: string;
   options?: string[];
 }

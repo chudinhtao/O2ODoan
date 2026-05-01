@@ -12,6 +12,7 @@ const ROLE_REDIRECT: Record<string, string> = {
   [ROLE.ADMIN]:   ROUTES.admin.dashboard,
   [ROLE.CASHIER]: ROUTES.pos.tables,
   [ROLE.KITCHEN]: ROUTES.kds,
+  [ROLE.SERVER]:  ROUTES.server,
 }
 
 export function useLogin() {

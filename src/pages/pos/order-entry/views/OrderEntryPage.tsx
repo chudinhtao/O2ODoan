@@ -10,7 +10,6 @@ import { OrderEntryHeader } from '../components/OrderEntryHeader'
 
 import { usePosCart, useAddCartItem, useUpdateCartItem, useRemoveCartItem } from '../hooks/usePosCart'
 import { usePosTables } from '@/pages/pos/table-map/hooks/usePosTables'
-import { useOrderCartLogic } from '../hooks/useOrderCartLogic'
 import { useOrderSubmitActions } from '../hooks/useOrderSubmitActions'
 import { useActiveSessionQuery, useTakeawaySessionMutation } from '../hooks/useActiveSessionQuery'
 import { posMenuService } from '../services/posMenu.service'
@@ -27,16 +26,6 @@ export default function OrderEntryPage() {
   const [selectedItem, setSelectedItem] = useState<IMenuItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCartItem, setEditingCartItem] = useState<ICartItem | null>(null)
-
-  // Local Cart Logic
-  const { 
-    localCart, 
-    setLocalCart, 
-    addLocalItem, 
-    updateLocalItemQuantity, 
-    removeLocalItem,
-    resetLocalCart
-  } = useOrderCartLogic()
   const { data: tables } = usePosTables()
   const { data: activeSession } = useActiveSessionQuery(tableId)
   const { mutate: createTakeawaySession } = useTakeawaySessionMutation()
@@ -44,11 +33,25 @@ export default function OrderEntryPage() {
   const [sessionToken, setSessionToken] = useState<string>(location.state?.sessionToken || '')
   const tableNumber = activeSession?.tableNumber || 0
 
+  // Ngăn chặn rò rỉ session khi chuyển qua lại giữa các bàn/mang về mà component không unmount
+  useEffect(() => {
+    if (location.state?.sessionToken) {
+      setSessionToken(location.state.sessionToken)
+    } else if (activeSession === null) {
+      // Bàn trống -> xoá session
+      setSessionToken('')
+    } else if (tableId === 'takeaway' && sessionToken) {
+       // Nếu đổi sang Takeaway mà đang dính session cũ của bàn trước đó -> xoá
+       setSessionToken('')
+    }
+  }, [tableId, location.state?.sessionToken, activeSession])
+
   useEffect(() => {
     if (activeSession?.sessionToken) {
       setSessionToken(activeSession.sessionToken)
-    } else if ((!tableId || tableId === 'takeaway') && !sessionToken) {
-      // Auto upgrade Takeaway Local Cart to Takeaway Server Cart
+    } else if (tableId === 'takeaway' && !sessionToken) {
+      // Chỉ auto-tạo phiên khi người dùng TƯỜNG MINH chọn Takeaway (tableId = 'takeaway')
+      // Không trigger khi tableId = undefined (người dùng chỉ đang mở màn Sales để chọn bàn)
       createTakeawaySession(undefined, {
         onSuccess: (data) => {
            if (data?.sessionToken) {
@@ -59,51 +62,46 @@ export default function OrderEntryPage() {
     }
   }, [activeSession, tableId, sessionToken, createTakeawaySession])
   useEffect(() => {
-    // Initialize Local Cart from location state if Takeaway
-    const state = location.state as { cart?: ICart } | null
-    if (state?.cart) {
-      setLocalCart(state.cart)
-    } else {
-      setLocalCart({ sessionToken: '', items: [], totalAmount: 0, originalTotal: 0, automatedDiscount: 0, appliedPromotions: [] } as ICart)
-    }
-  }, [location.state, setLocalCart])
+    // Session token state management has handled the token.
+    // LocalCart has been completely removed since sessions are now actively opened immediately.
+  }, [])
 
   const { data: serverCart, isLoading: isCartLoading } = usePosCart(sessionToken)
   const { mutate: addItem } = useAddCartItem(sessionToken)
   const { mutate: updateItem } = useUpdateCartItem(sessionToken)
   const { mutate: removeItem } = useRemoveCartItem(sessionToken)
 
-  const cart = (sessionToken ? (serverCart || { items: [], totalAmount: 0 }) : localCart) as ICart
+  const cart = (serverCart || { items: [], totalAmount: 0 }) as ICart
 
   const { isSubmitting, handleSubmit, handleCheckout } = useOrderSubmitActions({
     tableId,
     sessionToken,
-    cart,
-    localCart,
-    setLocalCart
+    cart
   })
 
   const handleItemClick = (item: IMenuItem) => {
+    if (!tableId) {
+      toast.warning(t('pos.cart.selectFirst', 'Vui lòng chọn bàn hoặc Mang về trước khi thêm món!'))
+      return
+    }
     setSelectedItem(item)
     setIsModalOpen(true)
   }
 
   const handleAddToCart = (item: IMenuItem, quantity: number, options: string[], note: string, editingCartItemId?: string) => {
-    if (sessionToken) {
-      const payloadOptions = options.map(id => ({ optionId: id }))
-      if (editingCartItemId) {
-         removeItem(editingCartItemId, {
-           onSuccess: () => addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
-         })
-      } else {
-         addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
-      }
-      toast.success(editingCartItemId ? t('pos.cart.updated', 'Đã cập nhật món') : t('pos.cart.added', 'Đã thêm món vào đơn tạm'))
-    } else {
-      if (editingCartItemId) removeLocalItem(editingCartItemId)
-      addLocalItem(item, quantity, note, options)
-      toast.success(editingCartItemId ? t('pos.cart.updated', 'Đã cập nhật món') : t('pos.cart.added', 'Đã thêm món vào đơn tạm'))
+    if (!sessionToken) {
+      toast.error(t('pos.cart.noSession', 'Không tìm thấy phiên làm việc. Vui lòng tải lại trang.'));
+      return;
     }
+    const payloadOptions = options.map(id => ({ optionId: id }))
+    if (editingCartItemId) {
+        removeItem(editingCartItemId, {
+          onSuccess: () => addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
+        })
+    } else {
+        addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
+    }
+    toast.success(editingCartItemId ? t('pos.cart.updated', 'Đã cập nhật món') : t('pos.cart.added', 'Đã thêm món vào đơn tạm'))
   }
 
   const handleEditCartItem = async (cartItem: ICartItem) => {
@@ -123,9 +121,6 @@ export default function OrderEntryPage() {
     if (sessionToken) {
       const current = serverCart?.items.find(i => i.cartItemId === cartItemId)
       if (current) updateItem({ cartItemId, payload: { quantity: current.quantity + 1 } })
-    } else {
-      const current = localCart.items.find(i => i.cartItemId === cartItemId)
-      if (current) updateLocalItemQuantity(cartItemId, current.quantity + 1)
     }
   }
 
@@ -133,8 +128,6 @@ export default function OrderEntryPage() {
     if (sessionToken) {
        if (qty <= 1) removeItem(cartItemId)
        else updateItem({ cartItemId, payload: { quantity: qty - 1 } })
-    } else {
-      updateLocalItemQuantity(cartItemId, qty - 1)
     }
   }
 
@@ -149,17 +142,18 @@ export default function OrderEntryPage() {
          </section>
          <aside className="w-[420px] flex flex-col shrink-0 z-10 hidden lg:flex bg-surface-bright rounded-2xl shadow-sm border border-surface-container-high overflow-hidden">
            <CartPanel
+             tableId={tableId}
              tableNumber={tableNumber}
              cart={cart}
              isCartLoading={isCartLoading}
              isSubmitting={isSubmitting}
              onIncreaseItem={handleIncrease}
              onDecreaseItem={handleDecrease}
-             onRemoveItem={sessionToken ? removeItem : removeLocalItem}
+             onRemoveItem={removeItem}
              onSubmitTicket={handleSubmit}
              onCheckout={handleCheckout}
              onEditItem={handleEditCartItem}
-             onClearCart={resetLocalCart}
+             onClearCart={() => {}} // Disabled since server cart handles clearing after submit
            />
          </aside>
       </div>

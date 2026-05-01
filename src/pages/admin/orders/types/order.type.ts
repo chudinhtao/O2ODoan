@@ -2,6 +2,7 @@ import { IPageResponse } from '@/shared/types/IApiResponse'
 
 export type OrderStatus = 'OPEN' | 'PAYMENT_REQUESTED' | 'PAID' | 'CANCELLED' | 'MERGED'
 export type OrderSource = 'QR' | 'MANUAL'
+export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'
 
 export type OrderTicketStatus = 'PENDING' | 'PREPARING' | 'DONE' | 'CANCELLED'
 export type OrderTicketItemStatus = 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED'
@@ -43,6 +44,7 @@ export interface IOrder {
   tableNumber: string | null
   status: OrderStatus
   source: OrderSource
+  orderType: OrderType
   subtotal: number
   discount?: number
   total: number

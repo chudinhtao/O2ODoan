@@ -12,6 +12,7 @@ import PosLayout from '@/layouts/PosLayout'
 const LoginPage         = lazy(() => import('@/pages/auth/views/LoginPage'))
 const UnauthorizedPage  = lazy(() => import('@/pages/auth/views/UnauthorizedPage'))
 const PosTableMapPage   = lazy(() => import('@/pages/pos/table-map/views/TableMapPage'))
+const PosTakeawayListPage = lazy(() => import('@/pages/pos/table-map/views/TakeawayListPage'))
 const PosOrderEntryPage  = lazy(() => import('@/pages/pos/order-entry/views/OrderEntryPage'))
 const PosOrderDetailPage = lazy(() => import('@/pages/pos/order-detail/views/OrderDetailPage'))
 const PosPaymentPage     = lazy(() => import('@/pages/pos/payment/views/PaymentPage'))
@@ -31,6 +32,9 @@ const CustomerMenuPage  = lazy(() => import('@/pages/customer/menu/views/MenuPag
 const CustomerTrackingPage = lazy(() => import('@/pages/customer/tracking/views/OrderTrackingPage'))
 const CustomerPaymentPage  = lazy(() => import('@/pages/customer/payment/views/PaymentPage'))
 const CustomerPromotionPage = lazy(() => import('@/pages/customer/promotion/views/PromotionPage'))
+
+// SERVER ROLE
+const ServerDashboard      = lazy(() => import('@/pages/server/ServerDashboard').then(module => ({ default: module.ServerDashboard })))
 
 const Loading = () => (
   <div className="flex min-h-screen items-center justify-center bg-surface">
@@ -57,7 +61,8 @@ export function AppRouter() {
           <Route element={<ProtectedRoute allowedRoles={[ROLE.CASHIER, ROLE.ADMIN]} />}>
             <Route element={<PosLayout />}>
               <Route path={ROUTES.pos.tables}      element={<PosTableMapPage />} />
-              <Route path="/pos/orders/new"        element={<PosOrderEntryPage />} />
+              <Route path="/pos/takeaways"          element={<PosTakeawayListPage />} />
+              <Route path="/pos/orders/new"         element={<PosOrderEntryPage />} />
               <Route path={ROUTES.pos.orderEntry}  element={<PosOrderEntryPage />} />
               <Route path={ROUTES.pos.orderDetail} element={<PosOrderDetailPage />} />
               <Route path={ROUTES.pos.payment}     element={<PosPaymentPage />} />
@@ -70,6 +75,11 @@ export function AppRouter() {
             <Route element={<KdsLayout />}>
               <Route path={ROUTES.kds} element={<KdsPage />} />
             </Route>
+          </Route>
+
+          {/* SERVER */}
+          <Route element={<ProtectedRoute allowedRoles={[ROLE.SERVER, ROLE.ADMIN]} />}>
+            <Route path="/server" element={<ServerDashboard />} />
           </Route>
 
           {/* Admin — ADMIN only */}

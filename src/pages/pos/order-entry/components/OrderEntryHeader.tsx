@@ -23,6 +23,8 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
   })
 
   const handleChangeTable = async (val: string) => {
+    if (!val) return // Người dùng bấm lại placeholder, không làm gì
+
     if (val === 'takeaway') {
       navigate('/pos/orders/new/takeaway')
       return
@@ -49,6 +51,8 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
   }
 
   const selectOptions = [
+    // Placeholder đầu tiên khi chưa chọn bàn
+    ...(!tableId ? [{ value: '', label: t('pos.order.selectTable', '-- Chọn bàn hoặc Mang về --') }] : []),
     { value: 'takeaway', label: t('pos.order.takeaway', 'Mang về') },
     ...(tables?.map(tbl => {
       let statusLabel = ''
@@ -90,7 +94,7 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
           <div className="w-64">
             <Select
               className="font-bold border-outline-variant focus:border-primary"
-              value={!tableId || tableId === 'takeaway' ? 'takeaway' : tableId}
+              value={tableId === 'takeaway' ? 'takeaway' : (tableId || '')}
               onChange={(e) => handleChangeTable(e.target.value)}
               options={selectOptions}
             />
@@ -100,4 +104,5 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
     </header>
   )
 }
+
 

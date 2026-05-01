@@ -9,6 +9,7 @@ import { useWebSocketCtx } from '@/contexts/WebSocketContext'
 
 export const POS_TABLE_KEYS = {
   all: ['pos-tables'] as const,
+  takeaways: ['pos-takeaways'] as const,
 }
 
 export function usePosTables() {
@@ -31,6 +32,19 @@ export function usePosTables() {
       const res = await posTableService.getTables()
       return res.data.data
     }
+  })
+}
+
+export function useActiveTakeaways() {
+  return useQuery({
+    queryKey: POS_TABLE_KEYS.takeaways,
+    queryFn: async () => {
+      const res = await posTableService.getActiveTakeaways()
+      return res.data.data
+    },
+    staleTime: 0,
+    refetchOnMount: 'always',   // Fetch mới mỗi khi vào trang
+    refetchInterval: 10_000,    // Tự poll 10s/lần khi đang ở trang
   })
 }
 

@@ -375,15 +375,12 @@
         "pageSize": "{{size}} / trang",
         "info": "Hiển thị {{start}} - {{end}} trên tổng {{total}} bàn"
       },
-      "validation": {
-        "minNumber": "Số bàn phải ≥ 1",
-        "minCapacity": "Sức chứa phải ≥ 1",
-        "maxName": "Tên tối đa 50 ký tự"
-      },
+      "dashboard": "Tổng quan",
       "status": {
         "free": "Trống",
         "occupied": "Đang dùng",
         "waitingPayment": "Chờ TT",
+        "mixedPayment": "Thanh toán hỗn hợp",
         "cleaning": "Đang dọn",
         "unknown": "Không rõ"
       },
@@ -847,9 +844,8 @@
       "methodTitle": "Chọn phương thức thanh toán",
       "methods": {
         "cash": "Tiền mặt",
-        "qr": "QR Pay",
-        "transfer": "Chuyển khoản",
-        "mixed": "Hỗn hợp"
+        "qr": "QR Pay (PayOS)",
+        "mixed": "Hỗn hợp (Tiền mặt + QR)"
       },
       "cashGiven": "Tiền khách đưa",
       "change": "Tiền thừa trả khách",
@@ -917,19 +913,37 @@
       "takeaway": "Mang Đi",
       "timeWaiting": "Chờ",
       "status": {
-        "pending": "Đang đợi",
-        "preparing": "Đang nấu",
-        "done": "Đã xong"
+        "pending": "CHỜ CHẾ BIẾN",
+        "preparing": "ĐANG LÀM",
+        "done": "XONG MÓN",
+        "cancelled": "YÊU CẦU HỦY"
       },
-      "markAllDone": "HOÀN THÀNH TẤT CẢ"
+      "markAllDone": "XONG TẤT CẢ",
+      "startPrep": "NHẬN LÀM",
+      "noteLabel": "Lưu ý"
     },
     "item": {
-      "qty": "x{{qty}}"
+      "qty": "x{{qty}}",
+      "status": {
+        "pending": "Chờ bếp",
+        "preparing": "Đang làm",
+        "done": "Xong",
+        "served": "Đã bưng",
+        "cancelled": "Đã hủy",
+        "returned": "Trả món"
+      }
+    },
+    "actions": {
+      "start": "NHẬN LÀM",
+      "complete": "XONG",
+      "cancel": "HỦY MÓN",
+      "reject": "TỪ CHỐI",
+      "hide": "ẨN VÉ"
     },
     "notifications": {
       "newOrder": "Có đơn hàng mới!",
-      "markItemDone": "Đã hoàn thành món",
-      "markTicketDone": "Đã làm xong toàn bộ đơn bàn {{number}}",
+      "markItemDone": "Đã xong món",
+      "markTicketDone": "Đã hoàn thành toàn bộ đơn bàn {{number}}",
       "error": "Lỗi khi xử lý thao tác"
     }
   },
@@ -1062,9 +1076,9 @@
       "ticket": {
         "statusConfig": {
           "PENDING": "Chờ bếp",
-          "PREPARING": "Bếp đang làm",
-          "DONE": "Chờ lên món",
-          "SERVED": "Đã phục vụ",
+          "PREPARING": "Đang làm",
+          "DONE": "Đã xong",
+          "SERVED": "Đã lên bàn",
           "CANCELLED": "Đã hủy",
           "RETURNED": "Trả hàng"
         },
@@ -1198,6 +1212,84 @@
         "noItems": "(Không có món nào được đặt)",
         "vatLabel": "Thuế VAT (0%)"
       }
+    },
+    "server": {
+      "table": "Bàn {{number}}",
+      "urgent": "CỨU VIỆN",
+      "items_to_serve": "món cần bưng",
+      "served": "Đã phục vụ xong",
+      "serve_all": "BƯNG RA TẤT CẢ",
+      "undo": "Hoàn tác (Undo)",
+      "undo_success": "Đã hoàn tác",
+      "served_table_success": "Đã phục vụ bàn {{number}}",
+      "processing": "Đang xử lý...",
+      "processing_now": "Đang...",
+      "note": "Ghi chú: {{note}}",
+      "ready_at": "Xong từ {{time}}",
+      "pending_call": "Đang nhận...",
+      "accept_call": "TIẾP NHẬN",
+      "resolving_call": "Đang xử lý...",
+      "resolve_call": "ĐÃ HOÀN THÀNH",
+      "call_accepted_other": "Đang được xử lý",
+      "all_zones": "Tất cả",
+      "tab_delivery": "Khay Đồ",
+      "tab_calls": "Gọi Hỗ Trợ",
+      "tab_kpi": "Cá Nhân",
+      "kpi_greeting": "Xin chào, {{name}}!",
+      "kpi_subtitle": "Dưới đây là thống kê hiệu suất của bạn hôm nay.",
+      "kpi_served": "Món đã bưng",
+      "kpi_resolved": "Yêu cầu xử lý",
+      "kpi_avg_response": "Thời gian phản hồi TB",
+      "kpi_time_format_s": "{{s}} giây",
+      "kpi_time_format_m_s": "{{m}}p {{s}}s",
+      "kpi_no_data": "Không thể tải dữ liệu thống kê.",
+      "empty_delivery_title": "Không có đồ cần bưng",
+      "empty_delivery_desc": "Tuyệt vời! Bếp đang dọn dẹp hoặc chưa có món mới.",
+      "empty_calls_title": "Không có yêu cầu nào",
+      "empty_calls_desc": "Mọi khách hàng đều đang hài lòng.",
+      "loading_error": "Lỗi tải dữ liệu. Đang thử lại...",
+      "alert_cancel": "CẢNH BÁO: Bàn {{number}} vừa hủy món! Kiểm tra lại khay đồ.",
+      "alert_urgent": "CÓ YÊU CẦU QUÁ HẠN! CẦN CỨU VIỆN NGAY!",
+      "sync_success": "Đã kết nối lại mạng! Đang đồng bộ..."
     }
+  },
+  "server": {
+    "loading_error": "Lỗi tải dữ liệu. Vui lòng thử lại.",
+    "empty_calls_title": "Không có yêu cầu hỗ trợ",
+    "empty_calls_desc": "Tuyệt vời! Tất cả khách hàng đều đang hài lòng.",
+    "kpi_no_data": "Chưa có dữ liệu KPI hôm nay",
+    "kpi_time_format_s": "{{s}} giây",
+    "kpi_time_format_m_s": "{{m}} phút {{s}} giây",
+    "kpi_greeting": "Chào {{name}}, chúc ca làm việc vui vẻ!",
+    "kpi_subtitle": "Cùng xem hiệu suất phục vụ của bạn hôm nay nhé",
+    "kpi_served": "Món đã bưng",
+    "kpi_resolved": "Yêu cầu đã xử lý",
+    "kpi_avg_response": "TG phản hồi trung bình",
+    "empty_delivery_title": "Khay đồ đang trống",
+    "empty_delivery_desc": "Chưa có món nào hoàn thành từ bếp/bar.",
+    "all_zones": "Tất cả khu vực",
+    "tab_delivery": "Khay đồ",
+    "tab_calls": "Gọi hỗ trợ",
+    "tab_kpi": "Thống kê",
+    "alert_cancel": "Bàn {{number}} vừa hủy món chờ bưng!",
+    "alert_urgent": "Có bàn cần hỗ trợ GẤP!",
+    "sync_success": "Đã kết nối lại và đồng bộ dữ liệu",
+    "table": "Bàn {{number}}",
+    "pending_call": "Đang nhận...",
+    "accept_call": "Tiếp nhận",
+    "resolving_call": "Đang hoàn thành...",
+    "resolve_call": "Hoàn thành",
+    "call_accepted_other": "Đồng nghiệp đang xử lý",
+    "served_table_success": "Đã bưng bàn {{number}}",
+    "undo_success": "Đã hoàn tác bưng đồ",
+    "served": "Đã bưng",
+    "processing": "Đang xử lý...",
+    "undo": "Hoàn tác",
+    "urgent": "GẤP",
+    "items_to_serve": "món chờ bưng",
+    "processing_now": "Đang xử lý...",
+    "serve_all": "Bưng tất cả",
+    "note": "Ghi chú: {{note}}",
+    "ready_at": "Xong lúc {{time}}"
   }
 }

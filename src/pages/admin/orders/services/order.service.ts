@@ -23,8 +23,20 @@ class OrderService {
     })
   }
 
-  async checkoutOrder(id: string, releaseTable: boolean = true): Promise<void> {
-    await http.post(`/orders/${id}/checkout?releaseTable=${releaseTable}`)
+  async checkoutOrder(
+    id: string,
+    releaseTable: boolean = true,
+    paymentMethod: string = 'CASH',
+    paymentDetail?: Record<string, number> | null
+  ): Promise<void> {
+    await http.post(`/orders/${id}/checkout`, { releaseTable, paymentMethod, paymentDetail })
+  }
+
+  async createPayosLink(orderId: string, sessionToken: string, amount: number, cashAmount?: number): Promise<string> {
+    const params: Record<string, unknown> = { orderId, sessionToken, amount }
+    if (cashAmount && cashAmount > 0) params.cashAmount = cashAmount
+    const { data } = await http.post<{ checkoutUrl: string }>('/payments/payos/create', null, { params })
+    return data.checkoutUrl
   }
 
   async cancelItem(orderId: string, itemId: string, reason?: string): Promise<void> {

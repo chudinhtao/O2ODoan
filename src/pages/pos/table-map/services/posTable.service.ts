@@ -4,6 +4,7 @@ import { IPosTable, ITableActionForm, IMergeTableForm } from '@/pages/admin/tabl
 
 export const posTableService = {
   getTables: () => http.get<IApiResponse<IPosTable[]>>('/tables/pos'),
+  getActiveTakeaways: () => http.get<IApiResponse<IPosTable[]>>('/orders/takeaway/active'),
   openTable: (tableId: string) => http.post<IApiResponse<{ sessionId: string }>>(`/sessions/open/manual/${tableId}`),
   markCleaned: (tableId: string) => http.patch<IApiResponse<null>>(`/tables/${tableId}/clean-done`),
   mergeTables: (data: IMergeTableForm) => http.post<IApiResponse<null>>('/tables/merge', data),

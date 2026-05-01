@@ -6,7 +6,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
 import { ROUTES } from '@/shared/constants/ROUTES'
-import { Undo2, AlertCircle, ShoppingBag, CreditCard, RefreshCw, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer } from 'lucide-react'
+import { Undo2, AlertCircle, ShoppingBag, CreditCard, RefreshCw, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer, ShieldAlert } from 'lucide-react'
 import { usePosCancelItem, usePosReturnItem, usePosRequestPayment, usePosCancelTicket } from '../hooks/usePosOrder'
 import { Input } from '@/shared/components/ui/Input'
 import http from '@/services/interceptor'
@@ -77,6 +77,11 @@ export default function OrderDetailPage() {
     cancelOrder(order.id, {
       onSuccess: () => navigate(ROUTES.pos.tables),
     })
+  }
+
+  // Phase 3: Mở PIN Modal trước khi cho phép hủy đơn
+  const handleRequestCancel = () => {
+    setShowCancelConfirm(true)
   }
 
   const handleConfirmCancelItem = () => {
@@ -168,7 +173,7 @@ export default function OrderDetailPage() {
               <p className="text-xs font-bold text-outline max-w-[240px] leading-relaxed">
                 {t('pos.orderDetail.noTicketsHint', 'Hãy chọn thêm món từ menu để bắt đầu phiếu mới.')}
               </p>
-              <Button variant="primary" size="sm" onClick={() => navigate(`/pos/orders/new/${tableId}`)} className="rounded-xl px-6 mt-6">
+              <Button variant="primary" size="sm" onClick={() => navigate(`/pos/orders/new/${tableId}`, { state: { sessionToken } })} className="rounded-xl px-6 mt-6">
                  {t('pos.orderDetail.addMore')}
               </Button>
             </div>
@@ -285,7 +290,7 @@ export default function OrderDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/pos/orders/new/${tableId}`)}
+                      onClick={() => navigate(`/pos/orders/new/${tableId}`, { state: { sessionToken } })}
                       className="h-11 border text-[11px] font-black rounded-xl border-outline-variant bg-surface hover:border-primary hover:text-primary active:scale-[0.98] transition-all"
                     >
                       <ShoppingBag className="size-3.5 mr-2" /> 
@@ -312,9 +317,10 @@ export default function OrderDetailPage() {
                     if (!hasDone) {
                       return (
                         <button
-                          onClick={() => setShowCancelConfirm(true)}
-                          className="w-full text-[10px] font-black text-outline hover:text-error transition-colors pt-2"
+                          onClick={handleRequestCancel}
+                          className="w-full text-[10px] font-black text-outline hover:text-error transition-colors pt-2 flex items-center justify-center gap-1.5"
                         >
+                          <ShieldAlert className="size-3" />
                           {t('pos.orderDetail.cancelOrder', 'Huỷ toàn bộ đơn hàng')}
                         </button>
                       )
@@ -334,6 +340,7 @@ export default function OrderDetailPage() {
           )}
         </aside>
       </div>
+
 
 
 

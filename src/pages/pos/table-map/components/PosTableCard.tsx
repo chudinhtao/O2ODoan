@@ -1,10 +1,11 @@
-import { Check, Clock, Coffee, Sparkles, ArrowLeftRight, Link } from 'lucide-react'
+import { Check, Clock, Coffee, Sparkles, ArrowLeftRight, Link, ShoppingBag } from 'lucide-react'
 import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/components/ui/Button'
 
 interface PosTableCardProps {
   table: IPosTable
+  isTakeawayMode?: boolean
   onOpenSession: (id: string) => void
   onViewOrder: (id: string) => void
   onCheckout: (id: string) => void
@@ -14,6 +15,7 @@ interface PosTableCardProps {
 }
 export function PosTableCard({
   table,
+  isTakeawayMode = false,
   onOpenSession,
   onViewOrder,
   onCheckout,
@@ -145,7 +147,11 @@ export function PosTableCard({
     >
       <div className="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
       <div className="flex justify-between items-start">
-        <h3 className="text-4xl font-black font-headline text-primary">{table.number}</h3>
+        {isTakeawayMode ? (
+          <ShoppingBag className="size-9 text-primary/80" />
+        ) : (
+          <h3 className="text-4xl font-black font-headline text-primary">{table.number}</h3>
+        )}
         <div className="flex flex-col items-end">
           <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
             {t('pos.table.status.occupied', 'Đang dùng')}
@@ -165,22 +171,26 @@ export function PosTableCard({
         </div>
         
         <div className="flex gap-2 w-full">
-          <Button 
-            variant="outline"
-            onClick={(e) => { e.stopPropagation(); onTransfer(table.id); }}
-            className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
-            title={t('common.transfer', 'Chuyển bàn')}
-          >
-            <ArrowLeftRight className="size-3.5" />
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={(e) => { e.stopPropagation(); onMerge(table.id); }}
-            className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
-            title={t('common.merge', 'Gộp bàn')}
-          >
-            <Link className="size-3.5" />
-          </Button>
+          {!isTakeawayMode && (
+            <>
+              <Button 
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); onTransfer(table.id); }}
+                className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
+                title={t('common.transfer', 'Chuyển bàn')}
+              >
+                <ArrowLeftRight className="size-3.5" />
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); onMerge(table.id); }}
+                className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
+                title={t('common.merge', 'Gộp bàn')}
+              >
+                <Link className="size-3.5" />
+              </Button>
+            </>
+          )}
           <Button 
             variant="primary"
             onClick={(e) => { e.stopPropagation(); onViewOrder(table.id); }}

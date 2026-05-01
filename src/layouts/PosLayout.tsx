@@ -41,6 +41,11 @@ export default function PosLayout() {
             <span className="material-symbols-outlined text-[24px]">grid_view</span>
             <span className="text-[10px] font-black uppercase tracking-wider">Tables</span>
           </Link>
+          <Link to="/pos/takeaways" className={`w-full flex flex-col items-center justify-center py-4 gap-1 relative group transition-all
+            ${isActive('/pos/takeaways') ? 'border-l-4 border-[#2463eb] bg-[#2463eb]/5 text-[#2463eb]' : 'border-l-4 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
+            <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Takeaway</span>
+          </Link>
           <Link to="/pos/orders/new" className={`w-full flex flex-col items-center justify-center py-4 gap-1 relative group transition-all
             ${isActive('/pos/orders') ? 'border-l-4 border-[#2463eb] bg-[#2463eb]/5 text-[#2463eb]' : 'border-l-4 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
             <span className="material-symbols-outlined text-[24px]">point_of_sale</span>

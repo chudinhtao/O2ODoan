@@ -873,47 +873,16 @@
     }
   },
   "common": {
-    "switchLanguage": "Switch Language",
-    "help": "Help",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Service",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "error": "An error occurred",
-    "imageUpload": {
-      "uploadTitle": "Upload image",
-      "imageConstraint": "PNG, JPG or WebP (Max 5MB)",
-      "uploading": "Uploading image..."
-    },
-    "search": "Search...",
-    "mergeTable": "Merge Tables",
-    "transferTable": "Transfer Table",
-    "all": "All",
-    "transfer": "Transfer",
-    "merge": "Merge",
-    "refresh": "Refresh",
-    "prev": "Previous",
-    "next": "Next",
-    "pagination": {
-      "size": "{{size}} per page",
-      "info": "Showing {{start}} - {{end}} / {{total}}"
+    "units": {
+      "currency": "VND",
+      "times": "times",
+      "items": "items",
+      "percent": "%"
     },
     "validation": {
-      "required": "This field is required",
-      "numberRequired": "Please enter a valid number",
-      "positiveNumber": "Value cannot be negative",
-      "greaterThanZero": "Value must be greater than 0",
-      "invalidDate": "Invalid date",
-      "endAfterStart": "End date must be after start date",
-      "targetRequired": "Target selection is required",
-      "maxLength": "Maximum {{max}} characters",
-      "minLength": "Minimum {{min}} characters"
-    },
-    "confirmDeleteDescription": "This action cannot be undone, are you sure?",
-    "language": "Language"
+      "positiveNumber": "Value must be positive",
+      "numberRequired": "This field is required"
+    }
   },
   "dashboard": {
     "title": "Overview",
@@ -1188,18 +1157,6 @@
       "total": "Grand Total"
     }
   },
-  "common": {
-    "units": {
-      "currency": "VND",
-      "times": "times",
-      "items": "items",
-      "percent": "%"
-    },
-    "validation": {
-      "positiveNumber": "Value must be positive",
-      "numberRequired": "This field is required"
-    }
-  },
   "report": {
     "page": {
       "title": "Shift Report — Cashier",
@@ -1239,5 +1196,44 @@
       "noItems": "(No items ordered)",
       "vatLabel": "VAT (0%)"
     }
+  },
+  "server": {
+    "loading_error": "Failed to load data. Please try again.",
+    "empty_calls_title": "No Support Requests",
+    "empty_calls_desc": "Great! All customers are satisfied right now.",
+    "kpi_no_data": "No KPI data available for today",
+    "kpi_time_format_s": "{{s}} seconds",
+    "kpi_time_format_m_s": "{{m}} min {{s}} sec",
+    "kpi_greeting": "Hello {{name}}, have a great shift!",
+    "kpi_subtitle": "Let's check your service performance today",
+    "kpi_served": "Items Served",
+    "kpi_resolved": "Requests Handled",
+    "kpi_avg_response": "Avg Response Time",
+    "empty_delivery_title": "Delivery Tray is Empty",
+    "empty_delivery_desc": "No items are ready from the kitchen/bar yet.",
+    "all_zones": "All Zones",
+    "tab_delivery": "Deliveries",
+    "tab_calls": "Staff Calls",
+    "tab_kpi": "Statistics",
+    "alert_cancel": "Table {{number}} cancelled a pending item!",
+    "alert_urgent": "A table needs URGENT support!",
+    "sync_success": "Reconnected and synced data",
+    "table": "Table {{number}}",
+    "pending_call": "Accepting...",
+    "accept_call": "Accept Request",
+    "resolving_call": "Completing...",
+    "resolve_call": "Mark Resolved",
+    "call_accepted_other": "Handled by colleague",
+    "served_table_success": "Served Table {{number}}",
+    "undo_success": "Undo successful",
+    "served": "Served",
+    "processing": "Processing...",
+    "undo": "Undo",
+    "urgent": "URGENT",
+    "items_to_serve": "items to serve",
+    "processing_now": "Processing...",
+    "serve_all": "Serve All",
+    "note": "Note: {{note}}",
+    "ready_at": "Ready at {{time}}"
   }
 }

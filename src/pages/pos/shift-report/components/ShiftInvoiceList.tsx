@@ -99,7 +99,7 @@ export function ShiftInvoiceList({ date }: { date: string }) {
             </div>
             <div className="text-sm font-medium text-on-surface capitalize">
               <span className="md:hidden text-on-surface-variant mr-2">{t('admin.orders.table.table', 'Bàn')}:</span>
-              {invoice.source === 'MANUAL' ? t('pos.tableMap.takeaway', 'Mang về') : (invoice.tableNumber || '--')}
+              {invoice.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (invoice.tableNumber || '--')}
             </div>
             <div className="text-sm font-bold text-primary">
               <span className="md:hidden text-on-surface-variant mr-2 font-normal">{t('admin.orders.table.total', 'Tổng tiền')}:</span>

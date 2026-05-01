@@ -11,6 +11,7 @@ export const ROUTES = {
     order:       (id: string) => `/pos/orders/${id}`,
   },
   kds:      '/kds',
+  server:   '/server',
   admin: {
     root:       '/admin',
     dashboard:  '/admin/dashboard',

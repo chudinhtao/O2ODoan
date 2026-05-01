@@ -14,11 +14,9 @@ interface UseOrderSubmitProps {
   tableId?: string;
   sessionToken: string;
   cart: ICart;
-  localCart: ICart;
-  setLocalCart: (cart: ICart) => void;
 }
 
-export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, setLocalCart }: UseOrderSubmitProps) {
+export function useOrderSubmitActions({ tableId, sessionToken, cart }: UseOrderSubmitProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -40,18 +38,7 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
     }
   }
 
-  const syncLocalCartToSession = async (token: string) => {
-    if (localCart.items.length === 0) return;
-    const addPromises = localCart.items.map(item => 
-       posOrderService.addCartItem(token, {
-         menuItemId: item.menuItemId,
-         quantity: item.quantity,
-         note: item.note,
-         options: item.options.map(o => ({ optionId: o.optionId as string }))
-       })
-    );
-    await Promise.all(addPromises);
-  }
+
 
   const handleSubmit = async () => {
     if (cart.items.length === 0) return
@@ -59,7 +46,6 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
     try {
       const token = await prepareSession();
       if (token) {
-        await syncLocalCartToSession(token);
         await posOrderService.submitTicket(token);
         toast.success(t('pos.cart.submitSuccess', 'Đã ghi nhận Order thành công!'));
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all });
@@ -80,21 +66,28 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart, localCart, 
   }
 
   const handleCheckout = async () => {
-    if (cart.items.length === 0) return
     setIsSubmitting(true)
     try {
       const token = await prepareSession();
       if (token) {
-         await syncLocalCartToSession(token);
-         if (localCart.items.length > 0) {
-           await posOrderService.submitTicket(token);
-           setLocalCart({ items: [], totalAmount: 0, sessionToken: '' } as unknown as ICart);
+
+         // Gửi bếp các món chưa được gửi (cho cả Takeaway và Dine-in nếu quên bấm gửi bếp)
+         // Chỉ gửi nếu thực sự có món (dựa trên cart.items.length > 0)
+         if (cart.items.length > 0) {
+            try {
+              await posOrderService.submitTicket(token);
+              // Invalidate cache để PaymentPage nhận được ticket vừa tạo
+              queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all });
+            } catch (err: any) {
+              // Bỏ qua lỗi nếu backend báo giỏ hàng trống
+              console.warn('Giỏ hàng trống khi gọi submitTicket', err);
+            }
          }
          
          if (!tableId || tableId === 'takeaway') {
             navigate('/pos/payment/takeaway', { state: { sessionToken: token } })
          } else {
-            navigate(`/pos/payment/${tableId}`);
+            navigate(`/pos/payment/${tableId}`, { state: { sessionToken: token } });
          }
       } else {
          toast.error(t('pos.order.sessionRequired', 'Không thể khởi tạo phiên làm việc.'));
