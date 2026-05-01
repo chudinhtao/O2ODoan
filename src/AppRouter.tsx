@@ -12,6 +12,7 @@ import PosLayout from '@/layouts/PosLayout'
 const LoginPage         = lazy(() => import('@/pages/auth/views/LoginPage'))
 const UnauthorizedPage  = lazy(() => import('@/pages/auth/views/UnauthorizedPage'))
 const PosTableMapPage   = lazy(() => import('@/pages/pos/table-map/views/TableMapPage'))
+const PosTakeawayListPage = lazy(() => import('@/pages/pos/table-map/views/TakeawayListPage'))
 const PosOrderEntryPage  = lazy(() => import('@/pages/pos/order-entry/views/OrderEntryPage'))
 const PosOrderDetailPage = lazy(() => import('@/pages/pos/order-detail/views/OrderDetailPage'))
 const PosPaymentPage     = lazy(() => import('@/pages/pos/payment/views/PaymentPage'))
@@ -25,11 +26,15 @@ const AdminTables       = lazy(() => import('@/pages/admin/tables/views/TablesMa
 const AdminStaff        = lazy(() => import('@/pages/admin/staff/views/StaffManagementPage'))
 const AdminReports      = lazy(() => import('@/pages/admin/reports/views/ReportsManagementPage'))
 const AdminOrders       = lazy(() => import('@/pages/admin/orders/views/OrdersManagementPage'))
+const AdminSettings     = lazy(() => import('@/pages/admin/settings/views/SettingsPage'))
 const CustomerHomePage  = lazy(() => import('@/pages/customer/landing/views/HomePage'))
 const CustomerMenuPage  = lazy(() => import('@/pages/customer/menu/views/MenuPage'))
 const CustomerTrackingPage = lazy(() => import('@/pages/customer/tracking/views/OrderTrackingPage'))
 const CustomerPaymentPage  = lazy(() => import('@/pages/customer/payment/views/PaymentPage'))
 const CustomerPromotionPage = lazy(() => import('@/pages/customer/promotion/views/PromotionPage'))
+
+// SERVER ROLE
+const ServerDashboard      = lazy(() => import('@/pages/server/ServerDashboard').then(module => ({ default: module.ServerDashboard })))
 
 const Loading = () => (
   <div className="flex min-h-screen items-center justify-center bg-surface">
@@ -56,7 +61,8 @@ export function AppRouter() {
           <Route element={<ProtectedRoute allowedRoles={[ROLE.CASHIER, ROLE.ADMIN]} />}>
             <Route element={<PosLayout />}>
               <Route path={ROUTES.pos.tables}      element={<PosTableMapPage />} />
-              <Route path="/pos/orders/new"        element={<PosOrderEntryPage />} />
+              <Route path="/pos/takeaways"          element={<PosTakeawayListPage />} />
+              <Route path="/pos/orders/new"         element={<PosOrderEntryPage />} />
               <Route path={ROUTES.pos.orderEntry}  element={<PosOrderEntryPage />} />
               <Route path={ROUTES.pos.orderDetail} element={<PosOrderDetailPage />} />
               <Route path={ROUTES.pos.payment}     element={<PosPaymentPage />} />
@@ -71,6 +77,11 @@ export function AppRouter() {
             </Route>
           </Route>
 
+          {/* SERVER */}
+          <Route element={<ProtectedRoute allowedRoles={[ROLE.SERVER, ROLE.ADMIN]} />}>
+            <Route path="/server" element={<ServerDashboard />} />
+          </Route>
+
           {/* Admin — ADMIN only */}
           <Route element={<ProtectedRoute allowedRoles={[ROLE.ADMIN]} />}>
             <Route element={<AdminLayout />}>
@@ -82,6 +93,7 @@ export function AppRouter() {
               <Route path={ROUTES.admin.staff}     element={<AdminStaff />} />
               <Route path={ROUTES.admin.reports}   element={<AdminReports />} />
               <Route path={ROUTES.admin.orders}    element={<AdminOrders />} />
+              <Route path={ROUTES.admin.settings}  element={<AdminSettings />} />
             </Route>
           </Route>
 

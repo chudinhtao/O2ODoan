@@ -14,11 +14,15 @@ import { SourcePieChart } from '@/pages/admin/reports/components/SourcePieChart'
 import { TopItemsList } from '@/pages/admin/reports/components/TopItemsList'
 import type { IRevenueReport } from '@/pages/admin/reports/types/report.type'
 
+import { timeService } from '@/services/time.service'
+
 export default function DashboardPage() {
   const { t, i18n } = useTranslation()
+  const serverNow = new Date(timeService.getNow())
+  
   const [dateRange] = useState({
-    from: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    to: format(new Date(), 'yyyy-MM-dd')
+    from: format(subDays(serverNow, 7), 'yyyy-MM-dd'),
+    to: format(serverNow, 'yyyy-MM-dd')
   })
 
   // Data fetching
@@ -29,7 +33,7 @@ export default function DashboardPage() {
   const totalRevenue = useMemo(() => revenueData.reduce((acc: number, curr: IRevenueReport) => acc + curr.revenue, 0), [revenueData])
 
   const currentLocale = i18n.language === 'en' ? enUS : vi
-  const todayStr = format(new Date(), 'EEEE, dd/MM/yyyy', { locale: currentLocale })
+  const todayStr = format(serverNow, 'EEEE, dd/MM/yyyy', { locale: currentLocale })
 
   return (
     <div className="flex flex-col h-full bg-transparent p-3 sm:p-4 space-y-3 overflow-y-auto w-full">

@@ -2,11 +2,12 @@ import { PosTableCard } from './PosTableCard'
 import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { useTranslation } from 'react-i18next'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, ShoppingBag } from 'lucide-react'
 
 interface PosTableGridProps {
   tables: IPosTable[]
   isLoading: boolean
+  isTakeawayMode?: boolean
   onOpenSession: (id: string) => void
   onViewOrder: (id: string) => void
   onCheckout: (id: string) => void
@@ -18,6 +19,7 @@ interface PosTableGridProps {
 export function PosTableGrid({
   tables,
   isLoading,
+  isTakeawayMode = false,
   onOpenSession,
   onViewOrder,
   onCheckout,
@@ -40,9 +42,21 @@ export function PosTableGrid({
   if (!tables || tables.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-on-surface-variant gap-3">
-        <LayoutGrid className="size-12 opacity-20" />
-        <p className="font-semibold">{t('pos.tableMap.empty.title', 'Không có dữ liệu bàn nào')}</p>
-        <p className="text-sm opacity-80">{t('pos.tableMap.empty.desc', 'Chưa có bàn nào được thiết lập trong hệ thống.')}</p>
+        {isTakeawayMode ? (
+          <ShoppingBag className="size-12 opacity-20" />
+        ) : (
+          <LayoutGrid className="size-12 opacity-20" />
+        )}
+        <p className="font-semibold">
+          {isTakeawayMode
+            ? t('pos.takeaway.empty.title', 'Không có đơn mang về nào đang xử lý')
+            : t('pos.tableMap.empty.title', 'Không có dữ liệu bàn nào')}
+        </p>
+        <p className="text-sm opacity-80">
+          {isTakeawayMode
+            ? t('pos.takeaway.empty.desc', 'Bấm "Tạo Mang Về" để tạo đơn mới.')
+            : t('pos.tableMap.empty.desc', 'Chưa có bàn nào được thiết lập trong hệ thống.')}
+        </p>
       </div>
     )
   }
@@ -53,6 +67,7 @@ export function PosTableGrid({
         <PosTableCard 
           key={table.id} 
           table={table}
+          isTakeawayMode={isTakeawayMode}
           onOpenSession={onOpenSession}
           onViewOrder={onViewOrder}
           onCheckout={onCheckout}

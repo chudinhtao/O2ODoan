@@ -100,7 +100,7 @@ export function OrderDetailModal({ orderId, isOpen, onClose }: Props) {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between overflow-hidden relative">
                    <div className="flex flex-col">
                     <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1">{t('admin.orders.table.table')}</span>
-                    <span className="text-4xl font-black text-primary">{order.tableNumber || '-'}</span>
+                    <span className="text-4xl font-black text-primary">{order.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (order.tableNumber || '-')}</span>
                    </div>
                    
                    <div className="mt-4 flex items-center">

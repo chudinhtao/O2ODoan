@@ -14,6 +14,8 @@ export const customerService = {
   getItemDetails: (id: string) =>
     http.get<IApiResponse<IMenuItem>>(API_ROUTES.menu.item(id)),
 
+  getActivePromotionsByScope: (scope: string) =>
+    http.get<IApiResponse<any[]>>(`/promotions/active/${scope}`),
   // Session
   openSession: (qrToken: string) =>
     http.post<IApiResponse<{ sessionToken: string }>>('/sessions/open', { qrToken }),

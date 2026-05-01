@@ -55,14 +55,49 @@ export default function PaymentPage() {
     isCheckingOut,
     voucherCode,
     setVoucherCode,
-    isApplyingVoucher
+    isApplyingVoucher,
+    mixedQrUrl,
+    isCreatingQr,
+    qrAmount,
+    isMixedReady,
+    handleMixedCreateQr,
+    qrPayosUrl,
+    isCreatingQrPayos,
+    handleQrCreateLink,
   } = usePaymentLogic(tableId, sessionToken, serverOrder, releaseTable)
 
-  const isLoading = tableId !== 'takeaway' && isOrderLoading
+  // Với Takeaway: session token đến từ location.state (đã có sẵn khi navigate vào)
+  // Vì vậy isOrderLoading vẫn cần được tôn trọng để chờ data fetch về
+  const isLoading = !!sessionToken && isOrderLoading
 
-
-
-  if (isLoading || !order) return null
+  if (isLoading || !order) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden bg-surface">
+        {/* Header Skeleton */}
+        <div className="px-4 py-3 flex items-center gap-3 border-b border-outline-variant shrink-0">
+          <div className="size-9 rounded-xl bg-surface-variant animate-pulse" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-36 rounded-full bg-surface-variant animate-pulse" />
+            <div className="h-3 w-24 rounded-full bg-surface-variant animate-pulse" />
+          </div>
+        </div>
+        {/* Body Skeleton */}
+        <div className="flex-1 flex flex-row overflow-hidden">
+          <div className="flex-[7] p-6 space-y-4 border-r border-outline-variant/30">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 w-full rounded-2xl bg-surface-variant animate-pulse" />
+            ))}
+            <div className="h-12 w-full rounded-2xl bg-surface-variant animate-pulse" />
+          </div>
+          <div className="flex-[3] min-w-[360px] p-6 space-y-4">
+            <div className="h-8 w-full rounded-xl bg-surface-variant animate-pulse" />
+            <div className="h-32 w-full rounded-2xl bg-surface-variant animate-pulse" />
+            <div className="mt-auto h-12 w-full rounded-xl bg-primary/20 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const orderIdPrefix = order.id ? order.id.split('-')[0].toUpperCase() : t('pos.payment.newOrder', 'MỚI')
 
@@ -119,7 +154,7 @@ export default function PaymentPage() {
                  tableId={tableId}
                  onEditOrder={() => {
                    if (tableId === 'takeaway') {
-                     navigate('/pos/orders/new/takeaway', { state: { cart: location.state?.cart } })
+                     navigate('/pos/orders/new/takeaway', { state: { sessionToken } })
                    } else {
                      navigate(`/pos/orders/${tableId}`, { state: { sessionToken } })
                    }
@@ -136,7 +171,6 @@ export default function PaymentPage() {
           <aside className="flex-[3] min-w-[360px] bg-surface border-l border-outline-variant/50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.02)]">
             <PaymentActionPanel
                orderTotal={orderTotal}
-               orderId={order.id}
                paymentMethod={paymentMethod}
                setPaymentMethod={setPaymentMethod}
                cashGiven={cashGiven}
@@ -149,13 +183,28 @@ export default function PaymentPage() {
                onHoldOrder={() => navigate(ROUTES.pos.tables)}
                onPrintBeforeClose={handlePrint}
                isTakeaway={tableId === 'takeaway'}
+               mixedQrUrl={mixedQrUrl}
+               isCreatingQr={isCreatingQr}
+               qrAmount={qrAmount}
+               isMixedReady={isMixedReady}
+               handleMixedCreateQr={handleMixedCreateQr}
+               qrPayosUrl={qrPayosUrl}
+               isCreatingQrPayos={isCreatingQrPayos}
+               handleQrCreateLink={handleQrCreateLink}
             />
           </aside>
         </div>
       </div>
 
       <div className="hidden">
-        <ReceiptPrint ref={receiptRef} order={order} items={aggregatedItems} cashGiven={cashGiven} />
+        <ReceiptPrint 
+          ref={receiptRef} 
+          order={order} 
+          items={aggregatedItems} 
+          cashGiven={cashGiven}
+          paymentMethod={paymentMethod}
+          paymentDetail={paymentMethod === 'MIXED' ? { CASH: cashGiven, QR: qrAmount } : null}
+        />
       </div>
     </>
   )

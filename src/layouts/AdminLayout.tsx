@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 import { queryClient } from '@/providers/AppProviders'
 import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
+import { AdminChatWidget } from '@/pages/admin/chat/components/AdminChatWidget'
 import { 
   LayoutDashboard, 
   UtensilsCrossed, 
@@ -17,7 +18,8 @@ import {
   Users, 
   ClipboardList, 
   TrendingUp, 
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react'
 
 const getNavItems = (t: (key: string) => string) => [
@@ -28,6 +30,7 @@ const getNavItems = (t: (key: string) => string) => [
   { path: ROUTES.admin.staff,      icon: Users,           label: t('admin.nav.staff') },
   { path: ROUTES.admin.orders,     icon: ClipboardList,   label: t('admin.nav.orders') },
   { path: ROUTES.admin.reports,    icon: TrendingUp,      label: t('admin.nav.reports') },
+  { path: ROUTES.admin.settings,   icon: Settings,        label: t('admin.nav.settings') || 'Cài đặt' },
 ]
 
 export function AdminLayout() {
@@ -48,14 +51,14 @@ export function AdminLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-100 text-on-surface font-display">
       {/* Desktop Sidebar */}
-      <aside className="w-[80px] md:w-[88px] bg-primary text-on-primary hidden md:flex flex-col items-center py-6 shrink-0 h-full overflow-y-auto custom-scrollbar z-50">
+      <aside className="w-[72px] bg-primary text-on-primary hidden md:flex flex-col items-center py-4 shrink-0 h-full z-50">
         {/* Logo Placeholder */}
-        <div className="w-10 h-10 bg-surface rounded-md mb-8 flex items-center justify-center flex-shrink-0 text-primary font-bold shadow-sm">
-          <span className="material-symbols-outlined text-[24px]">local_cafe</span>
+        <div className="w-9 h-9 bg-surface rounded-md mb-5 flex items-center justify-center flex-shrink-0 text-primary font-bold shadow-sm">
+          <span className="material-symbols-outlined text-[20px]">local_cafe</span>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 flex flex-col gap-2 w-full items-center">
+        <nav className="flex-1 flex flex-col gap-1 w-full items-center">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -64,20 +67,20 @@ export function AdminLayout() {
             >
               {({ isActive }) => (
                 <div
-                  className={`flex flex-col items-center justify-center w-[64px] h-[64px] rounded-md transition-all ${
+                  className={`flex flex-col items-center justify-center w-[58px] h-[52px] rounded-md transition-all ${
                     isActive
                       ? 'bg-surface shadow-sm'
                       : 'hover:bg-on-primary/10'
                   }`}
                 >
                   <item.icon
-                    size={24}
+                    size={20}
                     className={`mb-0.5 ${
                       isActive ? 'text-primary' : 'text-on-primary/60'
                     }`}
                   />
                   <span
-                    className={`text-[10px] uppercase tracking-wider text-center leading-tight px-1 font-headline ${
+                    className={`text-[9px] uppercase tracking-wide text-center leading-tight px-0.5 font-headline ${
                       isActive ? 'font-bold text-primary' : 'font-medium text-on-primary/70'
                     }`}
                   >
@@ -90,8 +93,7 @@ export function AdminLayout() {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="mt-auto flex flex-col items-center gap-6 pt-6 pb-4">
-          {/* Language Toggle */}
+        <div className="mt-auto flex flex-col items-center gap-4 pt-4 pb-3">
           <LanguageToggle variant="plain" className="text-on-primary/60 hover:text-on-primary" />
           
           <button
@@ -100,7 +102,7 @@ export function AdminLayout() {
             className="text-on-primary/60 hover:text-on-primary transition-colors hover:scale-110 active:scale-95"
             title={t('admin.logout')}
           >
-            <LogOut size={24} />
+            <LogOut size={20} />
           </button>
         </div>
       </aside>
@@ -163,6 +165,8 @@ export function AdminLayout() {
         </button>
       </nav>
 
+      {/* Admin AI Chat Widget */}
+      <AdminChatWidget />
     </div>
   )
 }

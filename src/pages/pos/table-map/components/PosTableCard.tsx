@@ -1,10 +1,11 @@
-import { Check, Clock, Coffee, Sparkles, ArrowLeftRight, Link } from 'lucide-react'
+import { Check, Clock, Coffee, Sparkles, ArrowLeftRight, Link, ShoppingBag } from 'lucide-react'
 import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/components/ui/Button'
 
 interface PosTableCardProps {
   table: IPosTable
+  isTakeawayMode?: boolean
   onOpenSession: (id: string) => void
   onViewOrder: (id: string) => void
   onCheckout: (id: string) => void
@@ -12,9 +13,9 @@ interface PosTableCardProps {
   onTransfer: (id: string) => void
   onMerge: (id: string) => void
 }
-
 export function PosTableCard({
   table,
+  isTakeawayMode = false,
   onOpenSession,
   onViewOrder,
   onCheckout,
@@ -23,6 +24,20 @@ export function PosTableCard({
   onMerge
 }: PosTableCardProps) {
   const { t } = useTranslation()
+
+  const getElapsedTime = (openedAt?: string) => {
+    if (!openedAt) return '--'
+    const openedDate = new Date(openedAt)
+    const diffMs = Date.now() - openedDate.getTime() // Note: useServerTime logic handles the offset globally via interceptor
+    
+    // We want a positive duration, so we use getRemaining logic but inverted or just calculate
+    const minutes = Math.floor(Math.abs(diffMs) / 60000)
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    return `${hours}h ${minutes % 60}m`
+  }
+
+  const elapsed = getElapsedTime(table.openedAt)
 
   if (table.status === 'FREE') {
     return (
@@ -42,6 +57,32 @@ export function PosTableCard({
             {t('pos.table.action.open', 'Mở bàn')}
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  if (table.status === 'MERGED') {
+    return (
+      <div className="bg-[#F3E8FF] border-2 border-[#A855F7] rounded-2xl p-6 flex flex-col justify-between min-h-[220px] shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#A855F7]"></div>
+        <div className="flex justify-between items-start">
+          <h3 className="text-4xl font-black font-headline text-[#A855F7]/80 group-hover:text-[#A855F7] transition-colors">{table.number}</h3>
+          <span className="bg-[#A855F7] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
+            <Link className="size-3" /> {t('pos.table.status.merged', 'Đã ghép')}
+          </span>
+        </div>
+        <div className="text-center py-4 mt-auto">
+          <p className="text-[#A855F7] font-bold text-sm bg-white/60 p-2 rounded-lg border border-[#A855F7]/20 flex items-center justify-center gap-2">
+            🔗 {t('pos.table.status.mergedWith', 'Đang gộp vào Bàn')} {table.parentTableNumber}
+          </p>
+        </div>
+        <Button 
+          variant="primary"
+          onClick={(e: React.MouseEvent) => { e.stopPropagation(); if(table.parentTableId) onViewOrder(table.parentTableId) }}
+          className="w-full bg-[#A855F7] text-white py-3 rounded-xl font-bold text-sm hover:brightness-110 transition-all font-body tracking-wider shadow-lg shadow-[#A855F7]/30"
+        >
+          {t('pos.table.action.viewParent', 'Xem Bàn Gốc')}
+        </Button>
       </div>
     )
   }
@@ -106,13 +147,17 @@ export function PosTableCard({
     >
       <div className="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
       <div className="flex justify-between items-start">
-        <h3 className="text-4xl font-black font-headline text-primary">{table.number}</h3>
+        {isTakeawayMode ? (
+          <ShoppingBag className="size-9 text-primary/80" />
+        ) : (
+          <h3 className="text-4xl font-black font-headline text-primary">{table.number}</h3>
+        )}
         <div className="flex flex-col items-end">
           <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
             {t('pos.table.status.occupied', 'Đang dùng')}
           </span>
           <span className="text-on-surface-variant text-[10px] mt-2 font-bold uppercase tracking-widest flex items-center gap-1">
-             <Clock className="size-3" /> --
+             <Clock className="size-3" /> {elapsed}
           </span>
         </div>
       </div>
@@ -126,22 +171,26 @@ export function PosTableCard({
         </div>
         
         <div className="flex gap-2 w-full">
-          <Button 
-            variant="outline"
-            onClick={(e) => { e.stopPropagation(); onTransfer(table.id); }}
-            className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
-            title={t('common.transfer', 'Chuyển bàn')}
-          >
-            <ArrowLeftRight className="size-3.5" />
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={(e) => { e.stopPropagation(); onMerge(table.id); }}
-            className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
-            title={t('common.merge', 'Gộp bàn')}
-          >
-            <Link className="size-3.5" />
-          </Button>
+          {!isTakeawayMode && (
+            <>
+              <Button 
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); onTransfer(table.id); }}
+                className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
+                title={t('common.transfer', 'Chuyển bàn')}
+              >
+                <ArrowLeftRight className="size-3.5" />
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); onMerge(table.id); }}
+                className="flex-1 border-primary/20 text-primary py-2 rounded-xl font-bold text-[12px] hover:bg-primary/5 transition-all flex items-center justify-center gap-1 px-1"
+                title={t('common.merge', 'Gộp bàn')}
+              >
+                <Link className="size-3.5" />
+              </Button>
+            </>
+          )}
           <Button 
             variant="primary"
             onClick={(e) => { e.stopPropagation(); onViewOrder(table.id); }}

@@ -11,6 +11,7 @@ export const ROUTES = {
     order:       (id: string) => `/pos/orders/${id}`,
   },
   kds:      '/kds',
+  server:   '/server',
   admin: {
     root:       '/admin',
     dashboard:  '/admin/dashboard',
@@ -20,6 +21,7 @@ export const ROUTES = {
     staff:      '/admin/staff',
     reports:    '/admin/reports',
     orders:     '/admin/orders',
+    settings:   '/admin/settings',
   },
   customer: {
     root:    '/',

@@ -7,6 +7,7 @@ import { IMenuItem, IMenuItemOption } from '../types'
 import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
 import { useTranslation } from 'react-i18next'
 import { ItemOptionGroup } from './ItemOptionGroup'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 interface ItemDetailModalProps {
   isOpen: boolean
@@ -17,16 +18,18 @@ interface ItemDetailModalProps {
     quantity: number,
     selectedOptions: Record<string, IMenuItemOption[]>,
     note: string
-  ) => void
+  ) => void;
+  isAdding?: boolean;
 }
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
-export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDetailModalProps) {
+export function ItemDetailModal({ isOpen, onClose, item, onAddToCart, isAdding }: ItemDetailModalProps) {
   const [quantity, setQuantity] = useState(1)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, IMenuItemOption[]>>({})
   const [note, setNote] = useState('')
   const { t } = useTranslation()
+  const { isExpired, isScheduleActive } = useServerTime(5000); // 5s check 1 lần cho nhẹ
 
   useEffect(() => {
     if (isOpen && item) {
@@ -42,8 +45,24 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
 
   if (!item) return null
 
+  // Chốt chặn Client: Kiểm tra Flash Sale có bị hết hạn không dựa trên serverTime + Schedules
+  const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
+  const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  
+  const hasDiscount = !!(
+    item.salePrice && 
+    item.salePrice < item.basePrice && 
+    !isSaleExpired &&
+    isCurrentlyInSchedule
+  )
+  const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
+  const savings = hasDiscount ? item.basePrice - item.salePrice! : 0
+  const discountPct = hasDiscount
+    ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100)
+    : 0
+
   const calculateTotal = () => {
-    const base = item.salePrice && item.salePrice < item.basePrice ? item.salePrice : item.basePrice
+    const base = displayPrice
     const extras = Object.values(selectedOptions).flat().reduce((s, o) => s + o.extraPrice, 0)
     return (base + extras) * quantity
   }
@@ -61,25 +80,16 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
     !g.isRequired || (selectedOptions[g.id]?.length ?? 0) > 0
   ) ?? true
 
-  const hasDiscount = !!(item.salePrice && item.salePrice < item.basePrice)
-  const displayPrice = hasDiscount ? item.salePrice! : item.basePrice
-  const savings = hasDiscount ? item.basePrice - item.salePrice! : 0
-  const discountPct = hasDiscount
-    ? Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100)
-    : 0
-
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px]"
           />
 
-          {/* Sheet */}
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
@@ -87,14 +97,11 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
             transition={{ type: 'spring', damping: 30, stiffness: 260 }}
             className="fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[92vh] rounded-t-[32px] overflow-hidden bg-[#f8fafc]"
           >
-            {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 bg-[#f8fafc] shrink-0">
               <div className="w-10 h-1 rounded-full bg-slate-300" />
             </div>
 
-            {/* Scroll area */}
             <div className="flex-1 overflow-y-auto">
-
               {/* Image card */}
               <div className="mx-4 mt-2 rounded-3xl overflow-hidden relative bg-slate-200 shadow-xl" style={{ height: '220px' }}>
                 {item.imageUrl ? (
@@ -111,7 +118,6 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
-                {/* Close */}
                 <button
                   onClick={onClose}
                   className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full text-white active:scale-90 transition-all shadow-md"
@@ -119,7 +125,6 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
                   <X size={16} strokeWidth={2.5} />
                 </button>
 
-                {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                   {item.isFeatured && (
                     <span className="flex items-center gap-1 bg-amber-500/90 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow">
@@ -193,14 +198,12 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
                 />
               </div>
 
-              {/* CTA spacer */}
               <div className="h-28" />
             </div>
 
             {/* Pinned footer */}
             <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 pt-3 pb-6 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.1)]">
               <div className="flex items-center gap-3">
-                {/* Qty stepper */}
                 <div className="flex items-center rounded-2xl border-2 border-slate-200 overflow-hidden shrink-0">
                   <button
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -217,20 +220,23 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart }: ItemDeta
                   </button>
                 </div>
 
-                {/* Add to cart */}
                 <button
-                  onClick={() => { if (isValid && item.isAvailable) { onAddToCart(item, quantity, selectedOptions, note); onClose() } }}
-                  disabled={!isValid || !item.isAvailable}
+                  onClick={() => { if (isValid && item.isAvailable && !isAdding) { onAddToCart(item, quantity, selectedOptions, note); onClose() } }}
+                  disabled={!isValid || !item.isAvailable || isAdding}
                   className={`
                     flex-1 h-12 flex items-center justify-between px-5 rounded-2xl
                     font-bold text-[14px] text-white transition-all active:scale-[0.97] duration-150
-                    ${isValid && item.isAvailable
+                    ${isValid && item.isAvailable && !isAdding
                       ? 'bg-gradient-to-r from-[#ff7a00] to-[#ff4d00] shadow-[0_4px_20px_-4px_rgba(255,100,0,0.55)]'
                       : 'bg-slate-300 cursor-not-allowed'}
+                    ${isAdding ? 'opacity-80' : ''}
                   `}
                 >
-                  <span>{item.isAvailable ? t('customer.itemDetail.addToCart') : 'Tạm hết hàng'}</span>
-                  {item.isAvailable && (
+                  <div className="flex items-center gap-2">
+                    {isAdding && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                    <span>{isAdding ? t('customer.itemDetail.adding', 'Đang thêm...') : (item.isAvailable ? t('customer.itemDetail.addToCart') : 'Tạm hết hàng')}</span>
+                  </div>
+                  {item.isAvailable && !isAdding && (
                     <span className="font-black text-[15px]">{fmt(calculateTotal())}đ</span>
                   )}
                 </button>

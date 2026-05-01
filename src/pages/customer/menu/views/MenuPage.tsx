@@ -3,11 +3,15 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react'
 import { CategoryTabs } from '../components/CategoryTabs'
 import { MenuSection } from '../components/MenuSection'
-
+import { DealsHeaderButton } from '../components/DealsHeaderButton'
+import { ActiveDealsDrawer } from '../components/ActiveDealsDrawer'
+import { BundleMissionDrawer } from '../components/BundleMissionDrawer'
 import { ItemDetailModal } from '../components/ItemDetailModal'
 import { CartDrawer } from '../components/CartDrawer'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
-import { useCustomerCategories, useCustomerItems, useCustomerCart } from '../hooks/useCustomerQueries'
+import { AiChatPage } from '../../ai-chat/views/AiChatPage'
+import { useCustomerCategories, useCustomerItems, useCustomerCart, CUSTOMER_QUERY_KEYS } from '../hooks/useCustomerQueries'
+import { useQueryClient } from '@tanstack/react-query'
 import { FilterDrawer, FilterState } from '../components/FilterDrawer'
 import {
   useCustomerAddToCart,
@@ -29,7 +33,17 @@ export default function CustomerMenuPage() {
 
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
   const [selectedMenuItem, setSelectedMenuItem] = useState<IMenuItem | null>(null)
+  const [selectedBundle, setSelectedBundle] = useState<any | null>(null)
+  const [isDealsDrawerOpen, setIsDealsDrawerOpen] = useState(false)
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const handleOpenCart = () => {
+    if (token) {
+      queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
+    }
+    setIsCartDrawerOpen(true)
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -113,6 +127,14 @@ export default function CustomerMenuPage() {
     filters.onlyAvailable
   ].filter(Boolean).length
 
+  const handleQuickAdd = (item: IMenuItem) => {
+    if (item.optionGroups && item.optionGroups.length > 0) {
+      setSelectedMenuItem(item)
+    } else {
+      addToCartMutation.mutate({ menuItemId: item.id, quantity: 1, note: '', options: [] })
+    }
+  }
+
   /* ─── Error state ─── */
   if (!token || sessionError) {
     return (
@@ -168,23 +190,27 @@ export default function CustomerMenuPage() {
               )}
             </div>
 
-            {/* Filter button */}
-            <button
-              onClick={() => setIsFilterOpen(true)}
-              className={`
-                relative w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl transition-all active:scale-90
-                ${activeFilterCount > 0
-                  ? 'bg-gradient-to-br from-[#ff7a00] to-[#ff5000] text-white shadow-[0_4px_12px_-2px_rgba(255,105,51,0.4)]'
-                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
-              `}
-            >
-              <SlidersHorizontal size={18} strokeWidth={2} />
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <DealsHeaderButton onClick={() => setIsDealsDrawerOpen(true)} />
+              
+              {/* Filter button */}
+              <button
+                onClick={() => setIsFilterOpen(true)}
+                className={`
+                  relative w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl transition-all active:scale-90
+                  ${activeFilterCount > 0
+                    ? 'bg-gradient-to-br from-[#ff7a00] to-[#ff5000] text-white shadow-[0_4px_12px_-2px_rgba(255,105,51,0.4)]'
+                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
+                `}
+              >
+                <SlidersHorizontal size={18} strokeWidth={2} />
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -211,7 +237,7 @@ export default function CustomerMenuPage() {
       <div className="h-[120px]" aria-hidden="true" />
 
       <main className="px-4 pt-2">
-
+      
         {/* Menu grid/list */}
         {isItemsLoading ? (
           <div className="space-y-5">
@@ -251,7 +277,7 @@ export default function CustomerMenuPage() {
       <CustomerBottomNav
         token={token || ''}
         activeTab="menu"
-        onCartClick={() => setIsCartDrawerOpen(true)}
+        onCartClick={handleOpenCart}
       />
 
       {/* ══ MODALS ══ */}
@@ -260,6 +286,21 @@ export default function CustomerMenuPage() {
         onClose={() => setSelectedMenuItem(null)}
         item={selectedMenuItem}
         onAddToCart={handleAddToCart}
+        isAdding={addToCartMutation.isPending}
+      />
+
+      <ActiveDealsDrawer
+        isOpen={isDealsDrawerOpen}
+        onClose={() => setIsDealsDrawerOpen(false)}
+        onSelectBundle={(bundle) => setSelectedBundle(bundle)}
+      />
+
+      <BundleMissionDrawer
+        isOpen={!!selectedBundle}
+        onClose={() => setSelectedBundle(null)}
+        bundle={selectedBundle}
+        cart={cart}
+        onQuickAdd={handleQuickAdd}
       />
 
       <CartDrawer
@@ -278,6 +319,9 @@ export default function CustomerMenuPage() {
         filters={filters}
         onApply={setFilters}
       />
+
+      {/* ══ AI CHAT ══ */}
+      <AiChatPage sessionToken={token} />
     </div>
   )
 }

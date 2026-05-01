@@ -57,6 +57,16 @@ export function useCustomerItems(categoryId: string) {
   })
 }
 
+export function useCustomerActivePromotions(scope: string) {
+  return useQuery({
+    queryKey: [...CUSTOMER_QUERY_KEYS.all, 'promotions', scope],
+    queryFn: async () => {
+      const res = await customerService.getActivePromotionsByScope(scope)
+      return res.data.data
+    },
+  })
+}
+
 export function useCustomerCart(token: string | null) {
   const queryClient = useQueryClient()
   const { subscribe, isConnected } = useWebSocketCtx()

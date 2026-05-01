@@ -6,11 +6,13 @@ interface ReceiptPrintProps {
   order: IOrder
   items: { name: string; qty: number; unitPrice: number; total: number }[]
   cashGiven?: number
+  paymentMethod?: string
+  paymentDetail?: Record<string, number> | null
 }
 
 // Chuyên dùng để in ra máy in nhiệt 80mm
 export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
-  ({ order, items, cashGiven = 0 }, ref) => {
+  ({ order, items, cashGiven = 0, paymentMethod, paymentDetail }, ref) => {
     const { t } = useTranslation()
     return (
       <div
@@ -71,17 +73,31 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
             <span>{order.total.toLocaleString('vi-VN')}đ</span>
           </div>
           
-          {cashGiven > 0 && (
-            <>
-              <div className="flex justify-between text-sm text-black mt-2">
-                <span>{t('pos.payment.receiptCashGiven', 'Tiền khách đưa:')}</span>
-                <span>{cashGiven.toLocaleString('vi-VN')}đ</span>
+          {paymentMethod === 'MIXED' && paymentDetail ? (
+            <div className="pt-2 space-y-1 border-t border-black/10 mt-2">
+              <p className="text-xs font-bold text-black uppercase mb-1">{t('pos.payment.paymentBreakdown', 'CHI TIẾT THANH TOÁN:')}</p>
+              <div className="flex justify-between text-sm text-black">
+                <span>{t('pos.payment.receiptCashPart', 'Tiền mặt:') || 'Tiền mặt:'}</span>
+                <span>{(paymentDetail.CASH || 0).toLocaleString('vi-VN')}đ</span>
               </div>
               <div className="flex justify-between text-sm text-black">
-                <span>{t('pos.payment.receiptChange', 'Tiền thừa:')}</span>
-                <span>{Math.max(0, cashGiven - order.total).toLocaleString('vi-VN')}đ</span>
+                <span>{t('pos.payment.receiptQrPart', 'Chuyển khoản:') || 'Chuyển khoản:'}</span>
+                <span>{(paymentDetail.QR || 0).toLocaleString('vi-VN')}đ</span>
               </div>
-            </>
+            </div>
+          ) : (
+            cashGiven > 0 && (
+              <>
+                <div className="flex justify-between text-sm text-black mt-2">
+                  <span>{t('pos.payment.receiptCashGiven', 'Tiền khách đưa:')}</span>
+                  <span>{cashGiven.toLocaleString('vi-VN')}đ</span>
+                </div>
+                <div className="flex justify-between text-sm text-black">
+                  <span>{t('pos.payment.receiptChange', 'Tiền thừa:')}</span>
+                  <span>{Math.max(0, cashGiven - order.total).toLocaleString('vi-VN')}đ</span>
+                </div>
+              </>
+            )
           )}
         </div>
 

@@ -5,6 +5,7 @@ import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
 import { Button } from '@/shared/components/ui/Button'
 import { Textarea } from '@/shared/components/ui/Textarea'
 import { useModifierSelection } from '../hooks/useModifierSelection'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 interface ItemModifierModalProps {
   isOpen: boolean
@@ -22,6 +23,7 @@ export function ItemModifierModal({
   editingCartItemId, initialQuantity, initialNote, initialOptions: initialOptsArray
 }: ItemModifierModalProps) {
   const { t, i18n } = useTranslation()
+  const { isExpired } = useServerTime(5000)
 
   const STATION_CONFIG = {
     HOT:   { icon: Flame,     color: 'text-orange-500', bg: 'bg-orange-500/10', label: t('pos.menu.item.status.hot', 'Nóng') },
@@ -37,7 +39,9 @@ export function ItemModifierModal({
 
   if (!isOpen || !item) return null
 
-  const hasSale   = !!item.salePrice && item.salePrice < item.basePrice
+  // Chốt chặn Server Time cho POS
+  const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
+  const hasSale   = !!item.salePrice && item.salePrice < item.basePrice && !isSaleExpired
   const station   = item.station ? STATION_CONFIG[item.station] : null
   const StIcon    = station?.icon
   const hasGroups = !!item.optionGroups?.length
@@ -58,18 +62,14 @@ export function ItemModifierModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
       />
 
-      {/* Modal — 2-column layout */}
       <div className="relative bg-surface rounded-3xl shadow-2xl w-full max-w-3xl flex overflow-hidden animate-in zoom-in-95 duration-250 max-h-[90vh] ring-1 ring-outline-variant/30">
-
         {/* ── LEFT: Image + Item Info ── */}
         <div className="w-80 shrink-0 flex flex-col bg-surface-container-lowest">
-          {/* Hero image */}
           <div className="relative h-64 shrink-0 overflow-hidden bg-surface-container">
             <ImageWithFallback
               src={item.imageUrl || ''}
@@ -79,7 +79,6 @@ export function ItemModifierModal({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-            {/* Close button */}
             <button
               onClick={onClose}
               className="absolute top-3 right-3 z-10 size-8 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white transition-all border border-white/10"
@@ -87,7 +86,6 @@ export function ItemModifierModal({
               <X className="size-4" />
             </button>
 
-            {/* Sale badge */}
             {hasSale && (
               <span className="absolute bottom-3 left-3 z-10 bg-error text-on-error text-[11px] font-black px-2.5 py-1 rounded-full shadow-md">
                 -{Math.round(((item.basePrice - item.salePrice!) / item.basePrice) * 100)}%
@@ -95,9 +93,7 @@ export function ItemModifierModal({
             )}
           </div>
 
-          {/* Info block */}
           <div className="flex flex-col flex-1 p-5 gap-3">
-            {/* Category + station + featured */}
             <div className="flex flex-wrap items-center gap-2">
               {item.categoryName && (
                 <span className="text-[11px] font-semibold text-outline uppercase tracking-wide">
@@ -118,19 +114,16 @@ export function ItemModifierModal({
               )}
             </div>
 
-            {/* Name */}
             <h3 className="text-xl font-black text-on-surface font-headline leading-tight">
               {item.name}
             </h3>
 
-            {/* Description */}
             {item.description && (
               <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3">
                 {item.description}
               </p>
             )}
 
-            {/* Price */}
             <div className="mt-auto pt-2 border-t border-outline-variant/30">
               {hasSale ? (
                 <div className="flex flex-col">
@@ -146,10 +139,7 @@ export function ItemModifierModal({
 
         {/* ── RIGHT: Options + Note + Footer ── */}
         <div className="flex-1 flex flex-col min-w-0 border-l border-outline-variant/30">
-
-          {/* Scrollable options area */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
-
             {!hasGroups && (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-on-surface-variant py-8">
                 <span className="text-4xl">🍽️</span>
@@ -159,7 +149,6 @@ export function ItemModifierModal({
 
             {item.optionGroups?.sort((a, b) => a.displayOrder - b.displayOrder).map(group => (
               <div key={group.id} className="space-y-3">
-                {/* Group header */}
                 <div className="flex items-center gap-2">
                   <div className="h-5 w-1 rounded-full bg-primary shrink-0" />
                   <h4 className="text-sm font-black text-on-surface uppercase tracking-wide flex-1 truncate">
@@ -176,7 +165,6 @@ export function ItemModifierModal({
                   )}
                 </div>
 
-                {/* Options — 2 cols if >= 4 options */}
                 <div className={`grid gap-2 ${group.options.length >= 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {group.options.map(opt => {
                     const isSelected = (selectedOptions[group.id!] || []).includes(opt.id!)
@@ -216,7 +204,6 @@ export function ItemModifierModal({
               </div>
             ))}
 
-            {/* Note */}
             <div className="space-y-2 pt-2 border-t border-outline-variant/30">
               <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wide">
                 {t('pos.menu.modifier.specialNote', 'Ghi chú')}
@@ -230,9 +217,7 @@ export function ItemModifierModal({
             </div>
           </div>
 
-          {/* ── Footer: qty + add button ── */}
           <div className="shrink-0 p-5 border-t border-outline-variant/30 bg-surface-container-lowest flex items-center gap-4">
-            {/* Quantity stepper */}
             <div className="flex items-center bg-surface-container rounded-2xl p-1 gap-1 ring-1 ring-outline-variant/30">
               <button
                 onClick={handleDecreaseQuantity}
@@ -251,7 +236,6 @@ export function ItemModifierModal({
               </button>
             </div>
 
-            {/* Add to cart button */}
             <Button
               size="lg"
               onClick={handleAdd}

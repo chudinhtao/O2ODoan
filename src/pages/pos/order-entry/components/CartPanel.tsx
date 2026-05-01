@@ -4,9 +4,10 @@ import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { Button } from '@/shared/components/ui/Button'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '@/shared/utils/formatCurrency'
-import { ShoppingCart, Trash2 } from 'lucide-react'
+import { ShoppingCart, Trash2, LayoutGrid } from 'lucide-react'
 
 interface CartPanelProps {
+  tableId?: string
   tableNumber: number
   cart: ICart | undefined
   isCartLoading: boolean
@@ -21,6 +22,7 @@ interface CartPanelProps {
 }
 
 export function CartPanel({
+  tableId,
   tableNumber, cart, isCartLoading, isSubmitting,
   onIncreaseItem, onDecreaseItem, onRemoveItem,
   onSubmitTicket, onCheckout, onEditItem, onClearCart
@@ -29,7 +31,28 @@ export function CartPanel({
   const isEmpty    = !cart || cart.items.length === 0
   const hasSession = !!cart?.sessionToken
   const itemCount  = cart?.items.reduce((s, i) => s + i.quantity, 0) ?? 0
-  const isTakeaway = !tableNumber
+  // isTakeaway chỉ true khi tableId TƯỜNG MINH là 'takeaway', không phải khi tableNumber = 0
+  const isTakeaway = tableId === 'takeaway'
+  const isNoSelection = !tableId // Chưa chọn bàn hoặc mang về
+
+  // Màn hướng dẫn khi chưa chọn bàn
+  if (isNoSelection) {
+    return (
+      <div className="flex flex-col h-full min-h-0 bg-surface-container-lowest items-center justify-center gap-4 p-6 text-center select-none">
+        <div className="w-16 h-16 rounded-2xl bg-surface-variant flex items-center justify-center">
+          <LayoutGrid className="size-8 text-outline/50" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-on-surface-variant">
+            {t('pos.cart.selectFirst', 'Chọn bàn hoặc Mang về')}
+          </p>
+          <p className="text-xs text-outline mt-1">
+            {t('pos.cart.selectFirstDesc', 'Dùng dropdown phía trên để chọn bàn hoặc tạo đơn mang về.')}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-surface-container-lowest">
@@ -95,6 +118,21 @@ export function CartPanel({
 
       {/* ── Summary + Actions ── */}
       <div className="shrink-0 border-t border-outline-variant/30 bg-surface-container-lowest">
+        {!isEmpty && cart && (
+          <div className="px-4 py-2 border-b border-outline-variant/10 space-y-1">
+            <div className="flex justify-between text-[11px] text-outline font-medium">
+              <span>Tạm tính</span>
+              <span>{formatCurrency(cart.originalTotal)}</span>
+            </div>
+            {cart.automatedDiscount > 0 && (
+              <div className="flex justify-between text-[11px] text-success font-bold">
+                <span>Giảm giá tự động</span>
+                <span>-{formatCurrency(cart.automatedDiscount)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Total row */}
         <div className="px-4 py-3 flex items-center justify-between">
           <span className="text-sm font-bold text-on-surface-variant">{t('pos.cart.total', 'Tổng cộng')}</span>

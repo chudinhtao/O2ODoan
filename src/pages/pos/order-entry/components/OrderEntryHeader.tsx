@@ -23,6 +23,8 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
   })
 
   const handleChangeTable = async (val: string) => {
+    if (!val) return // Người dùng bấm lại placeholder, không làm gì
+
     if (val === 'takeaway') {
       navigate('/pos/orders/new/takeaway')
       return
@@ -49,6 +51,8 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
   }
 
   const selectOptions = [
+    // Placeholder đầu tiên khi chưa chọn bàn
+    ...(!tableId ? [{ value: '', label: t('pos.order.selectTable', '-- Chọn bàn hoặc Mang về --') }] : []),
     { value: 'takeaway', label: t('pos.order.takeaway', 'Mang về') },
     ...(tables?.map(tbl => {
       let statusLabel = ''
@@ -65,14 +69,22 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
 
   return (
     <header className="h-18 shrink-0 border-b border-outline-variant flex items-center px-6 bg-surface-bright shadow-sm z-10">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate(tableId && tableId !== 'takeaway' ? `/pos/orders/${tableId}` : '/pos/tables')}
-        className="mr-4 text-outline hover:bg-surface-variant"
-      >
-        <ArrowLeft className="size-5" />
-      </Button>
+      {tableId && tableId !== 'takeaway' && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1)
+            } else {
+              navigate('/pos/tables')
+            }
+          }}
+          className="mr-4 text-outline hover:bg-surface-variant"
+        >
+          <ArrowLeft className="size-5" />
+        </Button>
+      )}
       
       <div className="flex-1 flex items-center gap-4 border-none">
         <div className="flex items-center gap-3">
@@ -82,7 +94,7 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
           <div className="w-64">
             <Select
               className="font-bold border-outline-variant focus:border-primary"
-              value={!tableId || tableId === 'takeaway' ? 'takeaway' : tableId}
+              value={tableId === 'takeaway' ? 'takeaway' : (tableId || '')}
               onChange={(e) => handleChangeTable(e.target.value)}
               options={selectOptions}
             />
@@ -92,4 +104,5 @@ export function OrderEntryHeader({ tableId, tables }: OrderEntryHeaderProps) {
     </header>
   )
 }
+
 

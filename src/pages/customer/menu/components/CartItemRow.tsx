@@ -3,6 +3,8 @@ import { ICartItem } from '../types'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
+import { CountdownTimer } from './CountdownTimer'
+import { useServerTime } from '@/shared/hooks/useServerTime'
 
 interface CartItemRowProps {
   item: ICartItem
@@ -16,17 +18,27 @@ const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 export function CartItemRow({ item, isLast, onUpdateQuantity, onRemoveItem }: CartItemRowProps) {
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false)
   const { t } = useTranslation()
+  const { isExpired, isScheduleActive } = useServerTime(10000)
+
+  const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
+  const isCurrentlyInSchedule = isScheduleActive(item.schedules)
+  const hasActiveFlashSale = item.hasFlashSale && !isSaleExpired && isCurrentlyInSchedule
 
   return (
     <>
       <div className={`p-4 flex gap-3 ${!isLast ? 'border-b border-slate-50' : ''}`}>
         {/* Thumbnail */}
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+        <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0 relative">
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
           ) : (
             <div className={`w-full h-full flex items-center justify-center text-white font-black text-xl select-none ${item.station === 'BAR' ? 'bg-gradient-to-br from-amber-400 to-orange-400' : 'bg-gradient-to-br from-orange-500 to-red-400'}`}>
               {item.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          {hasActiveFlashSale && item.saleEndAt && (
+            <div className="absolute top-0.5 right-0.5">
+              <CountdownTimer endDate={item.saleEndAt} showIcon={false} className="!text-[7px] !px-1 !py-0 !bg-red-500" />
             </div>
           )}
         </div>
@@ -57,7 +69,21 @@ export function CartItemRow({ item, isLast, onUpdateQuantity, onRemoveItem }: Ca
           )}
 
           <div className="flex items-center justify-between mt-2.5">
-            <span className="font-black text-guest-primary text-sm">{fmt(item.lineTotal)}đ</span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-guest-primary text-sm">{fmt(item.lineTotal)}đ</span>
+                {hasActiveFlashSale && (
+                   <span className="flex items-center gap-0.5 text-[8px] text-red-500 font-bold bg-red-50 px-1 rounded border border-red-100 uppercase animate-pulse">
+                     Sắp hết
+                   </span>
+                )}
+              </div>
+              {hasActiveFlashSale && (
+                <span className="text-[10px] text-slate-400 line-through">
+                  {fmt(item.basePrice * item.quantity + item.options.reduce((acc, opt) => acc + opt.extraPrice * item.quantity, 0))}đ
+                </span>
+              )}
+            </div>
             <div className="flex items-center bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
               <button
                 onClick={() => onUpdateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}

@@ -79,7 +79,7 @@ export function ShiftOrderModal({ order, isOpen, onClose }: Props) {
               {getStatusBadge(order.status)}
             </h3>
             <p className="text-sm text-on-surface-variant font-medium mt-0.5">
-              {t('admin.orders.table.table', 'Bàn')}: {order.source === 'MANUAL' ? t('pos.tableMap.takeaway', 'Mang về') : (order.tableNumber || '--')} • {formatDateTime(order.createdAt)}
+              {t('admin.orders.table.table', 'Bàn')}: {order.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (order.tableNumber || '--')} • {formatDateTime(order.createdAt)}
             </p>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full text-on-surface-variant hover:bg-surface-variant">
