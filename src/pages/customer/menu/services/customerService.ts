@@ -20,41 +20,41 @@ export const customerService = {
   openSession: (qrToken: string) =>
     http.post<IApiResponse<{ sessionToken: string }>>('/sessions/open', { qrToken }),
 
-  getSessionOrder: (token?: string) =>
+  getSessionOrder: () =>
     http.get<IApiResponse<any>>(API_ROUTES.order.sessionOrder),
 
   // Cart
-  getCart: (token?: string) =>
+  getCart: () =>
     http.get<IApiResponse<ICart>>(API_ROUTES.order.cart),
 
-  addToCart: (token: string, payload: ITicketItemRequest) =>
+  addToCart: (payload: ITicketItemRequest) =>
     http.post<IApiResponse<ICart>>(API_ROUTES.order.cartItems, payload),
 
-  updateCartItem: (token: string, cartItemId: string, quantity: number, note: string) =>
+  updateCartItem: (cartItemId: string, quantity: number, note: string) =>
     http.put<IApiResponse<ICart>>(`${API_ROUTES.order.cartItems}/${cartItemId}`, { quantity, note }),
 
-  deleteCartItem: (token: string, cartItemId: string) =>
+  deleteCartItem: (cartItemId: string) =>
     http.delete<IApiResponse<ICart>>(`${API_ROUTES.order.cartItems}/${cartItemId}`),
 
   // Tickets & Others
-  submitOrder: (token?: string, note?: string) =>
+  submitOrder: (note?: string) =>
     http.post<IApiResponse<any>>(API_ROUTES.order.tickets, { note }),
 
-  requestPayment: (token: string, paymentMethod: string) =>
+  requestPayment: (paymentMethod: string) =>
     http.post<IApiResponse<any>>('/orders/request-payment', { paymentMethod }),
 
-  createPayOSLink: (token: string, orderId: string, amount: number) =>
+  createPayOSLink: (orderId: string, amount: number) =>
     http.post<any>(`/payments/payos/create/${orderId}?amount=${amount}`, {}),
 
-  callStaff: (token: string, callType: string, note?: string) =>
+  callStaff: (callType: string, note?: string) =>
     http.post<IApiResponse<any>>('/staff-calls', { callType, note }),
 
-  cancelTicket: (token: string, ticketId: string) =>
+  cancelTicket: (ticketId: string) =>
     http.patch<IApiResponse<any>>(`${API_ROUTES.order.root}/session/tickets/${ticketId}/cancel`, {}),
 
-  cancelItem: (token: string, itemId: string) =>
+  cancelItem: (itemId: string) =>
     http.patch<IApiResponse<any>>(`${API_ROUTES.order.root}/session/items/${itemId}/cancel`, {}),
 
-  applyPromotion: (token: string, code: string) =>
+  applyPromotion: (code: string) =>
     http.patch<IApiResponse<any>>(`${API_ROUTES.order.root}/session/promotion`, { code }),
 }

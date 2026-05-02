@@ -84,7 +84,7 @@ export function useCustomerCart(token: string | null) {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.cart(token!),
     queryFn: async () => {
-      const res = await customerService.getCart(token!)
+      const res = await customerService.getCart()
       return res.data.data
     },
     enabled: !!token,
@@ -119,7 +119,7 @@ export function useCustomerSessionOrder(token: string | null) {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token!),
     queryFn: async () => {
-      const res = await customerService.getSessionOrder(token!)
+      const res = await customerService.getSessionOrder()
       return res.data.data
     },
     enabled: !!token,

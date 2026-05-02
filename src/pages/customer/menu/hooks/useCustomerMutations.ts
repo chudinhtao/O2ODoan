@@ -16,7 +16,7 @@ export function useCustomerOpenSession() {
 export function useCustomerAddToCart(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: ITicketItemRequest) => customerService.addToCart(token!, payload),
+    mutationFn: (payload: ITicketItemRequest) => customerService.addToCart(payload),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
@@ -33,7 +33,7 @@ export function useCustomerUpdateCartItem(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ cartItemId, quantity, note }: { cartItemId: string, quantity: number, note: string }) => 
-      customerService.updateCartItem(token!, cartItemId, quantity, note),
+      customerService.updateCartItem(cartItemId, quantity, note),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
@@ -48,7 +48,7 @@ export function useCustomerUpdateCartItem(token: string | null) {
 export function useCustomerDeleteCartItem(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (cartItemId: string) => customerService.deleteCartItem(token!, cartItemId),
+    mutationFn: (cartItemId: string) => customerService.deleteCartItem(cartItemId),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
@@ -64,7 +64,7 @@ export function useCustomerDeleteCartItem(token: string | null) {
 export function useCustomerSubmitOrder(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (note?: string) => customerService.submitOrder(token!, note),
+    mutationFn: (note?: string) => customerService.submitOrder(note),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.cart(token) })
@@ -81,7 +81,7 @@ export function useCustomerSubmitOrder(token: string | null) {
 export function useCustomerRequestPayment(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (method: string) => customerService.requestPayment(token!, method),
+    mutationFn: (method: string) => customerService.requestPayment(method),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token) })
@@ -94,9 +94,9 @@ export function useCustomerRequestPayment(token: string | null) {
   })
 }
 
-export function useCustomerCreatePayOSLink(token: string | null) {
+export function useCustomerCreatePayOSLink(_token: string | null) {
   return useMutation({
-    mutationFn: ({ orderId, amount }: { orderId: string, amount: number }) => customerService.createPayOSLink(token!, orderId, amount),
+    mutationFn: ({ orderId, amount }: { orderId: string, amount: number }) => customerService.createPayOSLink(orderId, amount),
     onSuccess: (res) => {
       // Axios bọc dữ liệu trong .data
       if (res.data && res.data.checkoutUrl) {
@@ -109,9 +109,9 @@ export function useCustomerCreatePayOSLink(token: string | null) {
   })
 }
 
-export function useCustomerCallStaff(token: string | null) {
+export function useCustomerCallStaff(_token: string | null) {
   return useMutation({
-    mutationFn: ({ callType, note }: { callType: string, note?: string }) => customerService.callStaff(token!, callType, note),
+    mutationFn: ({ callType, note }: { callType: string, note?: string }) => customerService.callStaff(callType, note),
     onSuccess: () => {
       toast.success('Đã gọi nhân viên, vui lòng đợi trong giây lát')
     },
@@ -124,7 +124,7 @@ export function useCustomerCallStaff(token: string | null) {
 export function useCustomerCancelTicket(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (ticketId: string) => customerService.cancelTicket(token!, ticketId),
+    mutationFn: (ticketId: string) => customerService.cancelTicket(ticketId),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token) })
@@ -140,7 +140,7 @@ export function useCustomerCancelItem(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (itemId: string) =>
-      customerService.cancelItem(token!, itemId),
+      customerService.cancelItem(itemId),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token) })
@@ -155,7 +155,7 @@ export function useCustomerCancelItem(token: string | null) {
 export function useCustomerApplyPromotion(token: string | null) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (code: string) => customerService.applyPromotion(token!, code),
+    mutationFn: (code: string) => customerService.applyPromotion(code),
     onSuccess: () => {
       if (token) {
         queryClient.invalidateQueries({ queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token) })
