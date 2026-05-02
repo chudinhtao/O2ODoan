@@ -3,11 +3,10 @@ pipeline {
 
     environment {
         SSH_CREDENTIAL_ID = 'ssh-server-key'
-        REMOTE_USER = 'cdt'
-        REMOTE_HOST = '192.168.0.105'
-        TARGET_DIR  = '/var/www/frontend'
-        // Sử dụng image node để build
-        NODE_IMAGE  = 'node:20-alpine' 
+        REMOTE_USER       = 'cdt'
+        REMOTE_HOST       = '192.168.0.107'
+        TARGET_DIR        = '/var/www/frontend'
+        NODE_IMAGE        = 'node:20-alpine' 
     }
 
     stages {
@@ -18,21 +17,28 @@ pipeline {
         }
 
         stage('Build Frontend') {
+            /* 
+               Sử dụng Docker agent giúp môi trường chạy lệnh sh bên dưới 
+               nằm hoàn toàn trong container Node 20.
+            */
+            agent {
+                docker {
+                    image "${env.NODE_IMAGE}"
+                    reuseNode true
+                    // Cấp quyền ghi cache để tránh lỗi npm permission
+                    args '-v /tmp:/tmp -e HOME=/tmp'
+                }
+            }
             steps {
-                // Sử dụng Docker để chạy npm install và build
-                // Lệnh này giúp bạn không cần cài node/npm lên server Jenkins
-                sh """
-                    docker run --rm \
-                        -v ${WORKSPACE}:/app \
-                        -w /app \
-                        ${env.NODE_IMAGE} \
-                        sh -c "npm install && npm run build"
-                """
+                sh 'node -v'
+                sh 'npm install'
+                sh 'npm run build'
             }
         }
 
         stage('Prepare Artifact') {
             steps {
+                // Nén folder dist sau khi build xong
                 sh 'tar -czf dist.tar.gz -C dist .'
             }
         }
@@ -40,7 +46,7 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 sshagent([env.SSH_CREDENTIAL_ID]) {
-                    // 1. Tạo thư mục và cấp quyền (Gộp lệnh cho gọn)
+                    // 1. Tạo thư mục và phân quyền trên server đích
                     sh """
                         ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
                             sudo mkdir -p ${env.TARGET_DIR} &&
@@ -48,13 +54,13 @@ pipeline {
                         "
                     """
 
-                    // 2. Copy file lên server
+                    // 2. Đẩy file nén lên server
                     sh """
                         scp -o StrictHostKeyChecking=no dist.tar.gz \
                         ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.TARGET_DIR}/
                     """
 
-                    // 3. Giải nén và dọn dẹp
+                    // 3. Giải nén và yêu cầu Nginx đọc lại cấu hình mới
                     sh """
                         ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
                             cd ${env.TARGET_DIR} &&
@@ -70,13 +76,14 @@ pipeline {
 
     post {
         always {
+            // Dọn dẹp file rác sau khi pipeline kết thúc
             sh 'rm -f dist.tar.gz'
         }
         success {
-            echo 'Deploy Frontend thành công!'
+            echo "Deploy Frontend tới ${env.REMOTE_HOST} thành công!"
         }
         failure {
-            echo 'Deploy Frontend thất bại! Kiểm tra lại kết nối SSH hoặc lỗi Build.'
+            echo "Deploy thất bại! Vui lòng kiểm tra log build hoặc kết nối tới ${env.REMOTE_HOST}."
         }
     }
 }
