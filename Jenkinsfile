@@ -2,65 +2,70 @@ pipeline {
     agent any
 
     environment {
+        // ID credentials đã lưu trong Jenkins (Username/Password)
+        DOCKER_CREDS = credentials('dockerhub-credentials')
+        DOCKERHUB_USERNAME = "${DOCKER_CREDS_USR}"
+        
+        IMAGE_NAME = "fnb-frontend"
+        TAG = "latest"
+
+        // Thông tin server deploy
         SSH_CREDENTIAL_ID = 'ssh-server-key'
-        REMOTE_USER       = 'cdt'
-        REMOTE_HOST       = '192.168.0.107'
-        TARGET_DIR        = '/var/www/frontend'
-        NODE_IMAGE        = 'node:20-alpine' 
+        REMOTE_USER = 'cdt'
+        REMOTE_HOST = '192.168.0.107'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Frontend') {
+        stage('Docker Login') {
             steps {
-                // Sử dụng --user để tránh lỗi quyền Root và -e HOME để npm có chỗ lưu cache
-                sh """
-                    docker run --rm \
-                        --user \$(id -u):\$(id -g) \
-                        -v ${WORKSPACE}:/app \
-                        -w /app \
-                        -e HOME=/tmp \
-                        ${env.NODE_IMAGE} \
-                        sh -c "npm install && npm run build"
-                """
+                sh 'echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin'
             }
         }
 
-        stage('Prepare Artifact') {
+        stage('Build & Push Frontend Image') {
             steps {
-                sh 'tar -czf dist.tar.gz -C dist .'
+                script {
+                    def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
+                    echo "🚀 BUILDING FRONTEND IMAGE: ${fullImageName}"
+                    
+                    // Build từ thư mục frontend
+                    sh "docker build -t ${fullImageName} ./frontend"
+                    
+                    echo "📤 PUSHING IMAGE TO DOCKER HUB"
+                    sh "docker push ${fullImageName}"
+                }
             }
         }
 
         stage('Deploy to Server') {
             steps {
                 sshagent([env.SSH_CREDENTIAL_ID]) {
-                    // 1. Tạo thư mục và phân quyền
+                    def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
+                    
                     sh """
                         ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
-                            sudo mkdir -p ${env.TARGET_DIR} &&
-                            sudo chown -R ${env.REMOTE_USER}:${env.REMOTE_USER} ${env.TARGET_DIR}
-                        "
-                    """
+                            echo '📥 Pulling new image...'
+                            docker pull ${fullImageName}
 
-                    // 2. Đẩy file
-                    sh """
-                        scp -o StrictHostKeyChecking=no dist.tar.gz \
-                        ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.TARGET_DIR}/
-                    """
+                            echo '🛑 Stopping and removing old container...'
+                            docker stop ${IMAGE_NAME} || true
+                            docker rm ${IMAGE_NAME} || true
 
-                    // 3. Giải nén và reload Nginx
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
-                            cd ${env.TARGET_DIR} &&
-                            tar -xzf dist.tar.gz &&
-                            rm dist.tar.gz &&
-                            sudo systemctl reload nginx
+                            echo '🚀 Starting new container...'
+                            docker run -d \
+                                --name ${IMAGE_NAME} \
+                                --restart always \
+                                -p 3000:80 \
+                                ${fullImageName}
+                            
+                            echo '✨ Clean up old images...'
+                            docker image prune -f
                         "
                     """
                 }
@@ -70,13 +75,14 @@ pipeline {
 
     post {
         always {
-            sh 'rm -f dist.tar.gz'
+            sh 'docker logout || true'
+            echo "🧹 Cleaned Docker session"
         }
         success {
-            echo "Deploy thành công tới ${env.REMOTE_HOST}!"
+            echo "✅ Frontend Build & Deploy thành công!"
         }
         failure {
-            echo "Lỗi build hoặc deploy. Kiểm tra lại log!"
+            echo "❌ Pipeline Frontend thất bại!"
         }
     }
 }
