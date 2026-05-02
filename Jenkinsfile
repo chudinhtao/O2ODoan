@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // ID credentials đã lưu trong Jenkins (Username/Password)
+        // Docker Hub credentials
         DOCKER_CREDS = credentials('dockerhub-credentials')
         DOCKERHUB_USERNAME = "${DOCKER_CREDS_USR}"
         
         IMAGE_NAME = "fnb-frontend"
         TAG = "latest"
 
-        // Thông tin server deploy
+        // SSH server
         SSH_CREDENTIAL_ID = 'ssh-server-key'
         REMOTE_USER = 'cdt'
         REMOTE_HOST = '192.168.0.107'
@@ -32,13 +32,23 @@ pipeline {
             steps {
                 script {
                     def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
-                    echo "🚀 BUILDING FRONTEND IMAGE: ${fullImageName}"
                     
-                    // Build từ thư mục hiện tại (giả định Jenkins đã đứng trong folder frontend)
+                    echo "🚀 BUILDING IMAGE: ${fullImageName}"
                     sh "docker build -t ${fullImageName} ."
-                    
-                    echo "📤 PUSHING IMAGE TO DOCKER HUB"
+
+                    echo "📤 PUSHING IMAGE..."
                     sh "docker push ${fullImageName}"
+                }
+            }
+        }
+
+        // ✅ TEST SSH trước (rất nên giữ)
+        stage('Test SSH') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-server-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh """
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} 'echo ✅ SSH OK'
+                    """
                 }
             }
         }
@@ -46,15 +56,15 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 script {
-                    sshagent([env.SSH_CREDENTIAL_ID]) {
-                        def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
-                        
+                    def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
+
+                    withCredentials([sshUserPrivateKey(credentialsId: 'ssh-server-key', keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
+                            ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "
                                 echo '📥 Pulling new image...'
                                 docker pull ${fullImageName}
 
-                                echo '🛑 Stopping and removing old container...'
+                                echo '🛑 Stopping old container...'
                                 docker stop ${IMAGE_NAME} || true
                                 docker rm ${IMAGE_NAME} || true
 
@@ -64,8 +74,8 @@ pipeline {
                                     --restart always \
                                     -p 3000:80 \
                                     ${fullImageName}
-                                
-                                echo '✨ Clean up old images...'
+
+                                echo '🧹 Cleaning unused images...'
                                 docker image prune -f
                             "
                         """
@@ -84,7 +94,7 @@ pipeline {
             echo "✅ Frontend Build & Deploy thành công!"
         }
         failure {
-            echo "❌ Pipeline Frontend thất bại!"
+            echo "❌ Pipeline thất bại! Kiểm tra log từng stage."
         }
     }
 }
