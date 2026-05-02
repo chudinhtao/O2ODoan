@@ -17,28 +17,22 @@ pipeline {
         }
 
         stage('Build Frontend') {
-            /* 
-               Sử dụng Docker agent giúp môi trường chạy lệnh sh bên dưới 
-               nằm hoàn toàn trong container Node 20.
-            */
-            agent {
-                docker {
-                    image "${env.NODE_IMAGE}"
-                    reuseNode true
-                    // Cấp quyền ghi cache để tránh lỗi npm permission
-                    args '-v /tmp:/tmp -e HOME=/tmp'
-                }
-            }
             steps {
-                sh 'node -v'
-                sh 'npm install'
-                sh 'npm run build'
+                // Sử dụng --user để tránh lỗi quyền Root và -e HOME để npm có chỗ lưu cache
+                sh """
+                    docker run --rm \
+                        --user \$(id -u):\$(id -g) \
+                        -v ${WORKSPACE}:/app \
+                        -w /app \
+                        -e HOME=/tmp \
+                        ${env.NODE_IMAGE} \
+                        sh -c "npm install && npm run build"
+                """
             }
         }
 
         stage('Prepare Artifact') {
             steps {
-                // Nén folder dist sau khi build xong
                 sh 'tar -czf dist.tar.gz -C dist .'
             }
         }
@@ -46,7 +40,7 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 sshagent([env.SSH_CREDENTIAL_ID]) {
-                    // 1. Tạo thư mục và phân quyền trên server đích
+                    // 1. Tạo thư mục và phân quyền
                     sh """
                         ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
                             sudo mkdir -p ${env.TARGET_DIR} &&
@@ -54,13 +48,13 @@ pipeline {
                         "
                     """
 
-                    // 2. Đẩy file nén lên server
+                    // 2. Đẩy file
                     sh """
                         scp -o StrictHostKeyChecking=no dist.tar.gz \
                         ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.TARGET_DIR}/
                     """
 
-                    // 3. Giải nén và yêu cầu Nginx đọc lại cấu hình mới
+                    // 3. Giải nén và reload Nginx
                     sh """
                         ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
                             cd ${env.TARGET_DIR} &&
@@ -76,14 +70,13 @@ pipeline {
 
     post {
         always {
-            // Dọn dẹp file rác sau khi pipeline kết thúc
             sh 'rm -f dist.tar.gz'
         }
         success {
-            echo "Deploy Frontend tới ${env.REMOTE_HOST} thành công!"
+            echo "Deploy thành công tới ${env.REMOTE_HOST}!"
         }
         failure {
-            echo "Deploy thất bại! Vui lòng kiểm tra log build hoặc kết nối tới ${env.REMOTE_HOST}."
+            echo "Lỗi build hoặc deploy. Kiểm tra lại log!"
         }
     }
 }
