@@ -34,8 +34,8 @@ pipeline {
                     def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
                     echo "🚀 BUILDING FRONTEND IMAGE: ${fullImageName}"
                     
-                    // Build từ thư mục frontend
-                    sh "docker build -t ${fullImageName} ./frontend"
+                    // Build từ thư mục hiện tại (giả định Jenkins đã đứng trong folder frontend)
+                    sh "docker build -t ${fullImageName} ."
                     
                     echo "📤 PUSHING IMAGE TO DOCKER HUB"
                     sh "docker push ${fullImageName}"
