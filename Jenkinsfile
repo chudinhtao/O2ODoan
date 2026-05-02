@@ -45,29 +45,31 @@ pipeline {
 
         stage('Deploy to Server') {
             steps {
-                sshagent([env.SSH_CREDENTIAL_ID]) {
-                    def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
-                    
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
-                            echo '📥 Pulling new image...'
-                            docker pull ${fullImageName}
+                script {
+                    sshagent([env.SSH_CREDENTIAL_ID]) {
+                        def fullImageName = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
+                        
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "
+                                echo '📥 Pulling new image...'
+                                docker pull ${fullImageName}
 
-                            echo '🛑 Stopping and removing old container...'
-                            docker stop ${IMAGE_NAME} || true
-                            docker rm ${IMAGE_NAME} || true
+                                echo '🛑 Stopping and removing old container...'
+                                docker stop ${IMAGE_NAME} || true
+                                docker rm ${IMAGE_NAME} || true
 
-                            echo '🚀 Starting new container...'
-                            docker run -d \
-                                --name ${IMAGE_NAME} \
-                                --restart always \
-                                -p 3000:80 \
-                                ${fullImageName}
-                            
-                            echo '✨ Clean up old images...'
-                            docker image prune -f
-                        "
-                    """
+                                echo '🚀 Starting new container...'
+                                docker run -d \
+                                    --name ${IMAGE_NAME} \
+                                    --restart always \
+                                    -p 3000:80 \
+                                    ${fullImageName}
+                                
+                                echo '✨ Clean up old images...'
+                                docker image prune -f
+                            "
+                        """
+                    }
                 }
             }
         }
