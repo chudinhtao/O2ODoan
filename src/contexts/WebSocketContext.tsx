@@ -35,7 +35,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const subscribe = (topic: string, cb: (msg: string) => void): StompSubscription | null => {
     const client = clientRef.current
     if (!client?.connected) {
-      console.warn(`[WS] Cannot subscribe to ${topic}, client is not connected yet`)
       return null
     }
     return client.subscribe(topic, frame => cb(frame.body))

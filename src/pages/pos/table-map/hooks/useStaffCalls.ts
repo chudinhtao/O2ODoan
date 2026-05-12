@@ -12,8 +12,10 @@ export interface IStaffCall {
   tableNumber: number
   callType: string
   status: string
+  message?: string
   createdAt: string
   resolvedAt: string | null
+  isSpilloverSent?: boolean
 }
 
 const STAFF_CALL_KEY = ['staff-calls', 'active']

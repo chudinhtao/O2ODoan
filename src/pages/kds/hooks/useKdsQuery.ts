@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import httpClient from '@/services/interceptor';
-import { IKdsTicket } from '../types/kds.type';
-import { toast } from 'sonner';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import httpClient from '@/services/interceptor';
+import type { IKdsTicket } from '../types/kds.type';
+import { getSuccessMessage } from '@/shared/utils/apiResponse';
 
 export const useKdsQuery = () => {
   const queryClient = useQueryClient();
@@ -20,43 +21,36 @@ export const useKdsQuery = () => {
 
   const updateItemStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return httpClient.put(`kds/items/${id}/status`, { status });
+      const res = await httpClient.put<{ message?: string }>(`kds/items/${id}/status`, { status });
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kds-active-tickets'] });
     },
-    onError: () => {
-      toast.error(t('kds.notifications.error'));
-    }
   });
 
   const updateTicketStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      return httpClient.put(`/kds/tickets/${id}/status`, { status });
+      const res = await httpClient.put<{ message?: string }>(`/kds/tickets/${id}/status`, { status });
+      return res.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (res, variables) => {
       if (variables.status === 'DONE') {
-        toast.success(t('kds.notifications.markTicketDone', { number: '*' })); 
+        toast.success(getSuccessMessage(res.message, t('kds.notifications.markTicketDone', { number: '*' })));
       }
       queryClient.invalidateQueries({ queryKey: ['kds-active-tickets'] });
     },
-    onError: () => {
-      toast.error(t('kds.notifications.error'));
-    }
   });
 
-  // Gọi thẳng qua order-service để khấu trừ tiền của đơn hàng khi bếp từ chối (huỷ món)
   const cancelOrderItem = useMutation({
     mutationFn: async ({ orderId, itemId, reason }: { orderId: string, itemId: string, reason: string }) => {
-      return httpClient.patch(`/orders/${orderId}/items/${itemId}/cancel`, { reason });
+      const res = await httpClient.patch<{ message?: string }>(`/orders/${orderId}/items/${itemId}/cancel`, { reason });
+      return res.data;
     },
-    onSuccess: () => {
-      toast.success('Đã từ chối món và trừ tiền đơn hàng thành công');
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('kds.notifications.cancelItemSuccess', 'Đã từ chối món và trừ tiền đơn hàng thành công')));
       queryClient.invalidateQueries({ queryKey: ['kds-active-tickets'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Không thể huỷ món này');
-    }
   });
 
   return {

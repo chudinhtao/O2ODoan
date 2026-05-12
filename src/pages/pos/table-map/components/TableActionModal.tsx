@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { X, ArrowLeftRight, Link, Search } from 'lucide-react'
+import { X, ArrowLeftRight, Link } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { Button } from '@/shared/components/ui/Button'
-import { Input } from '@/shared/components/ui/Input'
 import { TableTransferPanel } from './TableTransferPanel'
 import { TableMergePanel } from './TableMergePanel'
+import { TableSelector } from './TableSelector'
 
 interface TableActionModalProps {
   isOpen: boolean
@@ -32,7 +32,6 @@ export function TableActionModal({
   const [actionType, setActionType] = useState<'TRANSFER' | 'MERGE'>(initialActionType)
   const [targetId, setTargetId] = useState<string>('')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [search, setSearch] = useState('')
   const [manualSourceId, setManualSourceId] = useState<string>('')
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export function TableActionModal({
       setActionType(initialActionType)
       setTargetId('')
       setSelectedIds([])
-      setSearch('')
       setManualSourceId('')
     }
   }, [isOpen, initialActionType])
@@ -78,7 +76,7 @@ export function TableActionModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
       
-      <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-[500px] flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-[720px] flex flex-col h-[85vh] sm:h-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
         <Button variant="outline" onClick={onClose} className="absolute top-4 right-4 !p-2 h-auto rounded-full z-10 border-transparent bg-surface-variant hover:bg-outline-variant">
           <X className="size-5" />
         </Button>
@@ -96,9 +94,9 @@ export function TableActionModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-surface-variant/30 space-y-6">
+        <div className="flex-1 flex flex-col min-h-0 p-6 bg-surface-variant/30 space-y-6">
           {/* Action Tabs */}
-          <div className="flex bg-surface-variant p-1 rounded-xl shadow-inner border border-outline-variant/50 gap-1">
+          <div className="shrink-0 flex bg-surface-variant p-1 rounded-xl shadow-inner border border-outline-variant/50 gap-1">
             <Button
               variant={actionType === 'TRANSFER' ? 'primary' : 'outline'}
               onClick={() => { setActionType('TRANSFER'); setTargetId(''); setSelectedIds([]) }}
@@ -122,37 +120,20 @@ export function TableActionModal({
           </div>
 
           {!actualSourceTable ? (
-            <div className="flex flex-col items-center justify-center px-4 py-8 bg-surface border border-outline-variant/50 rounded-2xl shadow-sm">
-              <span className="text-sm font-bold text-on-surface mb-4">
+            <div className="flex-1 flex flex-col px-4 py-6 bg-surface border border-outline-variant/50 rounded-2xl shadow-sm min-h-0">
+              <span className="text-sm font-bold text-on-surface mb-4 text-center shrink-0">
                 {isMerge 
                   ? t('pos.table.actionModal.step1Merge', '1. Chọn BÀN NHẬN (bàn sẽ giữ lại)') 
                   : t('pos.table.actionModal.step1Transfer', '1. Chọn BÀN HIỆN TẠI (bàn đang có khách)')}
               </span>
-              <div className="flex flex-col w-full gap-3">
-                 <Input
-                   placeholder={t('pos.table.actionModal.searchOccupied', 'Tìm số bàn đang sử dụng...')}
-                   value={search}
-                   onChange={(e) => setSearch(e.target.value)}
-                   icon={<Search className="size-4" />}
-                   className="bg-surface"
-                 />
-                 <div className="grid grid-cols-4 gap-3 max-h-[180px] overflow-y-auto pr-1 pb-1 mt-2">
-                    {allTables.filter(t => t.status === 'OCCUPIED' && t.number.toString().includes(search)).map(tbl => (
-                      <Button
-                        variant="outline"
-                        key={tbl.id}
-                        onClick={() => setManualSourceId(tbl.id)}
-                        className="p-3 h-auto rounded-xl border border-outline-variant flex flex-col items-center justify-center transition-all bg-surface hover:border-primary text-on-surface"
-                      >
-                        <span className="text-xl font-bold">{tbl.number}</span>
-                      </Button>
-                    ))}
-                    {allTables.filter(t => t.status === 'OCCUPIED' && t.number.toString().includes(search)).length === 0 && (
-                      <div className="col-span-4 text-center text-sm text-on-surface-variant py-4">
-                        {t('pos.table.actionModal.noOccupiedFound', 'Không có bàn đang sử dụng nào.')}
-                      </div>
-                    )}
-                 </div>
+              <div className="flex-1 min-h-0">
+                <TableSelector 
+                  tables={allTables.filter(t => t.status === 'OCCUPIED' || t.status === 'PAYMENT_REQUESTED')}
+                  selectedIds={manualSourceId ? [manualSourceId] : []}
+                  onSelect={(id) => setManualSourceId(id)}
+                  emptyMessage={t('pos.table.actionModal.noOccupiedFound', 'Không có bàn đang sử dụng nào.')}
+                  searchPlaceholder={t('pos.table.actionModal.searchOccupied', 'Tìm số bàn đang sử dụng...')}
+                />
               </div>
             </div>
           ) : isMerge ? (

@@ -23,12 +23,59 @@
       "this_week": "Tuần này",
       "this_month": "Tháng này",
       "this_year": "Năm nay",
+      "last_7_days": "7 ngày qua",
+      "custom_range": "Tùy chọn",
       "revenue_trend": "Xu hướng Doanh thu",
       "no_data": "Chưa có dữ liệu",
       "source_distribution": "Nguồn Đơn",
       "hourly_traffic": "Mật độ đơn theo giờ",
       "order_count": "Số đơn",
-      "revenue": "Doanh thu"
+      "revenue": "Doanh thu",
+      "kitchen_performance": "Hiệu suất Bếp",
+      "no_kitchen_data": "Chưa có dữ liệu hiệu suất bếp",
+      "no_kitchen_data_desc": "Cần có dữ liệu từ KDS (các ticket đã hoàn thành)",
+      "total_tickets": "Tổng ticket",
+      "delayed_tickets": "Bị trễ",
+      "delay_rate": "Tỉ lệ trễ",
+      "warning_kitchen_overload": "Cảnh báo: Bếp đang quá tải (trễ >20%). Cần xem xét điều chỉnh menu hoặc bổ sung nhân lực giờ cao điểm.",
+      "minute_per_ticket": "phút/ticket",
+      "tickets": "ticket",
+      "delayed": "trễ",
+      "staff_call_stats": "Thống kê gọi nhân viên",
+      "no_staff_call_data": "Không có dữ liệu gọi nhân viên",
+      "payment": "Thanh toán",
+      "water": "Lấy nước",
+      "clean_table": "Dọn bàn",
+      "other_support": "Hỗ trợ khác",
+      "times": "lần",
+      "avg_resolve": "Xử lý TB",
+      "avg_minute_per_time": "phút/lần",
+      "cancelled_drilldown": "Phân tích Đơn Hủy",
+      "no_cancelled_data": "Không có đơn bị hủy!",
+      "no_cancelled_data_desc": "Vận hành xuất sắc trong kỳ này",
+      "total_cancelled": "đơn hủy",
+      "lost_revenue": "Doanh thu bị mất",
+      "reason_customer": "Khách yêu cầu",
+      "reason_out_of_stock": "Món hết hàng",
+      "reason_busy_kitchen": "Bếp quá tải",
+      "reason_wrong_order": "Đặt sai món",
+      "reason_payment_failed": "TT thất bại",
+      "reason_other": "Khác",
+      "total_cancelled_pct": "% tổng hủy",
+      "promo_effectiveness": "Hiệu quả khuyến mãi",
+      "no_promo_data": "Không có dữ liệu khuyến mãi",
+      "orders_applied": "đơn hàng áp dụng",
+      "brought_revenue": "Mang lại",
+      "discounted": "Đã giảm",
+      "avg_order": "TB đơn",
+      "tabs": {
+        "overview": "Tổng quan",
+        "operations": "Vận hành",
+        "menu_promo": "Menu & KM"
+      },
+      "sort_quantity": "Số lượng",
+      "sort_revenue": "Doanh thu",
+      "table": "Bàn"
     },
     "menuManagement": "Quản lý Menu",
     "promotions": "Khuyến mãi",
@@ -820,7 +867,16 @@
       "type": {
         "payment": "Xin thanh toán",
         "water": "Gọi nước lọc",
-        "support": "Cần hỗ trợ"
+        "support": "Cần hỗ trợ",
+        "TAKEAWAY_TIMEOUT": "Đơn Takeaway trễ thanh toán (15p)",
+        "DINE_IN_PAYMENT_ALERT": "Bàn chờ thanh toán quá lâu (30p)",
+        "PAYMENT_QR_EXPIRED": "Mã QR chuyển khoản đã hết hạn",
+        "TABLE_CLEANUP_REMINDER": "Nhắc nhở dọn bàn (Trống >30p)",
+        "EMPTY_SESSION_ALERT": "Cảnh báo bàn trống ảo (>1h)",
+        "LONG_SESSION_ALERT": "Cảnh báo khách ngồi lâu (>4h)",
+        "KITCHEN_DELAY_ALERT": "Cảnh báo bếp làm món quá chậm",
+        "DELIVERY_DELAY_ALERT": "Cảnh báo ngâm món tại quầy quá lâu",
+        "TAKEAWAY_READY": "Đơn Mang Đi đã xong (Mời trả khách)"
       }
     },
     "payment": {
@@ -913,10 +969,10 @@
       "takeaway": "Mang Đi",
       "timeWaiting": "Chờ",
       "status": {
-        "pending": "CHỜ CHẾ BIẾN",
-        "preparing": "ĐANG LÀM",
-        "done": "XONG MÓN",
-        "cancelled": "YÊU CẦU HỦY"
+        "pending": "PHIẾU MỚI",
+        "preparing": "ĐANG THỰC HIỆN",
+        "done": "HOÀN TẤT PHIẾU",
+        "cancelled": "PHIẾU ĐÃ HỦY"
       },
       "markAllDone": "XONG TẤT CẢ",
       "startPrep": "NHẬN LÀM",
@@ -925,10 +981,10 @@
     "item": {
       "qty": "x{{qty}}",
       "status": {
-        "pending": "Chờ bếp",
-        "preparing": "Đang làm",
-        "done": "Xong",
-        "served": "Đã bưng",
+        "pending": "Chờ làm",
+        "preparing": "Đang chế biến",
+        "done": "Chờ bưng",
+        "served": "Đã lên bàn",
         "cancelled": "Đã hủy",
         "returned": "Trả món"
       }
@@ -969,20 +1025,20 @@
       "moreItems": "món khác"
     },
     "status": {
-      "pending": "Chờ tiếp nhận",
-      "pendingDesc": "Đang đợi nhà hàng xác nhận...",
-      "preparing": "Đang chuẩn bị",
-      "preparingDesc": "Bếp đang làm món...",
+      "pending": "Chờ làm",
+      "pendingDesc": "Đang đợi bếp chế biến...",
+      "preparing": "Đang chế biến",
+      "preparingDesc": "Bếp đang trực tiếp nấu/pha chế...",
       "ready": "Chờ phục vụ",
-      "readyDesc": "Đã chuẩn bị xong, chờ mang ra...",
-      "served": "Đã lên món",
-      "servedDesc": "Chúc bạn ngon miệng!",
+      "readyDesc": "Món đã xong, chờ nhân viên mang ra...",
+      "served": "Đã lên bàn",
+      "servedDesc": "Chúc quý khách dùng bữa ngon miệng!",
       "completed": "Hoàn tất",
-      "completedDesc": "Hoàn tất",
-      "returned": "Bị trả lại",
-      "returnedDesc": "Có sự cố với món ăn",
-      "cancelled": "Đã hủy",
-      "cancelledDesc": "Đã hủy"
+      "completedDesc": "Đã hoàn tất",
+      "returned": "Có sự cố",
+      "returnedDesc": "Đang xử lý sự cố về món ăn",
+      "cancelled": "Đã huỷ",
+      "cancelledDesc": "Món ăn đã bị huỷ bỏ"
     },
     "support": {
       "call": "Gọi nhân viên",
@@ -1053,34 +1109,35 @@
       "addItems": "Gọi thêm món",
       "status": {
         "OPEN": {
-          "text": "Đơn hàng đang ghi nhận trực tiếp...",
+          "text": "Đang dùng bữa",
           "sub": "Bàn đang phục vụ bình thường"
         },
         "PAYMENT_REQUESTED": {
-          "text": "Đang chờ thu ngân xác nhận tiền...",
-          "sub": "Vui lòng kiểm tra lại nếu cần"
+          "text": "Chờ tính tiền",
+          "sub": "Đang chờ thu ngân đối soát"
         },
         "PAID": {
-          "text": "Đơn hàng đã được thanh toán xong.",
+          "text": "Đã thanh toán",
           "sub": "Cảm ơn quý khách!"
         },
         "CANCELLED": {
-          "text": "Đơn hàng đã bị hủy bỏ.",
+          "text": "Đơn huỷ / Đã bỏ qua",
           "sub": "Vui lòng kiểm tra lại nếu cần"
         },
         "MERGED": {
-          "text": "Đơn hàng đã được gộp chung.",
-          "sub": "Vui lòng kiểm tra lại nếu cần"
+          "text": "Đã gộp bàn",
+          "sub": "Hóa đơn đã được sát nhập sang bàn khác"
         }
       },
       "ticket": {
         "statusConfig": {
-          "PENDING": "Chờ bếp",
-          "PREPARING": "Đang làm",
-          "DONE": "Đã xong",
-          "SERVED": "Đã lên bàn",
-          "CANCELLED": "Đã hủy",
-          "RETURNED": "Trả hàng"
+          "PENDING": "Chờ tiếp nhận",
+          "PREPARING": "Đang chuẩn bị",
+          "DONE": "Đã chuẩn bị xong",
+          "DELIVERING": "Đang mang ra bàn",
+          "SERVED": "Đã phục vụ",
+          "CANCELLED": "Đã hủy yêu cầu",
+          "RETURNED": "Có lỗi / Bị trả lại"
         },
         "seqNumber": "Lần gọi #{{seq}}",
         "doneAlert": "Bếp đã làm xong",
@@ -1226,6 +1283,8 @@
       "processing_now": "Đang...",
       "note": "Ghi chú: {{note}}",
       "ready_at": "Xong từ {{time}}",
+      "claim_delivery": "NHẬN BƯNG",
+      "claim_success": "Đã nhận bưng, tiến hành ra bàn!",
       "pending_call": "Đang nhận...",
       "accept_call": "TIẾP NHẬN",
       "resolving_call": "Đang xử lý...",
@@ -1288,7 +1347,11 @@
     "urgent": "GẤP",
     "items_to_serve": "món chờ bưng",
     "processing_now": "Đang xử lý...",
-    "serve_all": "Bưng tất cả",
+    "serve_all": "Đã lên bàn",
+    "claim_delivery": "Nhận bưng",
+    "claim_success": "Đã nhận bưng, tiến hành ra bàn!",
+    "unclaim_delivery": "Bỏ nhận",
+    "unclaim_success": "Đã bỏ nhận, thả lại vào khay chung.",
     "note": "Ghi chú: {{note}}",
     "ready_at": "Xong lúc {{time}}"
   }

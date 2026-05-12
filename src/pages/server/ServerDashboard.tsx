@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ServerDeliveryTab } from '@/pages/server/views/ServerDeliveryTab';
 import { ServerStaffCallTab } from '@/pages/server/views/ServerStaffCallTab';
 import { ServerKpiTab } from '@/pages/server/views/ServerKpiTab';
-import { useServerZones } from '@/features/server/hooks/useServerData';
-import { useServerWebSocket } from '@/features/server/hooks/useServerWebSocket';
+import { useServerZones } from '@/pages/server/hooks/useServerData';
+import { useServerWebSocket } from '@/pages/server/hooks/useServerWebSocket';
 import { useTranslation } from 'react-i18next';
 import { UtensilsCrossed, Bell, User } from 'lucide-react';
 

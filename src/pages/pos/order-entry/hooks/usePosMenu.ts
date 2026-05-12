@@ -26,8 +26,8 @@ export function usePosCategories() {
   return useQuery({
     queryKey: POS_MENU_KEYS.categories,
     queryFn: async () => {
-      const res = await posMenuService.getCategories()
-      return res.data.data.content
+      const data = await posMenuService.getCategories()
+      return data.content
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -50,8 +50,8 @@ export function usePosMenuItems(categoryId?: string) {
   return useQuery({
     queryKey: POS_MENU_KEYS.items(categoryId),
     queryFn: async () => {
-      const res = await posMenuService.getItems(categoryId)
-      const items = res.data.data.content || []
+      const data = await posMenuService.getItems(categoryId)
+      const items = data.content || []
       
       // Sắp xếp đưa các sản phẩm Featured lên trước
       return [...items].sort((a, b) => {
@@ -75,10 +75,7 @@ export function usePosMenu() {
 export function usePosMenuItem(itemId?: string) {
   return useQuery({
     queryKey: ['pos-menu', 'item', itemId],
-    queryFn: async () => {
-      const res = await posMenuService.getItem(itemId!)
-      return res.data.data
-    },
+    queryFn: () => posMenuService.getItem(itemId!),
     enabled: !!itemId,
   })
 }

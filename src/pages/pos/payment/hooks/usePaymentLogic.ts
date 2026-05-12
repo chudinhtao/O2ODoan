@@ -29,10 +29,12 @@ export function usePaymentLogic(
 
   // QR thuần (PayOS full amount) state
   const [qrPayosUrl, setQrPayosUrl] = useState<string | null>(null)
+  const [qrPayosCode, setQrPayosCode] = useState<string | null>(null)
   const [isCreatingQrPayos, setIsCreatingQrPayos] = useState(false)
 
   // Mixed Payment state
   const [mixedQrUrl, setMixedQrUrl] = useState<string | null>(null)
+  const [mixedQrCode, setMixedQrCode] = useState<string | null>(null)
   const [isCreatingQr, setIsCreatingQr] = useState(false)
 
   const order = useMemo<IOrder | null>(() => {
@@ -168,8 +170,9 @@ export function usePaymentLogic(
     if (!order?.id || !sessionToken) return
     setIsCreatingQrPayos(true)
     try {
-      const url = await orderService.createPayosLink(order.id, sessionToken, orderTotal)
-      setQrPayosUrl(url)
+      const data = await orderService.createPayosLink(order.id, sessionToken, orderTotal)
+      setQrPayosUrl(data.checkoutUrl)
+      if (data.qrCode) setQrPayosCode(data.qrCode)
       toast.success(t('pos.payment.qrCreated', 'Đã tạo mã QR – Hướng dẫn khách quét'))
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('pos.payment.qrError', 'Không thể tạo mã QR PayOS'))
@@ -188,8 +191,9 @@ export function usePaymentLogic(
     if (!order?.id || !sessionToken) return
     setIsCreatingQr(true)
     try {
-      const url = await orderService.createPayosLink(order.id, sessionToken, qrAmount, cashGiven)
-      setMixedQrUrl(url)
+      const data = await orderService.createPayosLink(order.id, sessionToken, qrAmount, cashGiven)
+      setMixedQrUrl(data.checkoutUrl)
+      if (data.qrCode) setMixedQrCode(data.qrCode)
       toast.success(t('pos.payment.mixedQrCreated', 'Đã tạo mã QR – Hướng dẫn khách quét'))
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('pos.payment.mixedQrError', 'Không thể tạo mã QR'))
@@ -323,13 +327,16 @@ export function usePaymentLogic(
     isApplyingVoucher: isApplyingPromoServer,
     // QR PayOS (full amount)
     qrPayosUrl,
+    qrPayosCode,
     isCreatingQrPayos,
     handleQrCreateLink,
     // Mixed Payment
     mixedQrUrl,
+    mixedQrCode,
     isCreatingQr,
     qrAmount,
     isMixedReady,
     handleMixedCreateQr,
   }
 }
+

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Filter, FilterX } from 'lucide-react'
 import {
   usePromotions,
@@ -8,15 +9,16 @@ import {
 } from '../hooks/usePromotions'
 import { usePromotionFilters } from '../hooks/usePromotionFilters'
 import { PromotionsTable } from '../components/PromotionsTable'
-import { PromotionFormModal } from '../components/PromotionFormModal'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
 import { Button } from '@/shared/components/ui/Button'
 import { Input } from '@/shared/components/ui/Input'
 import { Select } from '@/shared/components/ui/Select'
 import { Pagination } from '@/shared/components/ui/Pagination'
 import type { IPromotion } from '../types/adminPromotion.type'
+import { ROUTES } from '@/shared/constants/ROUTES'
 
 export default function PromotionManagementPage() {
+  const navigate = useNavigate()
   const { data: pageData, isLoading } = usePromotions({ page: 0, size: 200, keyword: '' })
 
   const {
@@ -34,8 +36,6 @@ export default function PromotionManagementPage() {
   const hardDeleteMutation = useHardDeletePromotion()
   const toggleMutation = useTogglePromotionStatus()
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editingPromo, setEditingPromo] = useState<IPromotion | null>(null)
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false, id: '', name: ''
   })
@@ -43,15 +43,8 @@ export default function PromotionManagementPage() {
     isOpen: false, id: '', name: ''
   })
 
-  const openCreateDrawer = () => {
-    setEditingPromo(null)
-    setDrawerOpen(true)
-  }
-
-  const openEditDrawer = (promo: IPromotion) => {
-    setEditingPromo(promo)
-    setDrawerOpen(true)
-  }
+  const handleCreate = () => navigate(ROUTES.admin.promotionCreate)
+  const handleEdit = (promo: IPromotion) => navigate(ROUTES.admin.promotionEdit.replace(':id', promo.id))
 
   return (
     <>
@@ -66,7 +59,7 @@ export default function PromotionManagementPage() {
           </div>
         </div>
 
-        <Button onClick={openCreateDrawer} className="!px-4 !py-2 !rounded-xl !text-sm gap-1.5">
+        <Button onClick={handleCreate} className="!px-4 !py-2 !rounded-xl !text-sm gap-1.5">
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Tạo mới</span>
         </Button>
@@ -133,7 +126,7 @@ export default function PromotionManagementPage() {
                 data={paginatedData}
                 isLoading={isLoading}
                 startIndex={filters.currentPage * filters.pageSize}
-                onEdit={openEditDrawer}
+                onEdit={handleEdit}
                 onDelete={(id, name) => setDeleteDialog({ isOpen: true, id, name })}
                 onHardDelete={(id, name) => setHardDeleteDialog({ isOpen: true, id, name })}
                 onToggle={(id) => toggleMutation.mutate(id)}
@@ -150,13 +143,6 @@ export default function PromotionManagementPage() {
           </div>
         </div>
       </div>
-
-      {/* Modals */}
-      <PromotionFormModal
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        editingPromo={editingPromo}
-      />
 
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}

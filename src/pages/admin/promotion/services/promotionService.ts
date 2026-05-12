@@ -21,35 +21,37 @@ class PromotionService {
     return response.data.data
   }
 
-  async createPromotion(data: IPromotionForm): Promise<IPromotion> {
+  async createPromotion(data: IPromotionForm): Promise<IApiResponse<IPromotion>> {
     const response = await http.post<IApiResponse<IPromotion>>(
       API_ROUTES.promotion.root,
       data
     )
-    return response.data.data
+    return response.data
   }
 
-  async updatePromotion(id: string, data: IPromotionForm): Promise<IPromotion> {
+  async updatePromotion(id: string, data: IPromotionForm): Promise<IApiResponse<IPromotion>> {
     const response = await http.put<IApiResponse<IPromotion>>(
       API_ROUTES.promotion.byId(id),
       data
     )
-    return response.data.data
+    return response.data
   }
 
-  async deletePromotion(id: string): Promise<void> {
-    await http.delete<IApiResponse<void>>(API_ROUTES.promotion.byId(id))
+  async deletePromotion(id: string): Promise<string> {
+    const response = await http.delete<IApiResponse<void>>(API_ROUTES.promotion.byId(id))
+    return response.data.message
   }
 
-  async hardDeletePromotion(id: string): Promise<void> {
-    await http.delete<IApiResponse<void>>(API_ROUTES.promotion.hardDelete(id))
+  async hardDeletePromotion(id: string): Promise<string> {
+    const response = await http.delete<IApiResponse<void>>(API_ROUTES.promotion.hardDelete(id))
+    return response.data.message
   }
 
-  async togglePromotionStatus(id: string): Promise<IPromotion> {
+  async togglePromotionStatus(id: string): Promise<IApiResponse<IPromotion>> {
     const response = await http.patch<IApiResponse<IPromotion>>(
       API_ROUTES.promotion.toggle(id)
     )
-    return response.data.data
+    return response.data
   }
 }
 

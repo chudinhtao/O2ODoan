@@ -15,22 +15,22 @@ export function SourcePieChart({ data, isLoading }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0">
-      <h3 className="text-lg font-bold text-on-surface mb-3 flex items-center gap-2">
+    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0 h-full">
+      <h3 className="text-lg font-bold text-on-surface mb-3 flex items-center gap-2 shrink-0">
         <PieChartIcon size={20} className="text-primary" />
         {t('admin.analytics.source_distribution')}
       </h3>
 
       {isLoading ? (
-        <div className="flex flex-1 justify-center items-center min-h-[320px]">
+        <div className="flex flex-1 justify-center items-center min-h-[250px]">
           <Skeleton className="w-[200px] h-[200px] rounded-full" />
         </div>
       ) : data.length === 0 ? (
-        <div className="flex flex-col flex-1 items-center justify-center min-h-[320px] text-on-surface/40">
+        <div className="flex flex-col flex-1 items-center justify-center min-h-[250px] text-on-surface/40">
           <p>{t('admin.analytics.no_data')}</p>
         </div>
       ) : (
-        <div className="h-80 min-w-0 flex flex-col justify-center">
+        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[250px]">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Tooltip

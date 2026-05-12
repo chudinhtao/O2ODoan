@@ -4,6 +4,8 @@ import { ICreateStaffRequest, IUpdateStaffRequest } from '../types/adminStaff.ty
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+const getSuccessMessage = (message: string | undefined, fallback: string) => message && message !== 'Success' ? message : fallback;
+
 export const ADMIN_STAFF_KEYS = {
   all: ['admin-staff'] as const,
   list: (params: any) => [...ADMIN_STAFF_KEYS.all, 'list', params] as const,
@@ -23,12 +25,9 @@ export const useCreateStaff = () => {
 
   return useMutation({
     mutationFn: (payload: ICreateStaffRequest) => adminStaffService.createStaff(payload),
-    onSuccess: () => {
-      toast.success(t('admin.staffModule.createSuccess'));
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.staffModule.createSuccess')));
       queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || t('common.error'));
     },
   });
 };
@@ -39,12 +38,9 @@ export const useUpdateStaff = () => {
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: IUpdateStaffRequest }) => adminStaffService.updateStaff(id, payload),
-    onSuccess: () => {
-      toast.success(t('admin.staffModule.updateSuccess'));
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.staffModule.updateSuccess')));
       queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || t('common.error'));
     },
   });
 };
@@ -55,12 +51,9 @@ export const useToggleStaff = () => {
 
   return useMutation({
     mutationFn: (id: string) => adminStaffService.toggleStaffStatus(id),
-    onSuccess: () => {
-      toast.success(t('admin.staffModule.toggleSuccess'));
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.staffModule.toggleSuccess')));
       queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || t('common.error'));
     },
   });
 };

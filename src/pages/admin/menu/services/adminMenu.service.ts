@@ -21,11 +21,11 @@ export const adminMenuService = {
   },
   createCategory: async (payload: ICategoryRequest) => {
     const res = await http.post<IApiResponse<ICategory>>(API_ROUTES.adminMenu.categories, payload)
-    return res.data.data
+    return res.data
   },
   updateCategory: async (id: string, payload: ICategoryRequest) => {
     const res = await http.put<IApiResponse<ICategory>>(API_ROUTES.adminMenu.category(id), payload)
-    return res.data.data
+    return res.data
   },
   deleteCategory: async (id: string) => {
     const res = await http.delete<IApiResponse<void>>(API_ROUTES.adminMenu.category(id))
@@ -37,17 +37,17 @@ export const adminMenuService = {
   },
   toggleCategoryStatus: async (id: string) => {
     const res = await http.patch<IApiResponse<ICategory>>(`${API_ROUTES.adminMenu.category(id)}/toggle`)
-    return res.data.data
+    return res.data
   },
 
   // -- Items API --
   createMenuItem: async (payload: IMenuItemRequest) => {
     const res = await http.post<IApiResponse<IMenuItem>>(API_ROUTES.adminMenu.items, payload)
-    return res.data.data
+    return res.data
   },
   updateMenuItem: async (id: string, payload: IMenuItemRequest) => {
     const res = await http.put<IApiResponse<IMenuItem>>(API_ROUTES.adminMenu.item(id), payload)
-    return res.data.data
+    return res.data
   },
   deleteMenuItem: async (id: string) => {
     const res = await http.delete<IApiResponse<void>>(API_ROUTES.adminMenu.item(id))
@@ -55,7 +55,7 @@ export const adminMenuService = {
   },
   restoreMenuItem: async (id: string) => {
     const res = await http.patch<IApiResponse<IMenuItem>>(`${API_ROUTES.adminMenu.item(id)}/restore`)
-    return res.data.data
+    return res.data
   },
   hardDeleteMenuItem: async (id: string) => {
     const res = await http.delete<IApiResponse<void>>(`${API_ROUTES.adminMenu.item(id)}/hard`)
@@ -63,11 +63,11 @@ export const adminMenuService = {
   },
   toggleMenuItemStatus: async (id: string) => {
     const res = await http.patch<IApiResponse<IMenuItem>>(`${API_ROUTES.adminMenu.item(id)}/toggle`)
-    return res.data.data
+    return res.data
   },
   addOptionGroups: async (id: string, groups: IOptionGroupRequest[]) => {
     const res = await http.post<IApiResponse<IMenuItem>>(`${API_ROUTES.adminMenu.item(id)}/options`, groups)
-    return res.data.data
+    return res.data
   },
   bulkUpdateSalePrice: async (payload: any) => {
     const res = await http.post<IApiResponse<void>>(API_ROUTES.adminMenu.bulkSale, payload)

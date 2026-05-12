@@ -1,15 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
 import { adminPromotionService } from '../services/promotionService'
 import type { IPromotionForm } from '../types/adminPromotion.type'
 import { useTranslation } from 'react-i18next'
 import { QUERY_KEYS } from '@/shared/constants/QUERY_KEYS'
 
-const getErrorMessage = (err: unknown, fallback: string): string => {
-  if (isAxiosError(err)) return err.response?.data?.message ?? fallback
-  return fallback
-}
+const getSuccessMessage = (message: string | undefined, fallback: string): string => message || fallback
 
 export const usePromotions = (params: { keyword?: string; page: number; size: number }) => {
   return useQuery({
@@ -32,13 +28,10 @@ export const useCreatePromotion = () => {
 
   return useMutation({
     mutationFn: (data: IPromotionForm) => adminPromotionService.createPromotion(data),
-    onSuccess: () => {
-      toast.success(t('admin.promotion.createSuccess') || 'Tạo khuyến mãi thành công!')
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.promotion.createSuccess') || 'Tạo khuyến mãi thành công!'))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
     },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, t('common.error')))
-    }
   })
 }
 
@@ -49,13 +42,10 @@ export const useUpdatePromotion = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IPromotionForm }) =>
       adminPromotionService.updatePromotion(id, data),
-    onSuccess: () => {
-      toast.success(t('admin.promotion.updateSuccess') || 'Cập nhật khuyến mãi thành công!')
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.promotion.updateSuccess') || 'Cập nhật khuyến mãi thành công!'))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
     },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, t('common.error')))
-    }
   })
 }
 
@@ -65,13 +55,10 @@ export const useDeletePromotion = () => {
 
   return useMutation({
     mutationFn: (id: string) => adminPromotionService.deletePromotion(id),
-    onSuccess: () => {
-      toast.success(t('admin.promotion.deleteSuccess', 'Đã xóa khuyến mãi thành công!'))
+    onSuccess: (message) => {
+      toast.success(getSuccessMessage(message, t('admin.promotion.deleteSuccess', 'Đã xóa khuyến mãi thành công!')))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
     },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, t('common.error')))
-    }
   })
 }
 
@@ -81,13 +68,10 @@ export const useHardDeletePromotion = () => {
 
   return useMutation({
     mutationFn: (id: string) => adminPromotionService.hardDeletePromotion(id),
-    onSuccess: () => {
-      toast.success(t('admin.promotion.hardDeleteSuccess', 'Đã xóa vĩnh viễn khuyến mãi thành công!'))
+    onSuccess: (message) => {
+      toast.success(getSuccessMessage(message, t('admin.promotion.hardDeleteSuccess', 'Đã xóa vĩnh viễn khuyến mãi thành công!')))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
     },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, t('common.error')))
-    }
   })
 }
 
@@ -97,12 +81,9 @@ export const useTogglePromotionStatus = () => {
 
   return useMutation({
     mutationFn: (id: string) => adminPromotionService.togglePromotionStatus(id),
-    onSuccess: () => {
-      toast.success(t('admin.promotion.toggleSuccess', 'Cập nhật trạng thái thành công!'))
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, t('admin.promotion.toggleSuccess', 'Cập nhật trạng thái thành công!')))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.promotion.all })
     },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, t('common.error')))
-    }
   })
 }

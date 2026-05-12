@@ -7,6 +7,7 @@ export interface IKdsTicketItem {
   station: string;
   note?: string;
   options?: string[];
+  kitchenAlertSent?: boolean;
 }
 
 export interface IKdsTicket {

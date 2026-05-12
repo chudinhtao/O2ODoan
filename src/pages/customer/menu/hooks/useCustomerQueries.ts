@@ -18,8 +18,8 @@ export function useCustomerCategories() {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.categories(),
     queryFn: async () => {
-      const res = await customerService.getCategories()
-      return res.data.data.content
+      const data = await customerService.getCategories()
+      return data.content
     },
   })
 }
@@ -45,8 +45,8 @@ export function useCustomerItems(categoryId: string) {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.items(categoryId || 'all'),
     queryFn: async () => {
-      const res = await customerService.getItems(categoryId || '')
-      const items = res.data.data.content || []
+      const data = await customerService.getItems(categoryId || '')
+      const items = data.content || []
       
       return [...items].sort((a, b) => {
         if (!!a.isFeatured === !!b.isFeatured) return 0
@@ -61,8 +61,7 @@ export function useCustomerActivePromotions(scope: string) {
   return useQuery({
     queryKey: [...CUSTOMER_QUERY_KEYS.all, 'promotions', scope],
     queryFn: async () => {
-      const res = await customerService.getActivePromotionsByScope(scope)
-      return res.data.data
+      return customerService.getActivePromotionsByScope(scope)
     },
   })
 }
@@ -84,8 +83,7 @@ export function useCustomerCart(token: string | null) {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.cart(token!),
     queryFn: async () => {
-      const res = await customerService.getCart()
-      return res.data.data
+      return customerService.getCart()
     },
     enabled: !!token,
   })
@@ -119,8 +117,7 @@ export function useCustomerSessionOrder(token: string | null) {
   return useQuery({
     queryKey: CUSTOMER_QUERY_KEYS.sessionOrder(token!),
     queryFn: async () => {
-      const res = await customerService.getSessionOrder()
-      return res.data.data
+      return customerService.getSessionOrder()
     },
     enabled: !!token,
   })

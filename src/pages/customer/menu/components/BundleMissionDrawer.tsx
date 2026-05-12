@@ -28,8 +28,7 @@ export function BundleMissionDrawer({
       for (const bi of bundle.bundleItems) {
         if (!itemsInfo[bi.itemId]) {
           try {
-            const res = await customerService.getItemDetails(bi.itemId)
-            newInfo[bi.itemId] = res.data.data
+            newInfo[bi.itemId] = await customerService.getItemDetails(bi.itemId)
           } catch (e) {}
         }
       }

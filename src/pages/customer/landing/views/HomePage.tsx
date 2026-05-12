@@ -48,7 +48,7 @@ export default function CustomerLandingPage() {
     if (qrToken) {
       openSessionMutation.mutate(qrToken, {
         onSuccess: (res) => {
-          const newSessionToken = res.data.data.sessionToken
+          const newSessionToken = res.data.sessionToken
           setSearchParams({ t: newSessionToken }, { replace: true })
         },
         onError: (err: any) => {

@@ -18,8 +18,8 @@ export default function TableMapPage() {
   const { data: tables, isLoading } = usePosTables()
   const { mutate: openTable } = useOpenPosTable()
   const { mutate: markCleaned } = useMarkCleaned()
-  const { mutate: mergeTable, isPending: isMerging } = useMergeTable()
-  const { mutate: transferTable, isPending: isTransferring } = useTransferTable()
+  const { mutateAsync: mergeTable, isPending: isMerging } = useMergeTable()
+  const { mutateAsync: transferTable, isPending: isTransferring } = useTransferTable()
 
   // Modal Action State
   const [actionSourceTable, setActionSourceTable] = useState<IPosTable | null>(null)
@@ -46,28 +46,30 @@ export default function TableMapPage() {
     }
   }
 
-  const handleTransferSubmit = (sourceTableId: string, targetTableId: string) => {
-    transferTable({ 
-      sourceTableId, 
-      targetTableId 
-    }, { 
-      onSuccess: () => {
-        setIsModalOpen(false)
-        setActionSourceTable(null)
-      } 
-    })
+  const handleTransferSubmit = async (sourceTableId: string, targetTableId: string) => {
+    try {
+      await transferTable({ 
+        sourceTableId, 
+        targetTableId 
+      })
+      setIsModalOpen(false)
+      setActionSourceTable(null)
+    } catch (error) {
+      // Error handled by mutation toast
+    }
   }
 
-  const handleMergeSubmit = (sourceTableIds: string[], targetTableId: string) => {
-    mergeTable({ 
-      sourceTableIds, 
-      targetTableId 
-    }, { 
-      onSuccess: () => {
-        setIsModalOpen(false)
-        setActionSourceTable(null)
-      } 
-    })
+  const handleMergeSubmit = async (sourceTableIds: string[], targetTableId: string) => {
+    try {
+      await mergeTable({ 
+        sourceTableIds, 
+        targetTableId 
+      })
+      setIsModalOpen(false)
+      setActionSourceTable(null)
+    } catch (error) {
+      // Error handled by mutation toast
+    }
   }
 
   return (

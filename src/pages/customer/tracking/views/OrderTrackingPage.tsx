@@ -10,7 +10,6 @@ import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
 import { TicketCard } from '../components/TicketCard'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
@@ -135,10 +134,10 @@ export default function OrderTrackingPage() {
   const cfg = STATUS_CONFIG[order.status as OrderStatus] ?? STATUS_CONFIG['OPEN']
 
   const handleCancelTicket = (ticketId: string) => {
-    cancelTicket.mutate(ticketId, { onSuccess: () => toast.success(t('customer.tracking.ticket.cancelSuccess')) })
+    cancelTicket.mutate(ticketId)
   }
   const handleCancelItem = (itemId: string) => {
-    cancelItem.mutate(itemId, { onSuccess: () => toast.success(t('customer.tracking.item.cancelSuccess')) })
+    cancelItem.mutate(itemId)
   }
 
   return (

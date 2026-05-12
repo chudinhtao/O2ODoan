@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import i18n from '@/config/i18n'
-import { posOrderService } from '../services/posOrder.service'
-import { IAddCartItemRequest, IUpdateCartItemRequest } from '../types/posOrder.type'
-import { useEffect } from 'react'
 import { useWebSocketCtx } from '@/contexts/WebSocketContext'
+import { posOrderService } from '../services/posOrder.service'
+import type { IAddCartItemRequest, IUpdateCartItemRequest } from '../types/posOrder.type'
+import { getSuccessMessage } from '@/shared/utils/apiResponse'
 
 export const POS_CART_KEY = (sessionToken: string) => ['pos-cart', sessionToken]
 
@@ -24,10 +25,7 @@ export function usePosCart(sessionToken: string) {
 
   return useQuery({
     queryKey: POS_CART_KEY(sessionToken),
-    queryFn: async () => {
-      const res = await posOrderService.getCart(sessionToken)
-      return res.data.data
-    },
+    queryFn: () => posOrderService.getCart(sessionToken),
     enabled: !!sessionToken,
     staleTime: 0,
   })
@@ -41,10 +39,6 @@ export function useAddCartItem(sessionToken: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POS_CART_KEY(sessionToken) })
     },
-    onError: (e: unknown) => {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || i18n.t('pos.cart.addError'))
-    }
   })
 }
 
@@ -56,10 +50,6 @@ export function useUpdateCartItem(sessionToken: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: POS_CART_KEY(sessionToken) })
     },
-    onError: (e: unknown) => {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || i18n.t('pos.cart.updateError', 'Cập nhật số lượng thất bại'))
-    }
   })
 }
 
@@ -78,13 +68,9 @@ export function useSubmitTicket(sessionToken: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => posOrderService.submitTicket(sessionToken),
-    onSuccess: () => {
-      toast.success(i18n.t('pos.cart.submitSuccess'))
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res.message, i18n.t('pos.cart.submitSuccess')))
       queryClient.invalidateQueries({ queryKey: POS_CART_KEY(sessionToken) })
     },
-    onError: (e: unknown) => {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || i18n.t('pos.cart.submitError'))
-    }
   })
 }

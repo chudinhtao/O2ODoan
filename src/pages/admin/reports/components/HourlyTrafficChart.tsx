@@ -13,7 +13,7 @@ export function HourlyTrafficChart({ data, isLoading }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="lg:col-span-3 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mt-2 flex flex-col min-w-0">
+    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0 h-full">
       <h3 className="text-lg font-bold text-on-surface mb-3 flex items-center gap-2">
         <TrendingUp size={20} className="text-primary"/> 
         {t('admin.analytics.hourly_traffic')}

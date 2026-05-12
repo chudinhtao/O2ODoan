@@ -13,6 +13,7 @@ import { usePosTables } from '@/pages/pos/table-map/hooks/usePosTables'
 import { useOrderSubmitActions } from '../hooks/useOrderSubmitActions'
 import { useActiveSessionQuery, useTakeawaySessionMutation } from '../hooks/useActiveSessionQuery'
 import { posMenuService } from '../services/posMenu.service'
+import { getSuccessMessage } from '@/shared/utils/apiResponse'
 
 import { IMenuItem } from '@/pages/admin/menu/types/adminMenu.type'
 import { ICart, ICartItem } from '../types/posOrder.type'
@@ -96,22 +97,33 @@ export default function OrderEntryPage() {
     const payloadOptions = options.map(id => ({ optionId: id }))
     if (editingCartItemId) {
         removeItem(editingCartItemId, {
-          onSuccess: () => addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
+          onSuccess: () => addItem(
+            { menuItemId: item.id, quantity, note, options: payloadOptions },
+            {
+              onSuccess: (res) => {
+                toast.success(getSuccessMessage(res.message, t('pos.cart.updated', 'Đã cập nhật món')))
+              }
+            }
+          )
         })
     } else {
-        addItem({ menuItemId: item.id, quantity, note, options: payloadOptions })
+        addItem(
+          { menuItemId: item.id, quantity, note, options: payloadOptions },
+          {
+            onSuccess: (res) => {
+              toast.success(getSuccessMessage(res.message, t('pos.cart.added', 'Đã thêm món vào đơn tạm')))
+            }
+          }
+        )
     }
-    toast.success(editingCartItemId ? t('pos.cart.updated', 'Đã cập nhật món') : t('pos.cart.added', 'Đã thêm món vào đơn tạm'))
   }
 
   const handleEditCartItem = async (cartItem: ICartItem) => {
     try {
-      const res = await posMenuService.getItem(cartItem.menuItemId)
-      if (res.data.data) {
-        setSelectedItem(res.data.data)
-        setEditingCartItem(cartItem)
-        setIsModalOpen(true)
-      }
+      const item = await posMenuService.getItem(cartItem.menuItemId)
+      setSelectedItem(item)
+      setEditingCartItem(cartItem)
+      setIsModalOpen(true)
     } catch {
       toast.error(t('pos.cart.loadFailed', 'Không thể tải thông tin món này.'))
     }
@@ -126,9 +138,17 @@ export default function OrderEntryPage() {
 
   const handleDecrease = (cartItemId: string, qty: number) => {
     if (sessionToken) {
-       if (qty <= 1) removeItem(cartItemId)
+       if (qty <= 1) handleRemove(cartItemId)
        else updateItem({ cartItemId, payload: { quantity: qty - 1 } })
     }
+  }
+
+  const handleRemove = (cartItemId: string) => {
+    removeItem(cartItemId, {
+      onSuccess: (res) => {
+        toast.success(getSuccessMessage(res.message, t('pos.cart.removed', 'Đã xóa món khỏi đơn tạm')))
+      }
+    })
   }
 
   return (
@@ -149,7 +169,7 @@ export default function OrderEntryPage() {
              isSubmitting={isSubmitting}
              onIncreaseItem={handleIncrease}
              onDecreaseItem={handleDecrease}
-             onRemoveItem={removeItem}
+             onRemoveItem={handleRemove}
              onSubmitTicket={handleSubmit}
              onCheckout={handleCheckout}
              onEditItem={handleEditCartItem}

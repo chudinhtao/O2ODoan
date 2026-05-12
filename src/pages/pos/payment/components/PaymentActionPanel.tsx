@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { QRCodeCanvas } from 'qrcode.react'
 import { CheckCircle, AlertCircle, Coins, Smartphone, Printer, PauseCircle, Verified, Bell, Loader2, QrCode, SplitSquareHorizontal } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
 import { Input } from '@/shared/components/ui/Input'
@@ -22,10 +23,12 @@ interface PaymentActionPanelProps {
   isTakeaway: boolean
   // QR PayOS (full amount)
   qrPayosUrl: string | null
+  qrPayosCode: string | null
   isCreatingQrPayos: boolean
   handleQrCreateLink: () => void
   // Mixed
   mixedQrUrl: string | null
+  mixedQrCode: string | null
   isCreatingQr: boolean
   qrAmount: number
   isMixedReady: boolean
@@ -39,8 +42,8 @@ export function PaymentActionPanel({
   cashGiven, setCashGivenStr, handleCashGivenChange,
   releaseTable, setReleaseTable, isCheckingOut, handlePaymentSubmit,
   onHoldOrder, onPrintBeforeClose, isTakeaway,
-  qrPayosUrl, isCreatingQrPayos, handleQrCreateLink,
-  mixedQrUrl, isCreatingQr, qrAmount, isMixedReady, handleMixedCreateQr
+  qrPayosUrl, qrPayosCode, isCreatingQrPayos, handleQrCreateLink,
+  mixedQrUrl, mixedQrCode, isCreatingQr, qrAmount, isMixedReady, handleMixedCreateQr
 }: PaymentActionPanelProps) {
   const { t } = useTranslation()
 
@@ -201,11 +204,15 @@ export function PaymentActionPanel({
                   </div>
                   {/* Render QR từ checkoutUrl của PayOS thông qua QR generator API */}
                   <div className="p-3 bg-white rounded-2xl shadow-xl border-2 border-primary/10">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrPayosUrl)}`}
-                      alt="PayOS QR"
-                      className="w-44 h-44 object-contain"
-                    />
+                    {qrPayosCode ? (
+                      <QRCodeCanvas value={qrPayosCode} size={176} level="M" />
+                    ) : (
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrPayosUrl)}`}
+                        alt="PayOS QR"
+                        className="w-44 h-44 object-contain"
+                      />
+                    )}
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-400/30 rounded-xl w-full">
                     <div className="size-2 bg-amber-500 rounded-full animate-pulse shrink-0" />
@@ -300,11 +307,11 @@ export function PaymentActionPanel({
                     <p className="text-xl font-black text-primary font-headline tabular-nums">{formatCurrency(qrAmount)}</p>
                   </div>
                   <div className="p-3 bg-white rounded-2xl shadow-xl border-2 border-primary/10">
-                    <img
-                      src={mixedQrUrl}
-                      alt="PayOS QR"
-                      className="w-44 h-44 object-contain"
-                    />
+                    {mixedQrCode ? (
+                      <QRCodeCanvas value={mixedQrCode} size={176} level="M" />
+                    ) : (
+                      <img src={mixedQrUrl} alt="PayOS QR" className="w-44 h-44 object-contain" />
+                    )}
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-400/30 rounded-xl">
                     <div className="size-2 bg-amber-500 rounded-full animate-pulse" />
@@ -386,3 +393,6 @@ export function PaymentActionPanel({
     </div>
   )
 }
+
+
+

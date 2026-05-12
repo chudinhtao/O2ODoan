@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Tags, Box, UtensilsCrossed, Star, CheckCircle, FilterX, Filter } from 'lucide-react'
-import { MenuFormModal } from '../components/MenuFormModal'
 import { CategoryFormModal } from '../components/CategoryFormModal'
 import { MenuItemsTable } from '../components/MenuItemsTable'
 import { MenuCategoriesTable } from '../components/MenuCategoriesTable'
@@ -26,8 +25,6 @@ export default function MenuManagementPage() {
       selectedAvailable,
       selectedStation,
       selectedFeatured,
-      isMenuDrawerOpen,
-      editingItemId,
       isCategoryDrawerOpen,
       editingCategoryId,
       isLoadingItems,
@@ -48,7 +45,6 @@ export default function MenuManagementPage() {
       setSelectedAvailable,
       setSelectedStation,
       setSelectedFeatured,
-      setIsMenuDrawerOpen,
       setIsCategoryDrawerOpen,
       handleAddNew,
       handleEditItem,
@@ -276,11 +272,6 @@ export default function MenuManagementPage() {
         </div>
       </div>
 
-      <MenuFormModal
-        isOpen={isMenuDrawerOpen}
-        onClose={() => setIsMenuDrawerOpen(false)}
-        itemId={editingItemId}
-      />
 
       <CategoryFormModal
         isOpen={isCategoryDrawerOpen}

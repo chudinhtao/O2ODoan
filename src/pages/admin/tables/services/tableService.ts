@@ -20,66 +20,71 @@ class AdminTableService {
     }
   }
 
-  async createTable(data: ITableForm): Promise<ITable> {
+  async createTable(data: ITableForm): Promise<IApiResponse<ITable>> {
     const response = await http.post<IApiResponse<ITable>>(
       API_ROUTES.adminTable.root,
       data
     )
     const t = response.data.data
-    return { ...t, active: (t as any).isActive ?? t.active }
+    return { ...response.data, data: { ...t, active: (t as any).isActive ?? t.active } }
   }
 
-  async updateTable(id: string, data: ITableForm): Promise<ITable> {
+  async updateTable(id: string, data: ITableForm): Promise<IApiResponse<ITable>> {
     const response = await http.put<IApiResponse<ITable>>(
       API_ROUTES.adminTable.byId(id),
       data
     )
     const t = response.data.data
-    return { ...t, active: (t as any).isActive ?? t.active }
+    return { ...response.data, data: { ...t, active: (t as any).isActive ?? t.active } }
   }
 
-  async generateQr(id: string): Promise<ITable> {
+  async generateQr(id: string): Promise<IApiResponse<ITable>> {
     const response = await http.post<IApiResponse<ITable>>(
       API_ROUTES.adminTable.generateQr(id)
     )
     const t = response.data.data
-    return { ...t, active: (t as any).isActive ?? t.active }
+    return { ...response.data, data: { ...t, active: (t as any).isActive ?? t.active } }
   }
 
-  async disableQr(id: string): Promise<ITable> {
+  async disableQr(id: string): Promise<IApiResponse<ITable>> {
     const response = await http.patch<IApiResponse<ITable>>(
       API_ROUTES.adminTable.disableQr(id)
     )
     const t = response.data.data
-    return { ...t, active: (t as any).isActive ?? t.active }
+    return { ...response.data, data: { ...t, active: (t as any).isActive ?? t.active } }
   }
 
-  async markCleaned(id: string): Promise<void> {
-    await http.patch<IApiResponse<void>>(API_ROUTES.table.cleanDone(id))
+  async markCleaned(id: string): Promise<string> {
+    const response = await http.patch<IApiResponse<void>>(API_ROUTES.table.cleanDone(id))
+    return response.data.message
   }
 
-  async deleteTable(id: string): Promise<void> {
-    await http.delete<IApiResponse<void>>(API_ROUTES.adminTable.byId(id))
+  async deleteTable(id: string): Promise<string> {
+    const response = await http.delete<IApiResponse<void>>(API_ROUTES.adminTable.byId(id))
+    return response.data.message
   }
 
-  async hardDeleteTable(id: string): Promise<void> {
-    await http.delete<IApiResponse<void>>(API_ROUTES.adminTable.hardDelete(id))
+  async hardDeleteTable(id: string): Promise<string> {
+    const response = await http.delete<IApiResponse<void>>(API_ROUTES.adminTable.hardDelete(id))
+    return response.data.message
   }
 
-  async toggleActive(id: string): Promise<ITable> {
+  async toggleActive(id: string): Promise<IApiResponse<ITable>> {
     const response = await http.patch<IApiResponse<ITable>>(
       API_ROUTES.adminTable.toggleActive(id)
     )
     const t = response.data.data
-    return { ...t, active: (t as any).isActive ?? t.active }
+    return { ...response.data, data: { ...t, active: (t as any).isActive ?? t.active } }
   }
 
-  async mergeTable(sourceTableId: string, targetTableId: string): Promise<void> {
-    await http.post<IApiResponse<void>>(API_ROUTES.table.merge, { sourceTableId, targetTableId })
+  async mergeTable(sourceTableId: string, targetTableId: string): Promise<string> {
+    const response = await http.post<IApiResponse<void>>(API_ROUTES.table.merge, { sourceTableId, targetTableId })
+    return response.data.message
   }
 
-  async transferTable(sourceTableId: string, targetTableId: string): Promise<void> {
-    await http.post<IApiResponse<void>>(API_ROUTES.table.transfer, { sourceTableId, targetTableId })
+  async transferTable(sourceTableId: string, targetTableId: string): Promise<string> {
+    const response = await http.post<IApiResponse<void>>(API_ROUTES.table.transfer, { sourceTableId, targetTableId })
+    return response.data.message
   }
 }
 

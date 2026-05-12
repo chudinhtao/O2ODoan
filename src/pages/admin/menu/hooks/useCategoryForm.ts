@@ -1,10 +1,10 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { z } from 'zod'
+import type { ICategoryRequest } from '../types/adminMenu.type'
 import { useAdminCategories } from './useMenuQueries'
 import { useCreateCategory, useUpdateCategory } from './useMenuMutations'
-import type { ICategoryRequest } from '../types/adminMenu.type'
-import { z } from 'zod'
 
 export const categorySchema = z.object({
   name: z.string().min(1, 'admin.categories.validation.requiredName'),
@@ -23,10 +23,9 @@ interface UseCategoryFormProps {
 export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryFormProps) {
   const isEdit = !!categoryId
 
-  // Lấy dữ liệu danh mục hiện tại từ cache
   const { data: categoriesPage, isFetching: isLoadingCategories } = useAdminCategories({ size: 100 })
   const existingCategory = categoriesPage?.content.find(c => c.id === categoryId)
-  
+
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
 
@@ -35,18 +34,17 @@ export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryForm
     defaultValues: { name: '', displayOrder: 0, imageUrl: '' }
   })
 
-  // Đổ dữ liệu vào form
   useEffect(() => {
-    if (isOpen) {
-      if (isEdit && existingCategory) {
-        form.reset({
-          name: existingCategory.name,
-          displayOrder: existingCategory.displayOrder || 0,
-          imageUrl: existingCategory.imageUrl || ''
-        })
-      } else {
-        form.reset({ name: '', displayOrder: 0, imageUrl: '' })
-      }
+    if (!isOpen) return
+
+    if (isEdit && existingCategory) {
+      form.reset({
+        name: existingCategory.name,
+        displayOrder: existingCategory.displayOrder || 0,
+        imageUrl: existingCategory.imageUrl || ''
+      })
+    } else {
+      form.reset({ name: '', displayOrder: 0, imageUrl: '' })
     }
   }, [isOpen, isEdit, existingCategory, form])
 
@@ -64,10 +62,7 @@ export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryForm
         await createMutation.mutateAsync(payload)
       }
       onClose()
-    } catch (error) {
-      console.error('Submit error', error)
-      // Lỗi sẽ bung Toast ngay từ hook useAdminMenu do sử dụng mutateAsync
-    }
+    } catch {}
   }
 
   const isLoading = isEdit && isLoadingCategories

@@ -2,7 +2,7 @@ import React from 'react';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useAppSelector } from '@/store/hooks';
 import { useTranslation } from 'react-i18next';
-import { useServerKpi } from '@/features/server/hooks/useServerData';
+import { useServerKpi } from '@/pages/server/hooks/useServerData';
 import { UtensilsCrossed, Bell, Clock } from 'lucide-react';
 
 export const ServerKpiTab: React.FC = () => {

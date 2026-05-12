@@ -1,10 +1,10 @@
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useEffect, useRef } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useEffect, useRef } from 'react'
+import type { IMenuItemRequest, IOptionGroupRequest } from '../types/adminMenu.type'
 import { useAdminCategories, useAdminMenuItem } from './useMenuQueries'
 import { useCreateMenuItem, useUpdateMenuItem } from './useMenuMutations'
-import type { IMenuItemRequest, IOptionGroupRequest } from '../types/adminMenu.type'
 
 export const optionSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredOption'),
@@ -23,7 +23,7 @@ export const menuSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredName'),
   categoryId: z.string().min(1, 'admin.menu.validation.requiredCategory'),
   basePrice: z.number().min(0, 'admin.menu.validation.priceMinZero'),
-  station: z.enum(['HOT', 'COLD', 'DRINK']), 
+  station: z.enum(['HOT', 'COLD', 'DRINK']),
   description: z.string().optional(),
   isAvailable: z.boolean(),
   isFeatured: z.boolean(),
@@ -35,11 +35,10 @@ export type MenuFormValues = z.infer<typeof menuSchema>
 
 interface UseMenuFormProps {
   itemId?: string | null
-  isOpen: boolean
-  onClose: () => void
+  onSuccess: () => void
 }
 
-export function useMenuForm({ itemId, isOpen, onClose }: UseMenuFormProps) {
+export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
   const isEdit = !!itemId
 
   const { data: categoriesPage } = useAdminCategories({ size: 100 })
@@ -70,16 +69,9 @@ export function useMenuForm({ itemId, isOpen, onClose }: UseMenuFormProps) {
     name: 'optionGroups'
   })
 
-  // Sử dụng ref để tránh reset form nhiều lần không cần thiết gây lag
   const lastResetId = useRef<string | null | undefined>(undefined)
 
   useEffect(() => {
-    if (!isOpen) {
-      lastResetId.current = undefined
-      return
-    }
-
-    // Nếu đã reset cho itemId này rồi thì không làm lại nữa
     if (lastResetId.current === itemId && (isEdit ? !!itemData : true)) return
 
     if (!isEdit) {
@@ -120,10 +112,10 @@ export function useMenuForm({ itemId, isOpen, onClose }: UseMenuFormProps) {
       })
       lastResetId.current = itemId
     }
-  }, [isOpen, isEdit, itemData, form, itemId])
+  }, [isEdit, itemData, form, itemId])
 
   const onSubmit = async (data: MenuFormValues) => {
-    let groupsPayload: IOptionGroupRequest[] | undefined = undefined
+    let groupsPayload: IOptionGroupRequest[] | undefined
     if (data.optionGroups && data.optionGroups.length > 0) {
       groupsPayload = data.optionGroups.map((g, idx) => ({
         name: g.name,
@@ -155,11 +147,8 @@ export function useMenuForm({ itemId, isOpen, onClose }: UseMenuFormProps) {
       } else {
         await createMutation.mutateAsync(payload)
       }
-      onClose()
-    } catch (err) {
-      console.error(err)
-      // Lỗi sẽ bung Toast ngay từ hook useAdminMenu do sử dụng mutateAsync
-    }
+      onSuccess()
+    } catch {}
   }
 
   const handleCreateNewOptionGroup = () => {

@@ -11,16 +11,16 @@ export const adminStaffService = {
 
   createStaff: async (payload: ICreateStaffRequest) => {
     const res = await http.post<IApiResponse<IStaff>>(API_ROUTES.adminStaff.root, payload);
-    return res.data.data;
+    return res.data;
   },
 
   updateStaff: async (id: string, payload: IUpdateStaffRequest) => {
     const res = await http.patch<IApiResponse<IStaff>>(API_ROUTES.adminStaff.byId(id), payload);
-    return res.data.data;
+    return res.data;
   },
 
   toggleStaffStatus: async (id: string) => {
     const res = await http.patch<IApiResponse<IStaff>>(API_ROUTES.adminStaff.toggle(id));
-    return res.data.data;
+    return res.data;
   }
 };

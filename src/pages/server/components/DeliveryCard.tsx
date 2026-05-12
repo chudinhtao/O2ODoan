@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TicketDeliveryDto, DeliveryItem } from '../types/server.types';
-import { useServeItemsMutation, useUnserveItemsMutation } from '../hooks/useServerData';
+import { useServeItemsMutation, useUnserveItemsMutation, useClaimDeliveryMutation, useUnclaimDeliveryMutation } from '../hooks/useServerData';
 import { StationBadge } from '@/shared/components/ui/StationBadge';
 import { Button } from '@/shared/components/ui/Button';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,8 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({ delivery }) => {
   const { tableNumber, zone, items } = delivery;
   const serveMutation = useServeItemsMutation();
   const unserveMutation = useUnserveItemsMutation();
+  const claimMutation = useClaimDeliveryMutation();
+  const unclaimMutation = useUnclaimDeliveryMutation();
   
   // Local state to handle optimistic UI and undo window
   const [servedItems, setServedItems] = useState<string[]>([]);
@@ -33,6 +35,22 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({ delivery }) => {
         
         // Hide Undo button after 30 seconds
         setTimeout(() => setShowUndo(false), 30000);
+      }
+    });
+  };
+
+  const handleClaim = (itemIds: string[]) => {
+    claimMutation.mutate({ itemIds }, {
+      onSuccess: () => {
+        toast.success(t('server.claim_success'));
+      }
+    });
+  };
+
+  const handleUnclaim = (itemIds: string[]) => {
+    unclaimMutation.mutate({ itemIds }, {
+      onSuccess: () => {
+        toast.success(t('server.unclaim_success'));
       }
     });
   };
@@ -86,15 +104,36 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({ delivery }) => {
           </div>
           <p className="text-sm opacity-80 mt-1 truncate">{activeItems.length} {t('server.items_to_serve')}</p>
         </div>
-        <Button
-          onClick={() => handleServe(activeItems.map((i: DeliveryItem) => i.itemId))}
-          disabled={serveMutation.isPending}
-          variant="primary"
-          size="lg"
-          className="shrink-0"
-        >
-          {serveMutation.isPending ? t('server.processing_now') : t('server.serve_all')}
-        </Button>
+        
+        {(() => {
+          const isDelivering = activeItems.some(i => i.status === 'DELIVERING');
+          const isPendingOp = serveMutation.isPending || claimMutation.isPending || unclaimMutation.isPending;
+          
+          return (
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button
+                onClick={() => isDelivering ? handleServe(activeItems.map((i: DeliveryItem) => i.itemId)) : handleClaim(activeItems.map((i: DeliveryItem) => i.itemId))}
+                disabled={isPendingOp}
+                variant={isDelivering ? "primary" : "secondary"}
+                size="lg"
+                className={isDelivering ? 'bg-emerald-600 hover:bg-emerald-700 text-white w-full' : 'w-full'}
+              >
+                {isPendingOp ? t('server.processing_now') : isDelivering ? t('server.serve_all') : t('server.claim_delivery')}
+              </Button>
+              {isDelivering && (
+                <Button
+                  onClick={() => handleUnclaim(activeItems.map((i: DeliveryItem) => i.itemId))}
+                  disabled={isPendingOp}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-error border-error/50 hover:bg-error/10 hover:text-error"
+                >
+                  {t('server.unclaim_delivery')}
+                </Button>
+              )}
+            </div>
+          );
+        })()}
       </div>
       
       <div className="divide-y divide-outline-variant/30">
@@ -104,6 +143,11 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({ delivery }) => {
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-bold text-lg bg-surface px-2 py-0.5 rounded-md border border-outline-variant/50">x{item.quantity}</span>
                 <span className="font-semibold truncate">{item.itemName}</span>
+                {item.deliveryAlertSent && (
+                  <span className="ml-1 text-[10px] bg-error text-white px-1.5 py-0.5 rounded font-black animate-pulse flex items-center shrink-0">
+                    <AlertTriangle className="size-3 mr-1" /> QUÁ LÂU
+                  </span>
+                )}
               </div>
               {item.note && (
                 <p className="text-sm italic opacity-80 truncate text-error font-medium">{t('server.note', { note: item.note })}</p>

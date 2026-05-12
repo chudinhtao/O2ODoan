@@ -1,7 +1,7 @@
 import React from 'react';
-import { usePendingDeliveries } from '@/features/server/hooks/useServerData';
-import { DeliveryCard } from '@/features/server/components/DeliveryCard';
-import { TicketDeliveryDto } from '@/features/server/types/server.types';
+import { usePendingDeliveries } from '@/pages/server/hooks/useServerData';
+import { DeliveryCard } from '@/pages/server/components/DeliveryCard';
+import { TicketDeliveryDto } from '@/pages/server/types/server.types';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';

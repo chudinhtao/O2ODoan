@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
 import { TicketGrid } from '../components/TicketGrid';
+import { KdsHeader } from '../components/KdsHeader';
 import { useKdsQuery } from '../hooks/useKdsQuery';
 import { useKdsSocket } from '../hooks/useKdsSocket';
-import { LanguageToggle } from '@/shared/components/ui/LanguageToggle';
-import { Button } from '@/shared/components/ui/Button';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, WifiOff, SlidersHorizontal } from 'lucide-react';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { IKdsTicket } from '../types/kds.type';
+import { Flame, Snowflake, Coffee } from 'lucide-react';
 
 /** Danh sách các trạm bếp có thể chọn */
 const STATIONS = [
-  { key: 'HOT',  label: '🔥 Bếp Nóng',   color: 'bg-orange-500' },
-  { key: 'COLD', label: '🧊 Bếp Lạnh',   color: 'bg-blue-500' },
-  { key: 'DRINK', label: '☕ Đồ Uống',   color: 'bg-green-500' },
+  { key: 'HOT',  label: 'Bếp Nóng',   color: 'bg-amber-600', icon: Flame },
+  { key: 'COLD', label: 'Bếp Lạnh',   color: 'bg-blue-600', icon: Snowflake },
+  { key: 'DRINK', label: 'Đồ Uống',   color: 'bg-emerald-600', icon: Coffee },
 ] as const;
 
 const LS_KEY = 'kds_active_stations';
@@ -29,8 +26,6 @@ const loadStations = (): string[] => {
 };
 
 export const KdsPage = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
   const { tickets, isLoading, updateItemStatus, updateTicketStatus, cancelOrderItem } = useKdsQuery();
   const { isConnected } = useKdsSocket();
   const [showFilter, setShowFilter] = useState(false);
@@ -63,101 +58,55 @@ export const KdsPage = () => {
     cancelOrderItem.mutate({ orderId, itemId, reason });
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex flex-col font-['Inter']">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-neutral-800 text-gray-100 shadow-md z-50 flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/pos/table-map')}
-            className="text-gray-300 hover:text-white hover:bg-white/10"
-          >
-            <ChevronLeft className="w-5 h-5 mr-1" />
-            {t('kds.header.backToPos')}
-          </Button>
-          <div className="h-6 w-px bg-gray-700" />
-          <h1 className="text-xl font-bold tracking-wide">
-            {t('kds.header.title')}{' '}
-            <span className="text-orange-500 ml-2 text-sm uppercase px-2 py-0.5 rounded border border-orange-500">
-              {t('kds.header.modeLabel')}
-            </span>
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Phase 3: Station pills */}
-          <div className="hidden md:flex items-center gap-1.5">
-            {STATIONS.map(s => (
-              <button
-                key={s.key}
-                onClick={() => toggleStation(s.key)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
-                  activeStations.includes(s.key)
-                    ? 'text-white border-transparent ' + s.color
-                    : 'text-gray-400 border-gray-600 bg-transparent'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile: Toggle filter panel */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-white/10 text-gray-300"
-            onClick={() => setShowFilter(v => !v)}
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-          </button>
-
-          {!isConnected && (
-            <div className="flex items-center text-red-400 text-sm font-medium animate-pulse">
-              <WifiOff className="w-4 h-4 mr-1.5" />
-              {t('kds.header.offlineMode')}
-            </div>
-          )}
-          <div className="scale-90">
-            <LanguageToggle />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-900 flex flex-col font-['Inter'] text-slate-100">
+      <KdsHeader 
+        stations={STATIONS}
+        activeStations={activeStations}
+        onToggleStation={toggleStation}
+        isConnected={isConnected}
+        onToggleFilter={() => setShowFilter(v => !v)}
+      />
 
       {/* Mobile Station Filter Panel */}
       {showFilter && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-neutral-700 px-4 py-3 flex gap-2 flex-wrap shadow-lg md:hidden">
-          {STATIONS.map(s => (
-            <button
-              key={s.key}
-              onClick={() => toggleStation(s.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                activeStations.includes(s.key)
-                  ? 'text-white border-transparent ' + s.color
-                  : 'text-gray-400 border-gray-500 bg-transparent'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="fixed top-16 left-0 right-0 z-40 bg-slate-800 px-4 py-4 flex gap-3 flex-wrap shadow-2xl md:hidden border-b border-slate-700">
+          {STATIONS.map(s => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.key}
+                onClick={() => toggleStation(s.key)}
+                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all shadow-sm flex items-center gap-2 ${
+                  activeStations.includes(s.key)
+                    ? 'text-white border-transparent ' + s.color
+                    : 'text-slate-300 border-slate-700 bg-slate-900/50'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Active Station Badge */}
       {activeStations.length === 0 && (
-        <div className="fixed top-16 left-0 right-0 z-30 bg-yellow-500/90 text-yellow-900 text-xs font-bold text-center py-1.5">
-          ⚠️ Chưa chọn trạm bếp nào. Chọn ít nhất 1 trạm để hiển thị món.
+        <div className="fixed top-16 left-0 right-0 z-30 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold text-center py-2 shadow-lg">
+          ⚠️ Chưa chọn trạm bếp nào. Hãy chọn ít nhất 1 trạm để hiển thị món ăn.
         </div>
       )}
 
-      <main className="flex-1 mt-16 overflow-y-auto">
+      <main className="flex-1 mt-16 overflow-hidden flex flex-col">
         {isLoading ? (
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 overflow-y-auto">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="bg-white rounded-lg border p-4 h-[300px] flex flex-col gap-3">
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full mt-auto" />
+              <div key={i} className="bg-slate-800 rounded-xl border border-slate-700 p-5 h-[320px] flex flex-col gap-4 shadow-lg">
+                <Skeleton className="h-8 w-1/2 bg-slate-700" />
+                <Skeleton className="h-14 w-full bg-slate-700" />
+                <Skeleton className="h-14 w-full bg-slate-700" />
+                <Skeleton className="h-14 w-full bg-slate-700" />
+                <Skeleton className="h-14 w-full mt-auto bg-slate-700" />
               </div>
             ))}
           </div>

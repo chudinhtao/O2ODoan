@@ -15,6 +15,7 @@ export interface DeliveryItem {
   unitPrice: number;
   note: string | null;
   isUrgent: boolean;
+  deliveryAlertSent?: boolean;
 }
 
 export interface ServeItemsRequest {
@@ -32,6 +33,7 @@ export interface StaffCallResponse {
   resolvedAt: string | null;
   acceptedBy: string | null;
   acceptedAt: string | null;
+  isSpilloverSent?: boolean;
 }
 
 export interface ServerKpiResponse {

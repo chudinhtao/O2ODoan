@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAdminMenuItems, useAdminCategories } from './useMenuQueries'
 import {
   useDeleteMenuItem,
@@ -10,8 +11,10 @@ import {
   useToggleCategoryStatus,
 } from './useMenuMutations'
 import { useMenuFilters } from './useMenuFilters'
+import { ROUTES } from '@/shared/constants/ROUTES'
 
 export function useMenuManagement() {
+  const navigate = useNavigate()
   const filters = useMenuFilters()
   const {
     activeTab,
@@ -25,10 +28,7 @@ export function useMenuManagement() {
     selectedStation
   } = filters.state
 
-  // Drawer state
-  const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false)
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
-
+  // Category drawer state (kept as-is)
   const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
 
@@ -73,15 +73,14 @@ export function useMenuManagement() {
   // Component Handlers
   const handleAddNew = () => {
     if (activeTab === 'items') {
-      setEditingItemId(null)
-      setIsMenuDrawerOpen(true)
+      navigate(ROUTES.admin.menuCreate)
     } else {
       setEditingCategoryId(null)
       setIsCategoryDrawerOpen(true)
     }
   }
 
-  const handleEditItem = (id: string) => { setEditingItemId(id); setIsMenuDrawerOpen(true) }
+  const handleEditItem = (id: string) => navigate(ROUTES.admin.menuEdit.replace(':id', id))
   const handleDeleteItem = (id: string) => setConfirmAction({ type: 'DELETE_ITEM', id })
   const handleToggleStatus = (id: string) => toggleMutation.mutate(id)
   const handleEditCategory = (id: string) => { setEditingCategoryId(id); setIsCategoryDrawerOpen(true) }
@@ -118,8 +117,6 @@ export function useMenuManagement() {
   return {
     state: {
       ...filters.state,
-      isMenuDrawerOpen,
-      editingItemId,
       isCategoryDrawerOpen,
       editingCategoryId,
       isLoadingItems,
@@ -133,7 +130,6 @@ export function useMenuManagement() {
     actions: {
       ...filters.actions,
       setPageSize: filters.actions.setPageSize,
-      setIsMenuDrawerOpen,
       setIsCategoryDrawerOpen,
       handleAddNew,
       handleEditItem,

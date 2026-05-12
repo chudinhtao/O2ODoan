@@ -23,6 +23,16 @@ class ServerApiService {
     return res.data.data;
   }
 
+  async claimDelivery(request: ServeItemsRequest): Promise<string> {
+    const res = await httpClient.put<ApiResponse<string>>(`${this.baseUrl}/deliveries/claim`, request);
+    return res.data.data;
+  }
+
+  async unclaimDelivery(request: ServeItemsRequest): Promise<string> {
+    const res = await httpClient.put<ApiResponse<string>>(`${this.baseUrl}/deliveries/unclaim`, request);
+    return res.data.data;
+  }
+
   async unserveItems(request: ServeItemsRequest): Promise<string> {
     const res = await httpClient.put<ApiResponse<string>>(`${this.baseUrl}/deliveries/unserve`, request);
     return res.data.data;

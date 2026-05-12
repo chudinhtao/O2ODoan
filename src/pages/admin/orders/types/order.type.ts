@@ -24,6 +24,9 @@ export interface IOrderTicketItem {
   station: string
   createdAt: string
   options: IOrderItemOption[]
+  isAlertSent?: boolean
+  kitchenAlertSent?: boolean
+  deliveryAlertSent?: boolean
 }
 
 export interface IOrderTicket {

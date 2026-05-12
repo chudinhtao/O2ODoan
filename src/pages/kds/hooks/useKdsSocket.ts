@@ -24,8 +24,7 @@ export const useKdsSocket = () => {
             className: 'bg-orange-50 font-medium border-orange-500'
           });
         }
-      } catch (e) {
-        console.error('[KDS] Parse Error:', e);
+      } catch {
       }
     });
 

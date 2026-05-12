@@ -15,7 +15,7 @@ export function RevenueChart({ data, isLoading, totalRevenue }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0">
+    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0 h-full">
       <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3 gap-2">
         <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
           <TrendingUp size={20} className="text-primary" />

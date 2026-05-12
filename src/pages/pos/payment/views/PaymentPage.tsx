@@ -56,12 +56,12 @@ export default function PaymentPage() {
     voucherCode,
     setVoucherCode,
     isApplyingVoucher,
-    mixedQrUrl,
+    mixedQrUrl, mixedQrCode,
     isCreatingQr,
     qrAmount,
     isMixedReady,
     handleMixedCreateQr,
-    qrPayosUrl,
+    qrPayosUrl, qrPayosCode,
     isCreatingQrPayos,
     handleQrCreateLink,
   } = usePaymentLogic(tableId, sessionToken, serverOrder, releaseTable)
@@ -184,11 +184,13 @@ export default function PaymentPage() {
                onPrintBeforeClose={handlePrint}
                isTakeaway={tableId === 'takeaway'}
                mixedQrUrl={mixedQrUrl}
+              mixedQrCode={mixedQrCode}
                isCreatingQr={isCreatingQr}
                qrAmount={qrAmount}
                isMixedReady={isMixedReady}
                handleMixedCreateQr={handleMixedCreateQr}
                qrPayosUrl={qrPayosUrl}
+              qrPayosCode={qrPayosCode}
                isCreatingQrPayos={isCreatingQrPayos}
                handleQrCreateLink={handleQrCreateLink}
             />
@@ -209,3 +211,4 @@ export default function PaymentPage() {
     </>
   )
 }
+

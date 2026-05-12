@@ -14,3 +14,5 @@ export interface ChatResponse {
   reply: string;
   sessionId: string;
 }
+
+export type AdminChatApiData = ChatResponse | string | null;

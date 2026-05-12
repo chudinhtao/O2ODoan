@@ -21,7 +21,9 @@ const KdsPage            = lazy(() => import('@/pages/kds/views/KdsPage'))
 const KdsLayout          = lazy(() => import('@/layouts/KdsLayout'))
 const AdminDashboard    = lazy(() => import('@/pages/admin/dashboard/views/DashboardPage'))
 const AdminMenuPage     = lazy(() => import('@/pages/admin/menu/views/MenuManagementPage'))
+const AdminMenuFormPage = lazy(() => import('@/pages/admin/menu/views/MenuFormPage'))
 const AdminPromotions   = lazy(() => import('@/pages/admin/promotion/views/PromotionManagementPage'))
+const AdminPromotionFormPage = lazy(() => import('@/pages/admin/promotion/views/PromotionFormPage'))
 const AdminTables       = lazy(() => import('@/pages/admin/tables/views/TablesManagementPage'))
 const AdminStaff        = lazy(() => import('@/pages/admin/staff/views/StaffManagementPage'))
 const AdminReports      = lazy(() => import('@/pages/admin/reports/views/ReportsManagementPage'))
@@ -58,7 +60,7 @@ export function AppRouter() {
           <Route path={"/promotion"} element={<CustomerPromotionPage />} />
 
           {/* POS — CASHIER */}
-          <Route element={<ProtectedRoute allowedRoles={[ROLE.CASHIER, ROLE.ADMIN]} />}>
+          <Route element={<ProtectedRoute allowedRoles={[ROLE.CASHIER]} />}>
             <Route element={<PosLayout />}>
               <Route path={ROUTES.pos.tables}      element={<PosTableMapPage />} />
               <Route path="/pos/takeaways"          element={<PosTakeawayListPage />} />
@@ -71,14 +73,14 @@ export function AppRouter() {
           </Route>
 
           {/* KDS — KITCHEN */}
-          <Route element={<ProtectedRoute allowedRoles={[ROLE.KITCHEN, ROLE.CASHIER, ROLE.ADMIN]} />}>
+          <Route element={<ProtectedRoute allowedRoles={[ROLE.KITCHEN]} />}>
             <Route element={<KdsLayout />}>
               <Route path={ROUTES.kds} element={<KdsPage />} />
             </Route>
           </Route>
 
           {/* SERVER */}
-          <Route element={<ProtectedRoute allowedRoles={[ROLE.SERVER, ROLE.ADMIN]} />}>
+          <Route element={<ProtectedRoute allowedRoles={[ROLE.SERVER]} />}>
             <Route path="/server" element={<ServerDashboard />} />
           </Route>
 
@@ -87,8 +89,12 @@ export function AppRouter() {
             <Route element={<AdminLayout />}>
               <Route path={ROUTES.admin.root}      element={<Navigate to={ROUTES.admin.dashboard} replace />} />
               <Route path={ROUTES.admin.dashboard} element={<AdminDashboard />} />
-              <Route path={ROUTES.admin.menu}      element={<AdminMenuPage />} />
-              <Route path={ROUTES.admin.promotions} element={<AdminPromotions />} />
+              <Route path={ROUTES.admin.menu}       element={<AdminMenuPage />} />
+              <Route path={ROUTES.admin.menuCreate} element={<AdminMenuFormPage />} />
+              <Route path={ROUTES.admin.menuEdit}   element={<AdminMenuFormPage />} />
+              <Route path={ROUTES.admin.promotions}      element={<AdminPromotions />} />
+              <Route path={ROUTES.admin.promotionCreate} element={<AdminPromotionFormPage />} />
+              <Route path={ROUTES.admin.promotionEdit}   element={<AdminPromotionFormPage />} />
               <Route path={ROUTES.admin.tables}    element={<AdminTables />} />
               <Route path={ROUTES.admin.staff}     element={<AdminStaff />} />
               <Route path={ROUTES.admin.reports}   element={<AdminReports />} />

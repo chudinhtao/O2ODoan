@@ -41,9 +41,17 @@ const PUBLIC_URLS = [
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = store.getState().auth.accessToken
 
+  // Extract 't' token from URL for customer session (QR ordering)
+  const urlParams = new URLSearchParams(window.location.search)
+  const sessionToken = urlParams.get('t')
+
   // KHI KHỞI TẠO REQUEST: Nếu là đường dẫn an toàn (Public), bỏ qua Bearer Token để giảm Request Size
   if (config.url && PUBLIC_URLS.some(u => config.url?.includes(u))) {
     return config
+  }
+
+  if (sessionToken) {
+    config.headers['X-Session-Token'] = sessionToken
   }
 
   // Khác Public? Nhét thẻ Authorization Token vào

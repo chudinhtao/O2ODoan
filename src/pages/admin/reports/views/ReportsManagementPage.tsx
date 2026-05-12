@@ -28,9 +28,9 @@ import type { IRevenueReport } from '../types/report.type'
 
 // Tab ids for the report sections
 const REPORT_TABS = [
-  { id: 'overview', label: 'Tong quan', icon: BarChart2 },
-  { id: 'operations', label: 'Van hanh', icon: ChefHat },
-  { id: 'menu', label: 'Menu & KM', icon: LineChart },
+  { id: 'overview', getLabel: (t: any) => t('admin.analytics.tabs.overview', 'Tổng quan'), icon: BarChart2 },
+  { id: 'operations', getLabel: (t: any) => t('admin.analytics.tabs.operations', 'Vận hành'), icon: ChefHat },
+  { id: 'menu', getLabel: (t: any) => t('admin.analytics.tabs.menu_promo', 'Menu & KM'), icon: LineChart },
 ] as const
 
 type TabId = (typeof REPORT_TABS)[number]['id']
@@ -111,14 +111,15 @@ export default function ReportsManagementPage() {
   const growthStr = `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`
 
   return (
-    <div className="flex flex-col h-full bg-surface p-3 sm:p-4 lg:p-5 space-y-4 overflow-y-auto w-full">
-      {/* Header */}
+    <div className="flex flex-col h-full bg-slate-50/50 p-4 lg:p-6 space-y-6 overflow-y-auto w-full custom-scrollbar">
+      <div className="w-full max-w-[2000px] mx-auto space-y-6">
+        {/* Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-black font-display text-primary">{t('admin.reports')}</h1>
           <p className="text-xs text-on-primary/60 mt-1">
             <Trans i18nKey="admin.analytics.data_from_to" values={{ from: dateRange.from, to: dateRange.to }}>
-              Du lieu tu {{from: dateRange.from}} den {{to: dateRange.to}}
+              Dữ liệu từ {{from: dateRange.from}} đến {{to: dateRange.to}}
             </Trans>
           </p>
         </div>
@@ -131,7 +132,7 @@ export default function ReportsManagementPage() {
                className="!px-3"
                onClick={() => setFilterType('last7')}
             >
-              7 ngay qua
+              {t('admin.analytics.last_7_days', '7 ngày qua')}
             </Button>
             <Button
                variant={filterType === 'month' ? 'primary' : 'ghost'}
@@ -147,7 +148,7 @@ export default function ReportsManagementPage() {
                className="!px-3"
                onClick={() => setFilterType('custom')}
             >
-              Tuy chon
+              {t('admin.analytics.custom_range', 'Tùy chọn')}
             </Button>
           </div>
 
@@ -192,7 +193,7 @@ export default function ReportsManagementPage() {
           isLoading={revenueLoading}
         />
         <StatCard
-          title="Tang truong"
+          title={t('admin.analytics.revenue_trend', 'Tăng trưởng')}
           value={growthStr}
           trend={growthStr}
           icon={TrendingUp}
@@ -215,7 +216,7 @@ export default function ReportsManagementPage() {
               }`}
             >
               <Icon size={15} />
-              {tab.label}
+              {tab.getLabel(t)}
             </button>
           )
         })}
@@ -225,26 +226,39 @@ export default function ReportsManagementPage() {
       <div className="min-h-0 pb-8">
         {/* === OVERVIEW TAB === */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8">
-            <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="flex flex-col gap-6 xl:gap-8">
+            {/* Row 1: Full width revenue */}
+            <div className="w-full">
               <RevenueChart data={revenueData} isLoading={revenueLoading} totalRevenue={totalRevenue} />
-              <HourlyTrafficChart data={hourlyData} isLoading={hourlyLoading} />
-              <TableUsageList data={tableData} isLoading={tableLoading} />
             </div>
-            <div className="flex flex-col gap-6">
-              <SourcePieChart data={sourceData} isLoading={sourceLoading} />
+            
+            {/* Row 2: Pie chart (1/3) & Hourly Traffic (2/3) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
+              <div className="lg:col-span-1 h-full w-full">
+                <SourcePieChart data={sourceData} isLoading={sourceLoading} />
+              </div>
+              <div className="lg:col-span-2 h-full w-full">
+                <HourlyTrafficChart data={hourlyData} isLoading={hourlyLoading} />
+              </div>
+            </div>
+
+            {/* Row 3: Table Usage */}
+            <div className="w-full">
+              <TableUsageList data={tableData} isLoading={tableLoading} />
             </div>
           </div>
         )}
 
         {/* === OPERATIONS TAB === */}
         {activeTab === 'operations' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8">
-            <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
+            <div className="w-full h-[420px]">
               <KitchenPerformanceCard data={kitchenData} isLoading={kitchenLoading} />
+            </div>
+            <div className="w-full h-[420px]">
               <StaffCallStatsList data={staffCallData} isLoading={staffCallLoading} />
             </div>
-            <div className="flex flex-col gap-6">
+            <div className="w-full h-[420px]">
               <CancelledOrderDrilldownCard data={cancelledData} isLoading={cancelledLoading} />
             </div>
           </div>
@@ -252,16 +266,21 @@ export default function ReportsManagementPage() {
 
         {/* === MENU & KM TAB === */}
         {activeTab === 'menu' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
-            <TopItemsList
-              data={topItems}
-              isLoading={topLoading}
-              sortBy={topItemSortBy}
-              onChangeSortBy={setTopItemSortBy}
-            />
-            <PromotionEffectivenessList data={promotionData} isLoading={promotionLoading} />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8 items-stretch">
+            <div className="w-full h-[420px]">
+              <TopItemsList
+                data={topItems}
+                isLoading={topLoading}
+                sortBy={topItemSortBy}
+                onChangeSortBy={setTopItemSortBy}
+              />
+            </div>
+            <div className="w-full h-[420px]">
+              <PromotionEffectivenessList data={promotionData} isLoading={promotionLoading} />
+            </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

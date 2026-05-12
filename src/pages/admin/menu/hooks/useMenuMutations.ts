@@ -1,16 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminMenuService } from '../services/adminMenu.service'
-import { IMenuItemRequest, IOptionGroupRequest, ICategoryRequest } from '../types/adminMenu.type'
-import { toast } from 'sonner'
 import { t } from 'i18next'
+import { toast } from 'sonner'
+import { adminMenuService } from '../services/adminMenu.service'
+import type { ICategoryRequest, IMenuItemRequest, IOptionGroupRequest } from '../types/adminMenu.type'
+
+const successMessage = (message: string | undefined, fallback: string) => message || fallback
 
 export function useCreateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.createCategory,
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
-      toast.success(t('admin.categories.notifications.createSuccess'))
+      toast.success(successMessage(res.message, t('admin.categories.notifications.createSuccess')))
     }
   })
 }
@@ -18,11 +20,11 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string, payload: ICategoryRequest }) => 
+    mutationFn: ({ id, payload }: { id: string, payload: ICategoryRequest }) =>
       adminMenuService.updateCategory(id, payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
-      toast.success(t('admin.categories.notifications.updateSuccess'))
+      toast.success(successMessage(res.message, t('admin.categories.notifications.updateSuccess')))
     }
   })
 }
@@ -31,9 +33,9 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.deleteCategory,
-    onSuccess: () => {
+    onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
-      toast.success(t('admin.categories.notifications.deleteSuccess'))
+      toast.success(successMessage(message, t('admin.categories.notifications.deleteSuccess')))
     }
   })
 }
@@ -42,9 +44,9 @@ export function useHardDeleteCategory() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.hardDeleteCategory,
-    onSuccess: () => {
+    onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
-      toast.success(t('admin.categories.notifications.hardDeleteSuccess', 'Đã xóa danh mục vĩnh viễn'))
+      toast.success(successMessage(message, t('admin.categories.notifications.hardDeleteSuccess', 'Da xoa danh muc vinh vien')))
     }
   })
 }
@@ -53,9 +55,9 @@ export function useToggleCategoryStatus() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.toggleCategoryStatus,
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
-      toast.success(t('admin.categories.notifications.updateSuccess'))
+      toast.success(successMessage(res.message, t('admin.categories.notifications.updateSuccess')))
     }
   })
 }
@@ -64,9 +66,9 @@ export function useCreateMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.createMenuItem,
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.createSuccess'))
+      toast.success(successMessage(res.message, t('admin.menu.notifications.createSuccess')))
     }
   })
 }
@@ -74,11 +76,11 @@ export function useCreateMenuItem() {
 export function useUpdateMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string, payload: IMenuItemRequest }) => 
+    mutationFn: ({ id, payload }: { id: string, payload: IMenuItemRequest }) =>
       adminMenuService.updateMenuItem(id, payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.updateSuccess'))
+      toast.success(successMessage(res.message, t('admin.menu.notifications.updateSuccess')))
     }
   })
 }
@@ -87,9 +89,9 @@ export function useDeleteMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.deleteMenuItem,
-    onSuccess: () => {
+    onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.deleteSuccess', 'Đã ẩn món thành công'))
+      toast.success(successMessage(message, t('admin.menu.notifications.deleteSuccess', 'Da an mon thanh cong')))
     }
   })
 }
@@ -98,9 +100,9 @@ export function useRestoreMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.restoreMenuItem,
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.restoreSuccess', 'Khôi phục món thành công'))
+      toast.success(successMessage(res.message, t('admin.menu.notifications.restoreSuccess', 'Khoi phuc mon thanh cong')))
     }
   })
 }
@@ -109,9 +111,9 @@ export function useHardDeleteMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.hardDeleteMenuItem,
-    onSuccess: () => {
+    onSuccess: (message) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.hardDeleteSuccess', 'Đã xóa món vĩnh viễn'))
+      toast.success(successMessage(message, t('admin.menu.notifications.hardDeleteSuccess', 'Da xoa mon vinh vien')))
     }
   })
 }
@@ -120,9 +122,9 @@ export function useToggleMenuItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: adminMenuService.toggleMenuItemStatus,
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.toggleSuccess'))
+      toast.success(successMessage(res.message, t('admin.menu.notifications.toggleSuccess')))
     }
   })
 }
@@ -132,9 +134,9 @@ export function useAddOptionGroups() {
   return useMutation({
     mutationFn: ({ id, groups }: { id: string, groups: IOptionGroupRequest[] }) =>
       adminMenuService.addOptionGroups(id, groups),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] })
-      toast.success(t('admin.menu.notifications.updateSuccess'))
+      toast.success(successMessage(res.message, t('admin.menu.notifications.updateSuccess')))
     }
   })
 }

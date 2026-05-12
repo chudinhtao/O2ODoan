@@ -1,6 +1,7 @@
 import http from '@/services/interceptor'
 import { IApiResponse } from '@/shared/types/IApiResponse'
 import { API_ROUTES } from '@/shared/constants/API_ROUTES'
+import { unwrapApiData, unwrapApiResponse } from '@/shared/utils/apiResponse'
 import { ICart, IAddCartItemRequest, IUpdateCartItemRequest } from '../types/posOrder.type'
 
 const withSession = (token: string) => ({ headers: { 'X-Session-Token': token } })
@@ -8,21 +9,21 @@ const withSession = (token: string) => ({ headers: { 'X-Session-Token': token } 
 export const posOrderService = {
   // Cart Operations
   getCart: (sessionToken: string) =>
-    http.get<IApiResponse<ICart>>(API_ROUTES.order.cart, withSession(sessionToken)),
+    http.get<IApiResponse<ICart>>(API_ROUTES.order.cart, withSession(sessionToken)).then(unwrapApiData),
 
   addCartItem: (sessionToken: string, payload: IAddCartItemRequest) =>
-    http.post<IApiResponse<ICart>>(API_ROUTES.order.cartItems, payload, withSession(sessionToken)),
+    http.post<IApiResponse<ICart>>(API_ROUTES.order.cartItems, payload, withSession(sessionToken)).then(unwrapApiResponse),
 
   updateCartItem: (sessionToken: string, cartItemId: string, payload: IUpdateCartItemRequest) =>
-    http.put<IApiResponse<ICart>>(API_ROUTES.order.cartItem(cartItemId), payload, withSession(sessionToken)),
+    http.put<IApiResponse<ICart>>(API_ROUTES.order.cartItem(cartItemId), payload, withSession(sessionToken)).then(unwrapApiResponse),
 
   removeCartItem: (sessionToken: string, cartItemId: string) =>
-    http.delete<IApiResponse<ICart>>(API_ROUTES.order.cartItem(cartItemId), withSession(sessionToken)),
+    http.delete<IApiResponse<ICart>>(API_ROUTES.order.cartItem(cartItemId), withSession(sessionToken)).then(unwrapApiResponse),
 
   clearCart: (sessionToken: string) =>
-    http.delete<IApiResponse<null>>(API_ROUTES.order.cart, withSession(sessionToken)),
+    http.delete<IApiResponse<null>>(API_ROUTES.order.cart, withSession(sessionToken)).then(unwrapApiResponse),
 
   // Ticket: submit giỏ hàng → gửi bếp
   submitTicket: (sessionToken: string) =>
-    http.post<IApiResponse<null>>(API_ROUTES.order.tickets, {}, withSession(sessionToken)),
+    http.post<IApiResponse<null>>(API_ROUTES.order.tickets, {}, withSession(sessionToken)).then(unwrapApiResponse),
 }

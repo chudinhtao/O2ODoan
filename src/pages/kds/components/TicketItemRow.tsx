@@ -38,43 +38,49 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
     <div 
       onClick={handleClick}
       className={`
-        flex items-start gap-3 py-1 transition-all duration-200
-        ${(isLoading || isTicketPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        ${isDone ? 'opacity-60' : ''}
-        ${isCancelled ? 'opacity-70' : ''}
+        flex items-start gap-4 py-2 px-1 transition-all duration-300 rounded-lg
+        ${(isLoading || isTicketPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-700/50'}
+        ${isDone ? 'opacity-50 grayscale' : ''}
+        ${isCancelled ? 'opacity-60' : ''}
       `}
     >
       {/* Square Checkbox */}
-      <div className={`mt-0.5 transition-colors ${isDone ? 'text-neutral-500' : isPreparing ? 'text-blue-500' : isCancelled ? 'text-red-400' : 'text-neutral-400'}`}>
-        {isDone ? <CheckSquare className="w-5 h-5 md:w-6 md:h-6 fill-neutral-500 text-white" /> : <Square className={`w-5 h-5 md:w-6 md:h-6 ${isPreparing ? "text-blue-200" : ""}`} strokeWidth={isCancelled ? 1 : 2} fill={isPreparing ? 'currentColor' : 'transparent'} />}
+      <div className={`mt-0.5 transition-all ${isDone ? 'text-emerald-500' : isPreparing ? 'text-blue-400' : isCancelled ? 'text-red-500' : 'text-slate-500'}`}>
+        {isDone ? <CheckSquare className="w-6 h-6 md:w-7 md:h-7 fill-emerald-500/20 text-emerald-500" /> : <Square className={`w-6 h-6 md:w-7 md:h-7 ${isPreparing ? "text-blue-400/50 fill-blue-500/20" : ""}`} strokeWidth={isCancelled ? 1 : 2} fill={isPreparing ? 'currentColor' : 'transparent'} />}
       </div>
       
       {/* Content */}
       <div className="flex-1 min-w-0 pr-1">
-        <div className="flex items-start justify-between gap-1">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <div className={`font-semibold text-base md:text-[17px] leading-tight 
-              ${isDone ? 'line-through text-neutral-500' : isCancelled ? 'line-through text-red-500' : isPreparing ? 'text-blue-700' : 'text-neutral-800'}`
+            <div className={`font-bold text-lg md:text-xl leading-tight tracking-wide
+              ${isDone ? 'line-through text-slate-500' : isCancelled ? 'line-through text-red-400' : isPreparing ? 'text-blue-300' : 'text-slate-100'}`
             }>
               {item.itemName}
             </div>
             
             {isPreparing && !isCancelled && !isDone && (
-              <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase bg-blue-100 text-blue-700">
+              <span className="inline-block mt-1 mr-2 text-[11px] font-black px-2 py-0.5 rounded uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
                 {t('kds.item.status.preparing')}
               </span>
             )}
 
+            {item.kitchenAlertSent && !isCancelled && !isDone && (
+              <span className="inline-block mt-1 text-[11px] font-black px-2 py-0.5 rounded uppercase bg-red-500/20 text-red-500 border border-red-500/30 animate-pulse">
+                QUÁ LÂU!
+              </span>
+            )}
+
             {isCancelled && (
-              <span className={`inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${item.status === 'RETURNED' ? 'bg-amber-100/50 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+              <span className={`inline-block mt-1 text-[11px] font-black px-2 py-0.5 rounded uppercase border ${item.status === 'RETURNED' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
                 {item.status === 'RETURNED' ? t('kds.item.status.returned') : t('kds.item.status.cancelled')}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {item.quantity > 1 && (
-              <div className={`font-bold text-base md:text-[17px] shrink-0 ${isDone ? 'text-neutral-500' : isCancelled ? 'text-red-400' : isPreparing ? 'text-blue-700' : 'text-neutral-800'}`}>
+              <div className={`font-black text-xl md:text-2xl shrink-0 ${isDone ? 'text-slate-500' : isCancelled ? 'text-red-500' : isPreparing ? 'text-blue-400' : 'text-amber-400'}`}>
                 {item.quantity}x
               </div>
             )}
@@ -83,10 +89,10 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
             {!isDone && !isCancelled && (
               <button 
                 onClick={handleCancel}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-colors border border-slate-700 hover:border-red-500/30 shadow-sm"
                 title={t('kds.actions.reject')}
               >
-                <X className="w-4 h-4" strokeWidth={3} />
+                <X className="w-5 h-5" strokeWidth={3} />
               </button>
             )}
           </div>
@@ -94,10 +100,10 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
         
         {/* Render Options */}
         {item.options && item.options.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-2">
             {item.options.map((opt, idx) => (
-              <span key={idx} className={`text-[10px] md:text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide 
-                ${isDone ? 'bg-neutral-200 text-neutral-500' : isCancelled ? 'bg-red-50 text-red-400' : 'bg-[#f1f2f6] text-[#57606f]'}`
+              <span key={idx} className={`text-[11px] md:text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm border 
+                ${isDone ? 'bg-slate-800 text-slate-500 border-slate-700' : isCancelled ? 'bg-red-950/30 text-red-400 border-red-900/50' : 'bg-slate-700 text-slate-300 border-slate-600'}`
               }>
                 {opt}
               </span>
@@ -107,7 +113,7 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
 
         {/* Render Notes */}
         {item.note && (
-          <div className={`text-[11px] md:text-xs mt-1.5 font-medium ${isDone ? 'text-neutral-400' : isCancelled ? 'text-red-300' : 'text-red-500'}`}>
+          <div className={`text-xs md:text-sm mt-2 font-bold ${isDone ? 'text-slate-500' : isCancelled ? 'text-red-500' : 'text-amber-400'}`}>
             * {item.note}
           </div>
         )}

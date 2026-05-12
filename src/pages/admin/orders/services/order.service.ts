@@ -1,6 +1,7 @@
 import http from '@/services/interceptor'
 import type { IOrder, IOrderPageResponse, OrderFiltersParams } from '../types/order.type'
 import type { IApiResponse } from '@/shared/types/IApiResponse'
+import { unwrapApiResponse } from '@/shared/utils/apiResponse'
 
 class OrderService {
   async getOrders(params: OrderFiltersParams): Promise<IOrderPageResponse> {
@@ -13,14 +14,14 @@ class OrderService {
     return data.data
   }
 
-  async cancelOrder(id: string, reason?: string, note?: string): Promise<void> {
-    await http.post(`/orders/${id}/cancel`, { reason, note })
+  async cancelOrder(id: string, reason?: string, note?: string): Promise<IApiResponse<unknown>> {
+    return http.post<IApiResponse<unknown>>(`/orders/${id}/cancel`, { reason, note }).then(unwrapApiResponse)
   }
 
-  async requestPayment(sessionToken: string): Promise<void> {
-    await http.post(`/orders/request-payment`, {}, {
+  async requestPayment(sessionToken: string): Promise<IApiResponse<unknown>> {
+    return http.post<IApiResponse<unknown>>(`/orders/request-payment`, {}, {
       headers: { 'X-Session-Token': sessionToken }
-    })
+    }).then(unwrapApiResponse)
   }
 
   async checkoutOrder(
@@ -28,31 +29,31 @@ class OrderService {
     releaseTable: boolean = true,
     paymentMethod: string = 'CASH',
     paymentDetail?: Record<string, number> | null
-  ): Promise<void> {
-    await http.post(`/orders/${id}/checkout`, { releaseTable, paymentMethod, paymentDetail })
+  ): Promise<IApiResponse<unknown>> {
+    return http.post<IApiResponse<unknown>>(`/orders/${id}/checkout`, { releaseTable, paymentMethod, paymentDetail }).then(unwrapApiResponse)
   }
 
-  async createPayosLink(orderId: string, sessionToken: string, amount: number, cashAmount?: number): Promise<string> {
+  async createPayosLink(orderId: string, sessionToken: string, amount: number, cashAmount?: number): Promise<{ checkoutUrl: string; qrCode?: string }> {
     const params: Record<string, unknown> = { orderId, sessionToken, amount }
     if (cashAmount && cashAmount > 0) params.cashAmount = cashAmount
-    const { data } = await http.post<{ checkoutUrl: string }>('/payments/payos/create', null, { params })
-    return data.checkoutUrl
+    const { data } = await http.post<{ checkoutUrl: string; qrCode?: string }>('/payments/payos/create', null, { params })
+    return data
   }
 
-  async cancelItem(orderId: string, itemId: string, reason?: string): Promise<void> {
-    await http.patch(`/orders/${orderId}/items/${itemId}/cancel`, { reason })
+  async cancelItem(orderId: string, itemId: string, reason?: string): Promise<IApiResponse<unknown>> {
+    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/items/${itemId}/cancel`, { reason }).then(unwrapApiResponse)
   }
 
-  async cancelTicket(orderId: string, ticketId: string, reason?: string): Promise<void> {
-    await http.patch(`/orders/${orderId}/tickets/${ticketId}/cancel`, { reason })
+  async cancelTicket(orderId: string, ticketId: string, reason?: string): Promise<IApiResponse<unknown>> {
+    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/tickets/${ticketId}/cancel`, { reason }).then(unwrapApiResponse)
   }
 
-  async returnItem(orderId: string, itemId: string, reason?: string): Promise<void> {
-    await http.patch(`/orders/${orderId}/items/${itemId}/return`, { reason })
+  async returnItem(orderId: string, itemId: string, reason?: string): Promise<IApiResponse<unknown>> {
+    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/items/${itemId}/return`, { reason }).then(unwrapApiResponse)
   }
 
-  async applyPromotion(orderId: string, code: string): Promise<void> {
-    await http.patch(`/orders/${orderId}/promotion`, { code })
+  async applyPromotion(orderId: string, code: string): Promise<IApiResponse<unknown>> {
+    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/promotion`, { code }).then(unwrapApiResponse)
   }
 }
 

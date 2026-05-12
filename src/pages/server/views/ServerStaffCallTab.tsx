@@ -1,7 +1,7 @@
 import React from 'react';
-import { useActiveCalls } from '@/features/server/hooks/useServerData';
-import { StaffCallCard } from '@/features/server/components/StaffCallCard';
-import { StaffCallResponse } from '@/features/server/types/server.types';
+import { useActiveCalls } from '@/pages/server/hooks/useServerData';
+import { StaffCallCard } from '@/pages/server/components/StaffCallCard';
+import { StaffCallResponse } from '@/pages/server/types/server.types';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2 } from 'lucide-react';

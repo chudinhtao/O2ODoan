@@ -5,6 +5,7 @@ export const API_ROUTES = {
     login:   `${BASE}auth/login`,
     refresh: `${BASE}auth/refresh`,
     logout:  `${BASE}auth/logout`,
+    me:      `${BASE}auth/me`,
   },
   menu: {
     categories: `${BASE}menu/categories`,
