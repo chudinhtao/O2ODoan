@@ -12,12 +12,12 @@ export interface IShiftReport {
 }
 
 // Gọi API sang report-service để lấy báo cáo của ca
-export function useShiftReport(shiftDate: string) {
+export function useShiftReport(shiftDate: string, attendanceId?: string) {
   return useQuery<IShiftReport>({
-    queryKey: QUERY_KEYS.report.shift(shiftDate),
+    queryKey: QUERY_KEYS.report.shift(shiftDate, attendanceId || 'none'),
     queryFn: async () => {
       const res = await http.get<IApiResponse<IShiftReport>>('/reports/cashier-shift', {
-        params: { shiftDate },
+        params: { shiftDate, attendanceId },
       })
       return res.data.data
     },

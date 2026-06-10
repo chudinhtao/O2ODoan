@@ -3,17 +3,15 @@ import http from '@/services/interceptor'
 import type { IPageResponse, IApiResponse } from '@/shared/types/IApiResponse'
 import type { IOrder, OrderFiltersParams } from '@/pages/admin/orders/types/order.type'
 
-export function useShiftOrders(date: string) {
-  // We want to get all orders from date 00:00:00 to 23:59:59
-  const startDate = `${date}T00:00:00`
-  const endDate = `${date}T23:59:59`
+export function useShiftOrders(startDate: string, endDate: string, page = 0, size = 10, keyword?: string) {
   
   const params: OrderFiltersParams = {
-    page: 0,
-    size: 200, // get a large number of orders
+    page,
+    size,
     startDate,
     endDate,
-    sort: 'createdAt,desc',
+    sort: 'updatedAt,asc',
+    ...(keyword ? { keyword } : {})
   }
 
   return useQuery<IPageResponse<IOrder>>({
@@ -24,6 +22,6 @@ export function useShiftOrders(date: string) {
       })
       return res.data.data
     },
-    enabled: !!date,
+    enabled: !!startDate,
   })
 }

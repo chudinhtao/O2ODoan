@@ -4,10 +4,14 @@ import { useAppSelector } from '@/store/hooks';
 import { useTranslation } from 'react-i18next';
 import { useServerKpi } from '@/pages/server/hooks/useServerData';
 import { UtensilsCrossed, Bell, Clock } from 'lucide-react';
+import { useShift } from '@/shared/hooks/useShift';
+import { format } from 'date-fns';
 
 export const ServerKpiTab: React.FC = () => {
   const { t } = useTranslation();
-  const { data: kpi, isLoading, isError } = useServerKpi();
+  const { currentShift } = useShift();
+  const startFrom = currentShift.data?.checkIn ? format(new Date(currentShift.data.checkIn), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined;
+  const { data: kpi, isLoading, isError } = useServerKpi(startFrom);
   const user = useAppSelector(state => state.auth.user);
 
   if (isLoading) {
@@ -62,6 +66,14 @@ export const ServerKpiTab: React.FC = () => {
           <p className="text-sm font-medium text-on-surface-variant">{t('server.kpi_avg_response')}</p>
         </div>
         <p className="text-2xl font-bold text-primary">{formatTime(kpi.avgResponseSeconds)}</p>
+      </div>
+
+      <div className="bg-surface-bright p-5 rounded-xl border border-outline-variant/50 shadow-sm flex items-center justify-between mt-4">
+        <div>
+          <UtensilsCrossed className="size-6 mb-1 text-on-surface-variant" />
+          <p className="text-sm font-medium text-on-surface-variant">{t('server.kpi_avg_delivery', 'Thời gian bưng món trung bình')}</p>
+        </div>
+        <p className="text-2xl font-bold text-primary">{formatTime(kpi.avgDeliverySeconds)}</p>
       </div>
     </div>
   );

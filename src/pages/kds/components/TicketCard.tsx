@@ -2,9 +2,11 @@ import { IKdsTicket } from '../types/kds.type';
 import { TicketTimer } from './TicketTimer';
 import { TicketItemRow } from './TicketItemRow';
 import { Button } from '@/shared/components/ui/Button';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Play, AlertOctagon } from 'lucide-react';
 import { format } from 'date-fns';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 
 interface Props {
   ticket: IKdsTicket;
@@ -24,6 +26,7 @@ export const TicketCard = ({
   isLoading 
 }: Props) => {
   const { t } = useTranslation();
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
 
   const handleAction = () => {
     if (isLoading) return;
@@ -36,12 +39,17 @@ export const TicketCard = ({
 
   const handleRejectTicket = () => {
     if (isLoading || !onItemCancelRequest || !ticket.orderId) return;
-    // Iterate over all items in ticket and cancel those that aren't already cancelled or done
+    setIsRejectConfirmOpen(true);
+  };
+
+  const confirmReject = () => {
+    if (!onItemCancelRequest || !ticket.orderId) return;
     ticket.items.forEach(item => {
       if (item.status !== 'CANCELLED' && item.status !== 'RETURNED' && item.status !== 'DONE' && item.status !== 'SERVED') {
-        onItemCancelRequest(ticket.orderId!, item.id, 'Hết nguyên liệu (Bếp báo)');
+        onItemCancelRequest(ticket.orderId!, item.id, t('kds.actions.rejectReason', 'Hết nguyên liệu (Bếp báo)'));
       }
     });
+    setIsRejectConfirmOpen(false);
   };
 
   const isAllDone = ticket.items.every(i => i.status === 'DONE' || i.status === 'CANCELLED');
@@ -168,6 +176,18 @@ export const TicketCard = ({
           </div>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        isOpen={isRejectConfirmOpen}
+        onCancel={() => setIsRejectConfirmOpen(false)}
+        onConfirm={confirmReject}
+        title={t('kds.actions.reject', 'TỪ CHỐI')}
+        description={t('kds.confirm.rejectTicket', 'Bạn có chắc chắn muốn TỪ CHỐI toàn bộ các món chưa làm trong đơn này không?')}
+        confirmText={t('kds.actions.reject', 'TỪ CHỐI')}
+        cancelText={t('common.cancel', 'Hủy')}
+        variant="danger"
+        isLoading={isLoading}
+      />
     </div>
   );
 };

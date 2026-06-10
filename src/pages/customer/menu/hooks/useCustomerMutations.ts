@@ -79,10 +79,10 @@ export function useCustomerRequestPayment(token: string | null) {
   })
 }
 
-export function useCustomerCreatePayOSLink(_token: string | null) {
+export function useCustomerCreatePayOSLink(token: string | null) {
   return useMutation({
     mutationFn: ({ orderId, amount }: { orderId: string, amount: number }) =>
-      customerService.createPayOSLink(orderId, amount),
+      customerService.createPayOSLink(orderId, amount, token),
     onSuccess: (res) => {
       if (res.data?.checkoutUrl) {
         window.location.href = res.data.checkoutUrl

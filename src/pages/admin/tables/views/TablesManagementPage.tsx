@@ -2,13 +2,12 @@ import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
 import { Button } from '@/shared/components/ui/Button'
-import { Pagination } from '@/shared/components/ui/Pagination'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
-import { Plus, Maximize, QrCode, Ban } from 'lucide-react'
-import { TablesGrid } from '../components/TablesGrid'
+import { Plus } from 'lucide-react'
+import { TableCard } from '../components/TableCard'
 import { TableFormModal } from '../components/TableFormModal'
 import { TableActionDialog } from '../components/TableActionDialog'
-import { useTables, useDeleteTable, useHardDeleteTable } from '../hooks/useTables'
+import { useTables, useDeleteTable, useHardDeleteTable, useGenerateQr, useToggleActiveTable } from '../hooks/useTables'
 import type { ITable } from '../types/adminTable.type'
 
 type ActionMode = 'merge' | 'transfer'
@@ -21,120 +20,134 @@ export default function TablesManagementPage() {
   const [editingTable, setEditingTable]     = useState<ITable | null>(null)
   const [deleteDialog, setDeleteDialog]     = useState<{ isOpen: boolean; table: ITable | null; mode: DeleteMode }>({ isOpen: false, table: null, mode: 'soft' })
   const [actionDialog, setActionDialog]     = useState<{ isOpen: boolean; mode: ActionMode; source: ITable | null }>({ isOpen: false, mode: 'merge', source: null })
+  const [activeZone, setActiveZone]         = useState<string>('ALL')
 
   const { data: pageData, isLoading } = useTables({ keyword: '', status: '', page: 0, size: 500 })
   const deleteMutation = useDeleteTable()
   const hardDeleteMutation = useHardDeleteTable()
+  const generateQrMutation = useGenerateQr()
+  const toggleActiveMutation = useToggleActiveTable()
 
   const allTables = pageData?.content ?? []
 
-  const [pageSize, setPageSize] = useState(12)
-  const [currentPage, setCurrentPage] = useState(0)
+  const zones = useMemo(() => {
+    const z = Array.from(new Set(allTables.map(table => table.zone || t('admin.tables.noZone', 'Khu vực chung'))))
+    return ['ALL', ...z]
+  }, [allTables, t])
 
-  const paginatedTables = useMemo(() => {
-    return allTables.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-  }, [allTables, currentPage, pageSize])
-
-  const totalPages = Math.ceil(allTables.length / pageSize)
+  const groupedTables = useMemo(() => {
+    return allTables.reduce((acc, table) => {
+      const zone = table.zone || t('admin.tables.noZone', 'Khu vực chung')
+      if (activeZone !== 'ALL' && zone !== activeZone) return acc
+      if (!acc[zone]) acc[zone] = []
+      acc[zone].push(table)
+      return acc
+    }, {} as Record<string, ITable[]>)
+  }, [allTables, activeZone, t])
 
   const openCreate = () => { setEditingTable(null); setDrawerOpen(true) }
   const openEdit   = (table: ITable) => { setEditingTable(table); setDrawerOpen(true) }
+
+  const activeEditingTable = useMemo(() => {
+    return editingTable ? allTables.find(t => t.id === editingTable.id) || editingTable : null;
+  }, [editingTable, allTables])
+
   return (
     <>
-      <header className="h-16 bg-white border-b border-surface-dim flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0">
-        <div className="flex items-center gap-6">
-          <h2 className="text-xl font-bold font-display text-on-surface hidden md:block">
-            {t('admin.tables.title')}
-          </h2>
-        </div>
-        <Button onClick={openCreate} className="!px-4 !py-2 !rounded-xl !text-sm">
-          <Plus className="w-[18px] h-[18px] mr-1" />
-          <span className="hidden sm:inline">{t('admin.tables.addNew')}</span>
-        </Button>
-      </header>
-
-      <div className="flex-1 flex flex-col min-h-0 w-full relative">
-      {/* Stats Cards */}
-      <div className="shrink-0 px-4 md:px-6 pt-4 mb-4">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Skeleton className="h-24 w-full rounded-2xl" />
-            <Skeleton className="h-24 w-full rounded-2xl" />
-            <Skeleton className="h-24 w-full rounded-2xl" />
+      <div className="flex flex-col h-full bg-slate-50/50">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20 sticky top-0 shadow-sm w-full">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold font-display text-slate-800 leading-tight">
+              {t('admin.tables.title')}
+            </h2>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
-                <Maximize className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('admin.tables.stats.total')}</p>
-                <p className="text-xl font-bold text-slate-900">{allTables.length}</p>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 shrink-0">
-                <QrCode className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('admin.tables.stats.qrActive')}</p>
-                <p className="text-xl font-bold text-slate-900">{allTables.filter(t => t.qrUrl && t.active).length}</p>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 shrink-0">
-                <Ban className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('admin.tables.stats.qrInactive')}</p>
-                <p className="text-xl font-bold text-slate-900">{allTables.filter(t => !t.qrUrl || !t.active).length}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+          <Button onClick={openCreate} className="!px-4 !py-2 !text-sm">
+            <Plus className="w-[18px] h-[18px] mr-1" />
+            <span className="hidden sm:inline">{t('admin.tables.addNew')}</span>
+          </Button>
+        </header>
 
-      {/* Table Grid area with fixed bottom pagination */}
-      <section className="flex-1 min-h-0 flex flex-col overflow-hidden px-4 md:px-6 pb-6">
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
-          <TablesGrid
-            data={paginatedTables}
-          isLoading={isLoading}
-          onEdit={openEdit}
-          onDelete={(table) => setDeleteDialog({ isOpen: true, table, mode: 'soft' })}
-          onHardDelete={(table) => setDeleteDialog({ isOpen: true, table, mode: 'hard' })}
-          />
+        {/* Zone Navigation Tabs */}
+        <div className="bg-white border-b border-slate-100 px-4 md:px-6 py-2 sticky top-16 z-10 overflow-x-auto no-scrollbar shadow-sm">
+          <div className="flex items-center gap-2 min-w-max">
+            {zones.map((zone) => (
+              <button
+                key={zone}
+                onClick={() => setActiveZone(zone)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  activeZone === zone 
+                  ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                {zone === 'ALL' ? t('common.all', 'Tất cả') : zone}
+                <span className={`ml-2 px-1.5 py-0.5 rounded-md text-[10px] ${activeZone === zone ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  {zone === 'ALL' ? allTables.length : allTables.filter(table => (table.zone || t('admin.tables.noZone', 'Khu vực chung')) === zone).length}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {allTables.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalElements={allTables.length}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(0);
-            }}
-            pageSizeOptions={[12, 24, 48]}
-            className="mt-4 border border-slate-200 rounded-xl shadow-sm"
-          />
-        )}
-      </section>
+        <div className="flex-1 flex flex-col min-h-0 w-full relative">
+          <section className="flex-1 min-h-0 flex flex-col overflow-hidden px-4 md:px-6 py-6 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0 space-y-10">
+              {isLoading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <Skeleton key={i} className="h-48 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : Object.entries(groupedTables).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="size-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                    <Plus className="w-8 h-8 text-slate-300" />
+                  </div>
+                  <p className="font-bold text-slate-600">{t('admin.tables.empty')}</p>
+                  <p className="text-xs text-slate-400 mt-1">{t('admin.tables.emptyDesc')}</p>
+                </div>
+              ) : Object.entries(groupedTables).map(([zone, tables]) => (
+                <div key={zone} className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-6 w-1 bg-primary rounded-full"></div>
+                      <h3 className="text-base font-bold text-slate-700 uppercase tracking-widest">
+                        {zone} 
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">
+                      {tables.length} {t('admin.tablesLabel', 'Bàn')}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {tables.map((table: ITable) => (
+                      <TableCard
+                        key={table.id}
+                        table={table}
+                        onEdit={openEdit}
+                        onDelete={(t: ITable) => setDeleteDialog({ isOpen: true, table: t, mode: 'soft' })}
+                        onHardDelete={(t: ITable) => setDeleteDialog({ isOpen: true, table: t, mode: 'hard' })}
+                        onGenerateQr={(id: string) => generateQrMutation.mutate(id)}
+                        onToggleActive={(id: string) => toggleActiveMutation.mutate(id)}
+                        isGeneratingQr={generateQrMutation.isPending && generateQrMutation.variables === table.id}
+                        isTogglingActive={toggleActiveMutation.isPending && toggleActiveMutation.variables === table.id}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
 
-      {/* Modal */}
       <TableFormModal
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        editingTable={editingTable}
+        editingTable={activeEditingTable}
       />
 
-      {/* Action Dialog (merge/transfer) */}
       {actionDialog.source && (
         <TableActionDialog 
           isOpen={actionDialog.isOpen}
@@ -145,13 +158,12 @@ export default function TablesManagementPage() {
         />
       )}
 
-      {/* Delete Confirm */}
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
         title={deleteDialog.mode === 'soft' ? t('admin.tables.deleteTitle') : t('admin.tables.hardDeleteTitle')}
-        description={deleteDialog.mode === 'soft' 
-          ? t('admin.tables.deleteDesc', { name: `#${deleteDialog.table?.number} ${deleteDialog.table?.name ?? ''}`.trim() })
-          : t('admin.tables.hardDeleteDesc')
+        description={deleteDialog.table ? (deleteDialog.mode === 'soft' 
+          ? t('admin.tables.deleteDesc', { name: `#${deleteDialog.table.number} ${deleteDialog.table.name ?? ''}`.trim() })
+          : t('admin.tables.hardDeleteDesc')) : ''
         }
         onConfirm={() => {
           if (!deleteDialog.table) return

@@ -22,6 +22,7 @@ interface InvoicePanelProps {
   voucherCode?: string
   setVoucherCode?: (val: string) => void
   isApplyingVoucher?: boolean
+  excessDeposit?: number
 }
 
 export function InvoicePanel({ 
@@ -31,15 +32,16 @@ export function InvoicePanel({
   onApplyVoucher,
   voucherCode = '',
   setVoucherCode,
-  isApplyingVoucher = false
+  isApplyingVoucher = false,
+  excessDeposit = 0
 }: InvoicePanelProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="bg-surface rounded-3xl shadow-xl shadow-black/5 border border-outline-variant/50 overflow-hidden flex flex-col h-full min-h-0">
-      <div className="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest shrink-0">
+    <div className="bg-surface rounded-xl shadow-xl shadow-black/5 border border-outline-variant/50 overflow-hidden flex flex-col h-full min-h-0">
+      <div className="px-4 lg:px-5 py-3 lg:py-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
             <ReceiptText className="size-4.5" />
           </div>
           <h3 className="font-black text-on-surface uppercase tracking-tight text-base">
@@ -50,7 +52,7 @@ export function InvoicePanel({
           variant="ghost"
           size="sm"
           onClick={onEditOrder} 
-          className="text-primary hover:bg-primary/5 text-xs font-black flex items-center gap-2 rounded-xl h-9 px-4 transition-all"
+          className="text-primary hover:bg-primary/5 text-xs font-black flex items-center gap-2 rounded-lg h-9 px-4 transition-all"
         >
           <Edit className="size-3.5" />
           {t('pos.payment.editOrder', 'Chỉnh sửa')}
@@ -58,9 +60,9 @@ export function InvoicePanel({
       </div>
 
       {/* Compact Item List */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 lg:px-5 py-2 space-y-1.5 scrollbar-hide">
         {aggregatedItems.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between group py-1.5 transition-all">
+          <div key={idx} className="flex items-center justify-between group py-1 transition-all">
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-black text-primary leading-none">{item.qty}×</span>
@@ -80,10 +82,10 @@ export function InvoicePanel({
       </div>
       
       {/* Voucher & Summary Section - Unified */}
-      <div className="p-6 bg-surface-container-low/50 border-t border-outline-variant/40 space-y-6">
+      <div className="p-4 lg:p-5 bg-surface-container-low/50 border-t border-outline-variant/40 space-y-4">
         
         {/* Voucher Input */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-outline">
             <Tag className="size-3.5" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none mt-0.5">
@@ -92,9 +94,9 @@ export function InvoicePanel({
           </div>
 
           {order.promotionId ? (
-            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between group hover:bg-emerald-500/10 transition-all duration-300">
+            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3 flex items-center justify-between group hover:bg-emerald-500/10 transition-all duration-300">
               <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                   <Check className="size-5" />
                 </div>
                 <div>
@@ -107,7 +109,7 @@ export function InvoicePanel({
                 <button 
                   onClick={() => onApplyVoucher?.('')}
                   disabled={isApplyingVoucher}
-                  className="size-8 flex items-center justify-center text-outline hover:text-rose-600 hover:bg-rose-500/10 rounded-xl transition-all"
+                  className="size-8 flex items-center justify-center text-outline hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-all"
                 >
                   <X className="size-4" />
                 </button>
@@ -120,13 +122,13 @@ export function InvoicePanel({
                   placeholder={t('pos.payment.voucherPlaceholder', 'Nhập mã giảm giá...')}
                   value={voucherCode}
                   onChange={e => setVoucherCode?.(e.target.value.toUpperCase())}
-                  className="h-11 pl-4 text-xs font-bold bg-surface border-outline-variant focus:border-primary rounded-xl transition-all"
+                  className="h-10 pl-4 text-xs font-bold bg-surface border-outline-variant focus:border-primary rounded-lg transition-all"
                 />
               </div>
               <Button 
                 variant="primary" 
                 size="sm" 
-                className="h-11 px-6 font-black text-[11px] uppercase rounded-xl shadow-lg shadow-primary/20"
+                className="h-10 px-6 font-black text-[11px] uppercase rounded-lg shadow-lg shadow-primary/20"
                 onClick={() => onApplyVoucher?.(voucherCode)}
                 disabled={!voucherCode.trim() || isApplyingVoucher}
                 isLoading={isApplyingVoucher}
@@ -138,12 +140,30 @@ export function InvoicePanel({
         </div>
 
         {/* Totals Summary */}
-        <div className="space-y-3 pt-6 border-t border-outline-variant/30">
+        <div className="space-y-2.5 pt-4 border-t border-outline-variant/30">
           <div className="flex justify-between items-center text-[10px] font-black text-outline uppercase tracking-[0.15em] opacity-60">
             <span>{t('pos.payment.subtotal', 'Tạm tính')}</span>
             <span className="tabular-nums">{order.subtotal.toLocaleString('vi-VN')}{t('common.units.currency', 'đ')}</span>
           </div>
           
+          {(order.depositAmount || 0) > 0 && (
+            <div className="flex justify-between items-center text-[10px] text-orange-600 font-black uppercase tracking-[0.15em]">
+              <span className="flex items-center gap-1.5">
+                Tiền cọc
+              </span>
+              <span className="tabular-nums">-{(order.depositAmount || 0).toLocaleString('vi-VN')}{t('common.units.currency', 'đ')}</span>
+            </div>
+          )}
+
+          {excessDeposit > 0 && (
+            <div className="flex justify-between items-center text-[10px] text-rose-600 font-black uppercase tracking-[0.15em] pt-1">
+              <span className="flex items-center gap-1.5">
+                {t('pos.payment.excessDeposit', 'Tiền cọc thừa cần hoàn')}
+              </span>
+              <span className="tabular-nums">{excessDeposit.toLocaleString('vi-VN')}{t('common.units.currency', 'đ')}</span>
+            </div>
+          )}
+
           {(order.discount || 0) > 0 && (
             <div className="flex justify-between items-center text-[10px] text-emerald-600 font-black uppercase tracking-[0.15em]">
               <span className="flex items-center gap-1.5">
@@ -153,16 +173,18 @@ export function InvoicePanel({
             </div>
           )}
 
-          <div className="flex justify-between items-center text-[10px] font-black text-outline uppercase tracking-[0.15em] opacity-60">
-            <span>{t('pos.payment.tax', 'VAT (0%)')}</span>
-            <span className="tabular-nums">0{t('common.units.currency', 'đ')}</span>
-          </div>
+          {(order.tax || 0) > 0 && (
+            <div className="flex justify-between items-center text-[10px] font-black text-outline uppercase tracking-[0.15em] opacity-60">
+              <span>{t('pos.payment.tax', 'Thuế GTGT (VAT)')}</span>
+              <span className="tabular-nums">{(order.tax || 0).toLocaleString('vi-VN')}{t('common.units.currency', 'đ')}</span>
+            </div>
+          )}
 
-          <div className="flex justify-between items-center pt-4 mt-1 border-t border-outline-variant/10">
+          <div className="flex justify-between items-center pt-3 mt-1 border-t border-outline-variant/10">
             <span className="text-[10px] font-black text-on-surface uppercase tracking-[0.2em] opacity-80">
               {t('pos.payment.grandTotal', 'Tổng thanh toán')}
             </span>
-            <span className="text-4xl font-black text-primary font-headline tracking-tighter leading-none">
+              <span className="text-3xl lg:text-4xl font-black text-primary font-headline tracking-tighter leading-none">
               {order.total.toLocaleString('vi-VN')}{t('common.units.currency', 'đ')}
             </span>
           </div>

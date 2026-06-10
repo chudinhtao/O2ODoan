@@ -10,7 +10,7 @@ export const posMenuService = {
 
   getItems: (categoryId?: string) =>
     http.get<IApiResponse<IPageResponse<IMenuItem>>>(API_ROUTES.menu.items, {
-      params: { categoryId, size: 100, isAvailable: true, isActive: true }
+      params: { categoryId, size: 100, isActive: true }
     }).then(unwrapApiData),
 
   getItem: (id: string) =>

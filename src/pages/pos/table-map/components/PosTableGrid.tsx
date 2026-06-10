@@ -3,9 +3,11 @@ import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { useTranslation } from 'react-i18next'
 import { LayoutGrid, ShoppingBag } from 'lucide-react'
+import { IReservation } from '@/shared/types/reservation'
 
 interface PosTableGridProps {
   tables: IPosTable[]
+  reservedTablesMap?: Map<number, IReservation>
   isLoading: boolean
   isTakeawayMode?: boolean
   onOpenSession: (id: string) => void
@@ -14,10 +16,12 @@ interface PosTableGridProps {
   onMarkCleaned: (id: string) => void
   onTransfer: (id: string) => void
   onMerge: (id: string) => void
+  onDropReservation?: (tableId: string, reservationId: string) => void
 }
 
 export function PosTableGrid({
   tables,
+  reservedTablesMap,
   isLoading,
   isTakeawayMode = false,
   onOpenSession,
@@ -25,13 +29,14 @@ export function PosTableGrid({
   onCheckout,
   onMarkCleaned,
   onTransfer,
-  onMerge
+  onMerge,
+  onDropReservation
 }: PosTableGridProps) {
   const { t } = useTranslation()
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton key={i} className="h-[220px] w-full rounded-2xl" />
         ))}
@@ -62,11 +67,12 @@ export function PosTableGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
       {tables.map(table => (
         <PosTableCard 
           key={table.id} 
           table={table}
+          upcomingReservation={reservedTablesMap?.get(table.number)}
           isTakeawayMode={isTakeawayMode}
           onOpenSession={onOpenSession}
           onViewOrder={onViewOrder}
@@ -74,6 +80,7 @@ export function PosTableGrid({
           onMarkCleaned={onMarkCleaned}
           onTransfer={onTransfer}
           onMerge={onMerge}
+          onDropReservation={onDropReservation}
         />
       ))}
     </div>

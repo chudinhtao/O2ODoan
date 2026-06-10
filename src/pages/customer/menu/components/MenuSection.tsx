@@ -33,7 +33,7 @@ export function MenuSection({ items, onAdd }: MenuSectionProps) {
         <section>
           <div className="flex items-center gap-2 mb-3 px-0.5">
             <Flame size={16} fill="#f59e0b" className="text-amber-500 shrink-0" />
-            <h2 className="font-black text-[13px] text-slate-700 uppercase tracking-widest">Bán chạy nhất</h2>
+            <h2 className="font-black text-[13px] text-slate-700 uppercase tracking-widest">{t('customer.menu.bestSeller', 'Bán chạy nhất')}</h2>
             <div className="flex-1 h-px bg-slate-100" />
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-none -mx-4 px-4 pb-1">
@@ -52,7 +52,7 @@ export function MenuSection({ items, onAdd }: MenuSectionProps) {
           {showHeroSection && (
             <div className="flex items-center gap-2 mb-3 px-0.5">
               <UtensilsCrossed size={15} className="text-slate-400 shrink-0" />
-              <h2 className="font-black text-[13px] text-slate-500 uppercase tracking-widest">Thực đơn</h2>
+              <h2 className="font-black text-[13px] text-slate-500 uppercase tracking-widest">{t('customer.menu.regularMenu', 'Thực đơn')}</h2>
               <div className="flex-1 h-px bg-slate-100" />
             </div>
           )}

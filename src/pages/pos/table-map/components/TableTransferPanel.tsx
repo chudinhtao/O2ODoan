@@ -18,39 +18,35 @@ export function TableTransferPanel({ actualSourceTable, allTables, targetId, set
     .filter(table => ['FREE', 'CLEANING'].includes(table.status))
 
   return (
-    <div className="flex flex-col h-full space-y-6">
+    <div className="flex flex-col h-full space-y-3">
       {/* Visual Indicator */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-6 bg-surface border border-outline-variant/50 rounded-2xl shadow-sm">
-        <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">{t('pos.table.actionModal.currentTable', 'Bàn Hiện Tại')}</span>
-          <div className="w-16 h-16 rounded-xl bg-primary/10 border-2 border-primary flex items-center justify-center font-bold text-2xl text-primary shadow-inner">
+      {/* Visual Indicator - Clean */}
+      <div className="shrink-0 flex flex-col sm:flex-row items-center px-6 py-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-2xl">
             {actualSourceTable.number}
           </div>
+          <span className="text-sm font-bold text-slate-600 tracking-wide">{t('pos.table.actionModal.currentTable', 'Bàn Hiện Tại')}</span>
         </div>
 
-        <div className="flex flex-col flex-1 items-center px-4">
-          <span className="text-xs font-semibold text-primary/70 bg-primary/5 px-3 py-1 rounded-full mb-2">
-            {t('pos.table.actionModal.transferTo', 'Chuyển sang')}
-          </span>
-          <div className="w-full flex items-center h-[2px] bg-outline-variant relative">
-            <ArrowRight className="absolute right-0 translate-x-1/2 text-outline-variant bg-surface" />
-          </div>
+        <div className="flex-1 flex justify-center py-2 sm:py-0">
+          <ArrowRight className="text-slate-300 size-6" />
         </div>
 
-        <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">{t('pos.table.actionModal.targetTable', 'Bàn Đích')}</span>
-          <div className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center font-bold text-2xl shadow-inner transition-colors ${
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl transition-all duration-300 ${
             targetId 
-              ? 'bg-primary border-primary text-on-primary' 
-              : 'bg-surface-variant border-dashed border-outline text-on-surface-variant/50'
+              ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110' 
+              : 'border-2 border-dashed border-slate-300 text-slate-400'
           }`}>
             {targetId ? allTables.find(t => t.id === targetId)?.number : '?'}
           </div>
+          <span className="text-sm font-bold text-slate-600 tracking-wide">{t('pos.table.actionModal.targetTable', 'Bàn Đích')}</span>
         </div>
       </div>
 
       {/* Target Selection Grid */}
-      <div className="flex-1 flex flex-col min-h-0 space-y-4">
+      <div className="flex-1 flex flex-col min-h-0 space-y-2">
         <div className="flex items-center justify-between shrink-0">
           <label className="text-sm font-semibold text-on-surface">
             {t('pos.table.actionModal.selectTarget', 'Vui lòng chọn bàn đích') + ':'}

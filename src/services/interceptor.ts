@@ -90,7 +90,9 @@ http.interceptors.response.use(
     const status = err.response?.status
 
     // === TRẠM TOAST BÁO LỖI TOÀN CỤC ====
-    if (!original._retry) {
+    const skipGlobalToast = original?.headers?.['X-Skip-Global-Toast'] === 'true' || original?.headers?.['x-skip-global-toast'] === 'true'
+
+    if (!original._retry && !skipGlobalToast) {
       const apiMessage = (err.response?.data as any)?.message
 
       if (status === 403) {

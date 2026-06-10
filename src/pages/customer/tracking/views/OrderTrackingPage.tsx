@@ -100,7 +100,7 @@ export default function OrderTrackingPage() {
         <div className="bg-red-50 p-6 rounded-2xl border border-red-100 max-w-sm w-full">
           <Ban size={40} className="text-red-400 mx-auto mb-3" />
           <h1 className="text-base font-black text-red-700 mb-2">{errorMsg}</h1>
-          <p className="text-sm text-red-400 mb-5">Vui lòng quét mã QR mới tại bàn.</p>
+          <p className="text-sm text-red-400 mb-5">{t('customer.menu.error.pleaseRescan', 'Vui lòng quét mã QR mới tại bàn.')}</p>
           <button
             onClick={() => navigate('/')}
             className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors"
@@ -153,7 +153,7 @@ export default function OrderTrackingPage() {
             <ArrowLeft size={20} strokeWidth={2} />
           </button>
           <h1 className="flex-1 text-center font-black text-[16px] text-slate-900">
-            Bàn {order.tableNumber || '—'}
+            {t('customer.menu.table', 'Bàn')} {order.tableNumber || '—'}
           </h1>
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
@@ -176,8 +176,8 @@ export default function OrderTrackingPage() {
               <cfg.Icon size={22} className="text-white" strokeWidth={2} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`font-black text-[15px] leading-snug ${cfg.text}`}>{cfg.title}</p>
-              <p className={`text-xs font-medium mt-0.5 opacity-70 ${cfg.text}`}>{cfg.sub}</p>
+              <p className={`font-black text-[15px] leading-snug ${cfg.text}`}>{t(`customer.tracking.status.${order.status}.text`, cfg.title)}</p>
+              <p className={`text-xs font-medium mt-0.5 opacity-70 ${cfg.text}`}>{t(`customer.tracking.status.${order.status}.sub`, cfg.sub)}</p>
             </div>
             <span className="relative flex h-2.5 w-2.5 shrink-0">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-70 ${cfg.pulse}`} />
@@ -203,7 +203,7 @@ export default function OrderTrackingPage() {
           ) : (
             <div className="flex flex-col items-center py-10 text-center">
               <Hourglass size={40} className="text-slate-200 mb-3" />
-              <p className="text-slate-400 text-sm font-medium">Chưa có món nào được gọi</p>
+              <p className="text-slate-400 text-sm font-medium">{t('customer.tracking.emptyOrder', 'Chưa có món nào được gọi')}</p>
             </div>
           )}
 
@@ -222,14 +222,15 @@ export default function OrderTrackingPage() {
              <div className="flex items-center justify-between pt-3 border-t border-slate-50">
                <div>
                  <p className="text-slate-800 font-black text-base">{t('customer.tracking.grandTotal')}</p>
-                 <p className="text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">Đã bao gồm VAT 8%</p>
+                 <p className="text-slate-400 text-[10px] uppercase tracking-wider mt-0.5">
+                   {t('customer.cart.taxIncluded', '(Giá đã bao gồm VAT)')}
+                 </p>
                </div>
                <span className="text-guest-primary text-2xl font-black">{fmt(order.total)}đ</span>
              </div>
           </div>
         </div>
       </main>
-
 
 
       <CustomerBottomNav token={token || ''} activeTab="tracking" />

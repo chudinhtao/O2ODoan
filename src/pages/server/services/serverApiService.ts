@@ -46,7 +46,7 @@ class ServerApiService {
   }
 
   async acceptCall(callId: string, userName?: string): Promise<string> {
-    const headers = userName ? { 'X-User-Name': userName } : {};
+    const headers = userName ? { 'X-User-Name': encodeURIComponent(userName) } : {};
     const res = await httpClient.put<ApiResponse<string>>(`${this.baseUrl}/calls/${callId}/accept`, {}, { headers });
     return res.data.data;
   }
@@ -57,8 +57,9 @@ class ServerApiService {
   }
 
   // ===== KPI & Zones =====
-  async getKpiToday(): Promise<ServerKpiResponse> {
-    const res = await httpClient.get<ApiResponse<ServerKpiResponse>>(`${this.baseUrl}/kpi/today`);
+  async getKpiToday(startFrom?: string): Promise<ServerKpiResponse> {
+    const params = startFrom ? { startFrom } : {};
+    const res = await httpClient.get<ApiResponse<ServerKpiResponse>>(`${this.baseUrl}/kpi/today`, { params });
     return res.data.data;
   }
 

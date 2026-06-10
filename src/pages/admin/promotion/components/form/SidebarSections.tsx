@@ -1,98 +1,74 @@
 import { UseFormReturn } from 'react-hook-form'
-import { CalendarClock, Zap } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/shared/components/ui/Input'
+import { NumberInput } from '@/shared/components/ui/NumberInput'
 import type { PromotionFormValues } from '../../hooks/usePromotionForm'
 
 interface Props {
   form: UseFormReturn<PromotionFormValues>
 }
 
-export function SidebarStatusSection({ form }: Props) {
-  const { watch, setValue } = form
-  const isStackable = watch('stackable')
-
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-5">
-      <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-        <Zap className="w-4 h-4 text-amber-500" />
-        Trạng thái & Kết hợp
-      </h3>
-
-      <div
-        onClick={() => setValue('stackable', !isStackable)}
-        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-          isStackable ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-300 bg-slate-50'
-        }`}
-      >
-        <div>
-          <p className="text-sm font-bold text-slate-700">Cho phép kết hợp</p>
-          <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider">Stackable</p>
-        </div>
-        <div className={`w-10 h-5 rounded-full transition-colors relative shadow-inner ${isStackable ? 'bg-primary' : 'bg-slate-300'}`}>
-          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isStackable ? 'left-5' : 'left-0.5'}`} />
-        </div>
-      </div>
-    </div>
-  )
+// Kept for backwards-compatible export — now renders nothing (stackable merged below)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function SidebarStatusSection(_: Props) {
+  return null
 }
 
 export function SidebarLimitsSection({ form }: Props) {
-  const { register, formState: { errors }, watch } = form
-  const currentScope = watch('scope')
+  const { t } = useTranslation()
+  const { register, formState: { errors }, watch, setValue } = form
+  const currentScope   = watch('scope')
   const currentTrigger = watch('triggerType')
+  const isStackable    = watch('stackable')
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-5">
-      <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-        <CalendarClock className="w-4 h-4 text-blue-500" />
-        Giới hạn & Thời gian
-      </h3>
-
-      <div className="space-y-4">
-        {(currentScope === 'ORDER' || currentTrigger === 'COUPON') && (
-          <Input
-            {...register('minOrderAmount', { valueAsNumber: true })}
-            type="number"
-            label="Đơn tối thiểu (đ)"
-            placeholder="VD: 50000"
-            error={errors.minOrderAmount}
-            className="!bg-slate-50 border-transparent focus:!border-primary !rounded-xl transition-colors"
-          />
-        )}
-
-        <Input
-          {...register('usageLimit', { valueAsNumber: true })}
-          type="number"
-          label="Giới hạn lượt dùng"
-          rightAddon={<span className="text-xs font-bold text-slate-400">lần</span>}
-          placeholder="Không giới hạn"
-          error={errors.usageLimit}
-          className="!bg-slate-50 border-transparent focus:!border-primary !rounded-xl transition-colors"
-        />
-
-        <Input
-          {...register('priority', { valueAsNumber: true })}
-          type="number"
-          label="Độ ưu tiên (cao hơn = áp trước)"
-          placeholder="0"
-          error={errors.priority}
-          className="!bg-slate-50 border-transparent focus:!border-primary !rounded-xl transition-colors"
-        />
-
-        <div className="pt-2 space-y-4 border-t border-slate-100">
-          <Input 
-            {...register('startAt')} 
-            type="datetime-local" 
-            label="Bắt đầu từ" 
-            className="!bg-slate-50 border-transparent focus:!border-primary !rounded-xl transition-colors text-sm" 
-          />
-          <Input 
-            {...register('endAt')} 
-            type="datetime-local" 
-            label="Kết thúc vào" 
-            className="!bg-slate-50 border-transparent focus:!border-primary !rounded-xl transition-colors text-sm" 
-          />
+    <div className="space-y-4">
+      {/* Stackable toggle (merged from StatusSection) */}
+      <div
+        onClick={() => setValue('stackable', !isStackable)}
+        className={`flex items-center justify-between p-3.5 rounded-lg border-2 cursor-pointer transition-all ${
+          isStackable ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300 bg-slate-50'
+        }`}
+      >
+        <div>
+          <p className="text-sm font-bold text-slate-700">{t('admin.promotions.form.sidebarSection.stackableLabel', 'Cho phép kết hợp')}</p>
+          <p className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider">{t('admin.promotions.form.sidebarSection.stackableSub', 'Stackable Promotion')}</p>
         </div>
+        <div className={`w-10 h-5 rounded-full transition-colors relative shadow-inner shrink-0 ${isStackable ? 'bg-primary' : 'bg-slate-300'}`}>
+          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isStackable ? 'left-5' : 'left-0.5'}`} />
+        </div>
+      </div>
+
+
+      <div className="grid grid-cols-2 gap-4">
+        <NumberInput
+          {...register('usageLimit', { valueAsNumber: true })}
+          label={t('admin.promotions.form.sidebarSection.usageLimitLabel', 'Giới hạn lượt dùng')}
+          placeholder={t('admin.promotions.form.sidebarSection.usageLimitPlaceholder', 'Không giới hạn')}
+          error={errors.usageLimit}
+          suffix="lần"
+        />
+        <NumberInput
+          {...register('priority', { valueAsNumber: true })}
+          label={t('admin.promotions.form.sidebarSection.priorityLabel', 'Độ ưu tiên')}
+          placeholder={t('admin.promotions.form.sidebarSection.priorityPlaceholder', '0')}
+          error={errors.priority}
+        />
+      </div>
+
+      <div className="pt-3 space-y-4 border-t border-slate-100">
+        <Input
+          {...register('startAt')}
+          type="datetime-local"
+          label={t('admin.promotions.form.sidebarSection.startAtLabel', 'Bắt đầu từ')}
+          className="!bg-slate-50 border-transparent focus:!border-primary transition-colors text-sm"
+        />
+        <Input
+          {...register('endAt')}
+          type="datetime-local"
+          label={t('admin.promotions.form.sidebarSection.endAtLabel', 'Kết thúc vào')}
+          className="!bg-slate-50 border-transparent focus:!border-primary transition-colors text-sm"
+        />
       </div>
     </div>
   )

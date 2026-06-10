@@ -6,6 +6,9 @@ import { ICategory, IMenuItem, ICart, ITicketItemRequest } from '../types'
 
 export const customerService = {
   // Menu
+  getProfile: () =>
+    http.get<IApiResponse<any>>(API_ROUTES.menu.profile).then(unwrapApiData),
+
   getCategories: () => 
     http.get<IApiResponse<IPageResponse<ICategory>>>(`${API_ROUTES.menu.categories}?page=0&size=100`).then(unwrapApiData),
   
@@ -44,11 +47,13 @@ export const customerService = {
   requestPayment: (paymentMethod: string) =>
     http.post<IApiResponse<any>>('/orders/request-payment', { paymentMethod }).then(unwrapApiResponse),
 
-  createPayOSLink: (orderId: string, amount: number) =>
-    http.post<any>(`/payments/payos/create/${orderId}?amount=${amount}`, {}),
+  createPayOSLink: (orderId: string, amount: number, sessionToken: string | null) =>
+    http.post<any>(`/payments/payos/create`, null, {
+      params: { orderId, amount, sessionToken }
+    }),
 
   callStaff: (callType: string, note?: string) =>
-    http.post<IApiResponse<any>>('/staff-calls', { callType, note }).then(unwrapApiResponse),
+    http.post<IApiResponse<any>>('/staff-calls', { callType, message: note }).then(unwrapApiResponse),
 
   cancelTicket: (ticketId: string) =>
     http.patch<IApiResponse<any>>(`${API_ROUTES.order.root}/session/tickets/${ticketId}/cancel`, {}).then(unwrapApiResponse),

@@ -18,23 +18,24 @@ export function TableMergePanel({ actualSourceTable, allTables, selectedIds, tog
     .filter(table => ['OCCUPIED', 'PAYMENT_REQUESTED'].includes(table.status))
 
   return (
-    <div className="flex flex-col h-full space-y-6">
+    <div className="flex flex-col h-full space-y-3">
       {/* Visual Indicator - Fixed Flow: Sources -> Arrow -> Target */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-6 bg-surface border border-outline-variant/50 rounded-2xl shadow-sm">
-        <div className="flex flex-col items-center flex-1">
-          <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+      {/* Visual Indicator - Clean */}
+      <div className="shrink-0 flex flex-col sm:flex-row items-center px-6 py-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div className="flex items-center gap-4 flex-1 overflow-x-auto scrollbar-none max-w-full sm:max-w-xs">
+          <span className="text-sm font-bold text-slate-600 tracking-wide whitespace-nowrap shrink-0">
             {t('pos.table.actionModal.mergeFrom', 'Các Bàn Gộp')}
           </span>
-          <div className="flex flex-wrap gap-1.5 justify-center min-h-[4rem] items-center">
+          <div className="flex gap-2 items-center shrink-0">
             {selectedIds.length === 0 ? (
-              <div className="w-12 h-12 rounded-xl bg-surface-variant border-2 border-dashed border-outline text-on-surface-variant/50 flex items-center justify-center font-bold text-lg">?</div>
+              <div className="w-10 h-10 rounded-lg border-2 border-dashed border-slate-300 text-slate-400 flex items-center justify-center font-bold text-sm">?</div>
             ) : (
               selectedIds.map(id => {
                 const tbl = allTables.find(t => t.id === id)
                 return (
                   <div 
                     key={id} 
-                    className="w-12 h-12 rounded-xl bg-primary/10 border-2 border-primary flex items-center justify-center font-bold text-lg text-primary shadow-sm animate-in zoom-in-95"
+                    className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/20 animate-in zoom-in-95"
                   >
                     {tbl?.number}
                   </div>
@@ -44,27 +45,22 @@ export function TableMergePanel({ actualSourceTable, allTables, selectedIds, tog
           </div>
         </div>
 
-        <div className="flex flex-col items-center px-3">
-          <span className="text-xs font-semibold text-primary/70 bg-primary/5 px-3 py-1 rounded-full mb-2">
-            {t('pos.table.actionModal.mergeTo', 'Gộp vào')}
-          </span>
-          <div className="w-full flex items-center h-[2px] bg-outline-variant relative">
-            <ArrowRight className="absolute right-0 translate-x-1/2 text-outline-variant bg-surface" />
-          </div>
+        <div className="flex-1 flex justify-center py-2 sm:py-0 shrink-0">
+          <ArrowRight className="text-slate-300 size-6" />
         </div>
 
-        <div className="flex flex-col items-center">
-          <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
-            {t('pos.table.actionModal.receiveTable', 'Bàn Nhận')}
-          </span>
-          <div className="w-16 h-16 rounded-xl bg-primary border-2 border-primary flex items-center justify-center font-bold text-2xl text-on-primary shadow-inner">
+        <div className="flex items-center gap-4 w-full sm:w-auto shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-2xl">
             {actualSourceTable.number}
           </div>
+          <span className="text-sm font-bold text-slate-600 tracking-wide">
+            {t('pos.table.actionModal.receiveTable', 'Bàn Nhận')}
+          </span>
         </div>
       </div>
 
       {/* Target Selection Grid */}
-      <div className="flex-1 flex flex-col min-h-0 space-y-4">
+      <div className="flex-1 flex flex-col min-h-0 space-y-2">
         <div className="flex items-center justify-between shrink-0">
           <label className="text-sm font-semibold text-on-surface">
              {t('pos.table.actionModal.selectMergeSources', 'Chọn các bàn muốn gộp') + ':'}

@@ -2,14 +2,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Gift, Info, ChevronRight, Sparkles } from 'lucide-react'
 import { useCustomerActivePromotions } from '../hooks/useCustomerQueries'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
+import { useTranslation } from 'react-i18next'
 
 interface ActiveDealsDrawerProps {
   isOpen: boolean
   onClose: () => void
   onSelectBundle: (bundle: any) => void
+  cart?: any
 }
 
-export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle }: ActiveDealsDrawerProps) {
+export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle, cart }: ActiveDealsDrawerProps) {
+  const { t } = useTranslation()
   const { data: bundles, isLoading } = useCustomerActivePromotions('BUNDLE')
 
   if (!isOpen) return null
@@ -41,10 +44,10 @@ export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle }: ActiveDea
             </div>
             <div>
               <h2 className="text-lg font-black text-slate-800 leading-tight">
-                Ưu đãi của bạn
+                {t('customer.menu.yourDeals', 'Ưu đãi của bạn')}
               </h2>
               <p className="text-xs font-semibold text-slate-500">
-                {bundles?.length || 0} Combo đang diễn ra
+                {t('customer.menu.activeCombos', { count: bundles?.length || 0, defaultValue: '{{count}} Combo đang diễn ra' })}
               </p>
             </div>
           </div>
@@ -63,7 +66,23 @@ export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle }: ActiveDea
                <Skeleton className="w-full h-[110px] rounded-2xl" />
              </div>
           ) : bundles && bundles.length > 0 ? (
-            bundles.map((bundle: any) => (
+            bundles.map((bundle: any) => {
+              const requiredTotal = bundle.bundleItems?.reduce((acc: number, bi: any) => acc + bi.quantity, 0) || 0
+              let cartCounts: Record<string, number> = {}
+              cart?.items?.forEach((ci: any) => {
+                cartCounts[ci.menuItemId] = (cartCounts[ci.menuItemId] || 0) + ci.quantity
+              })
+              let fulfilled = 0
+              bundle.bundleItems?.forEach((bi: any) => {
+                 const available = cartCounts[bi.itemId] || 0
+                 const allocated = Math.min(bi.quantity, available)
+                 fulfilled += allocated
+                 if (cartCounts[bi.itemId]) cartCounts[bi.itemId] -= allocated
+              })
+              const isCompleted = fulfilled >= requiredTotal && requiredTotal > 0
+              const progressPct = requiredTotal > 0 ? (fulfilled / requiredTotal) * 100 : 0
+
+              return (
               <div 
                 key={bundle.id}
                 onClick={() => {
@@ -79,7 +98,7 @@ export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle }: ActiveDea
                 <div className="bg-white/95 backdrop-blur-md rounded-[15px] p-3.5 h-full flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-black uppercase rounded-md shrink-0">Combo</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-md shrink-0 ${isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>Combo</span>
                       <p className="text-sm font-black text-slate-800">{bundle.name}</p>
                     </div>
                     
@@ -89,27 +108,43 @@ export function ActiveDealsDrawer({ isOpen, onClose, onSelectBundle }: ActiveDea
                       </p>
                     ) : (
                       <p className="text-xs text-slate-500 font-medium line-clamp-2 mt-1 leading-relaxed">
-                        Bấm để xem nhiệm vụ và thu thập các món trong Combo này nhé!
+                        {t('customer.menu.bundleMissionHint', 'Bấm để xem nhiệm vụ và thu thập các món trong Combo này nhé!')}
                       </p>
                     )}
+
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase">{t('customer.menu.collectionProgress', 'Tiến độ thu thập')}</span>
+                        <span className={`text-[11px] font-black ${isCompleted ? 'text-emerald-500' : 'text-orange-500'}`}>{fulfilled}/{requiredTotal}</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                         <div className={`h-full ${isCompleted ? 'bg-emerald-500' : 'bg-orange-500'} transition-all duration-500`} style={{ width: `${progressPct}%` }} />
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg">
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                       <Info className="size-3" />
-                      <span>Chiết khấu tự động</span>
+                      <span>{t('customer.menu.autoDiscount', 'Chiết khấu tự động')}</span>
                     </div>
-                    <div className="px-3 py-1.5 rounded-full bg-orange-100 flex items-center gap-1 text-orange-600 font-bold text-[11px] group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                      Làm nhiệm vụ <ChevronRight size={14} strokeWidth={3} />
-                    </div>
+                    {isCompleted ? (
+                      <div className="px-3 py-1.5 rounded-full bg-emerald-100 flex items-center gap-1 text-emerald-600 font-bold text-[11px] group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        {t('customer.menu.conditionsMet', 'Đã đủ điều kiện')} <Sparkles size={14} strokeWidth={2.5} />
+                      </div>
+                    ) : (
+                      <div className="px-3 py-1.5 rounded-full bg-orange-100 flex items-center gap-1 text-orange-600 font-bold text-[11px] group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                        {t('customer.menu.doMission', 'Làm nhiệm vụ')} <ChevronRight size={14} strokeWidth={3} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            ))
+            )})
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                <Gift className="size-12 mb-3 opacity-20" />
-               <p className="text-sm font-semibold">Chưa có ưu đãi nào</p>
+               <p className="text-sm font-semibold">{t('customer.menu.noDeals', 'Chưa có ưu đãi nào')}</p>
             </div>
           )}
         </div>

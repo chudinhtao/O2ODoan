@@ -6,7 +6,9 @@ import type { IApiResponse } from '@/shared/types/IApiResponse'
 
 export const adminChatService = {
   sendMessage: async (payload: ChatRequest): Promise<ChatResponse> => {
-    const { data } = await http.post<IApiResponse<AdminChatApiData>>(API_ROUTES.ai.adminChat, payload);
+    const { data } = await http.post<IApiResponse<AdminChatApiData>>(API_ROUTES.ai.adminChat, payload, {
+      timeout: 60_000, // AI cần thời gian xử lý: LLM routing + nhiều SQL queries
+    });
     const apiData = data.data;
 
     if (apiData && typeof apiData === 'object' && 'reply' in apiData) {

@@ -1,12 +1,16 @@
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { ROUTES } from '@/shared/constants/ROUTES'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { ShoppingCart, X } from 'lucide-react'
+import { Button } from '@/shared/components/ui/Button'
 
 import { MenuPanel } from '../components/MenuPanel'
 import { CartPanel } from '../components/CartPanel'
 import { ItemModifierModal } from '../components/ItemModifierModal'
 import { OrderEntryHeader } from '../components/OrderEntryHeader'
+import { TakeawayCustomerModal } from '../components/TakeawayCustomerModal'
 
 import { usePosCart, useAddCartItem, useUpdateCartItem, useRemoveCartItem } from '../hooks/usePosCart'
 import { usePosTables } from '@/pages/pos/table-map/hooks/usePosTables'
@@ -21,11 +25,13 @@ import { ICart, ICartItem } from '../types/posOrder.type'
 export default function OrderEntryPage() {
   const { tableId } = useParams<{ tableId: string }>()
   const location = useLocation()
+  const navigate = useNavigate()
   const { t } = useTranslation()
 
   // Modal State
   const [selectedItem, setSelectedItem] = useState<IMenuItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false)
   const [editingCartItem, setEditingCartItem] = useState<ICartItem | null>(null)
   const { data: tables } = usePosTables()
   const { data: activeSession } = useActiveSessionQuery(tableId)
@@ -47,21 +53,33 @@ export default function OrderEntryPage() {
     }
   }, [tableId, location.state?.sessionToken, activeSession])
 
+  const [isTakeawayModalOpen, setIsTakeawayModalOpen] = useState(false)
+
   useEffect(() => {
     if (activeSession?.sessionToken) {
       setSessionToken(activeSession.sessionToken)
-    } else if (tableId === 'takeaway' && !sessionToken) {
-      // Chỉ auto-tạo phiên khi người dùng TƯỜNG MINH chọn Takeaway (tableId = 'takeaway')
-      // Không trigger khi tableId = undefined (người dùng chỉ đang mở màn Sales để chọn bàn)
-      createTakeawaySession(undefined, {
-        onSuccess: (data) => {
-           if (data?.sessionToken) {
-              setSessionToken(data.sessionToken)
-           }
-        }
-      })
+    } else if (tableId === 'takeaway' && !sessionToken && !isTakeawayModalOpen) {
+      // Prompt modal instead of auto-creating
+      setIsTakeawayModalOpen(true)
     }
-  }, [activeSession, tableId, sessionToken, createTakeawaySession])
+  }, [activeSession, tableId, sessionToken])
+
+  const handleTakeawaySubmit = (customerName?: string, customerPhone?: string) => {
+    createTakeawaySession({ customerName, customerPhone }, {
+      onSuccess: (data) => {
+         if (data?.sessionToken) {
+            setSessionToken(data.sessionToken)
+         }
+         setIsTakeawayModalOpen(false)
+      }
+    })
+  }
+
+  const handleTakeawayCancel = () => {
+    setIsTakeawayModalOpen(false)
+    // Go back to table map if they cancel creating takeaway order
+    navigate(ROUTES.pos.tables)
+  }
   useEffect(() => {
     // Session token state management has handled the token.
     // LocalCart has been completely removed since sessions are now actively opened immediately.
@@ -125,7 +143,7 @@ export default function OrderEntryPage() {
       setEditingCartItem(cartItem)
       setIsModalOpen(true)
     } catch {
-      toast.error(t('pos.cart.loadFailed', 'Không thể tải thông tin món này.'))
+      // Error is handled by interceptor
     }
   }
 
@@ -153,28 +171,70 @@ export default function OrderEntryPage() {
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-surface-variant relative">
-      <OrderEntryHeader tableId={tableId} tables={tables} />
+      <OrderEntryHeader 
+        tableId={tableId} 
+        tables={tables} 
+        actions={
+          <div className="md:hidden">
+            <Button 
+              variant="outline"
+              className="h-9 px-3 gap-2 border-outline-variant/30 hover:bg-surface-variant rounded-lg"
+              onClick={() => setIsMobileCartOpen(true)}
+            >
+              <ShoppingCart className="size-4" />
+              {cart.items.length > 0 && (
+                <span className="bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-md min-w-[20px] text-center">
+                  {cart.items.reduce((sum, i) => sum + i.quantity, 0)}
+                </span>
+              )}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Content Wrapper */}
-      <div className="flex flex-1 overflow-hidden p-3 gap-3 relative">
+      <div className="flex flex-row flex-1 overflow-hidden p-3 gap-3 relative">
          <section className="flex-1 flex flex-col min-w-0 bg-surface-bright rounded-2xl shadow-sm border border-surface-container-high overflow-hidden">
            <MenuPanel onItemClick={handleItemClick} />
          </section>
-         <aside className="w-[420px] flex flex-col shrink-0 z-10 hidden lg:flex bg-surface-bright rounded-2xl shadow-sm border border-surface-container-high overflow-hidden">
-           <CartPanel
-             tableId={tableId}
-             tableNumber={tableNumber}
-             cart={cart}
-             isCartLoading={isCartLoading}
-             isSubmitting={isSubmitting}
-             onIncreaseItem={handleIncrease}
-             onDecreaseItem={handleDecrease}
-             onRemoveItem={handleRemove}
-             onSubmitTicket={handleSubmit}
-             onCheckout={handleCheckout}
-             onEditItem={handleEditCartItem}
-             onClearCart={() => {}} // Disabled since server cart handles clearing after submit
-           />
+         {/* Mobile Cart Overlay */}
+         {isMobileCartOpen && (
+           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsMobileCartOpen(false)} />
+         )}
+
+         {/* Cart Aside */}
+         <aside className={`
+           fixed md:relative inset-y-0 right-0 z-50 md:z-10 
+           w-[85vw] sm:w-[360px] md:w-[320px] lg:w-[420px] 
+           flex flex-col shrink-0 bg-surface-bright shadow-2xl md:shadow-sm border-l md:border border-surface-container-high
+           transition-transform duration-300 ease-in-out
+           ${isMobileCartOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+           md:rounded-2xl overflow-hidden
+         `}>
+           {/* Mobile Close Button inside Cart */}
+           <div className="md:hidden flex justify-between items-center p-4 border-b border-outline-variant bg-surface shrink-0">
+             <span className="font-bold text-on-surface text-lg">{t('pos.cart.title', 'Giỏ hàng')}</span>
+             <Button variant="ghost" size="icon" onClick={() => setIsMobileCartOpen(false)}>
+               <X className="size-6" />
+             </Button>
+           </div>
+           
+           <div className="flex-1 overflow-hidden flex flex-col relative">
+             <CartPanel
+               tableId={tableId}
+               tableNumber={tableNumber}
+               cart={cart}
+               isCartLoading={isCartLoading}
+               isSubmitting={isSubmitting}
+               onIncreaseItem={handleIncrease}
+               onDecreaseItem={handleDecrease}
+               onRemoveItem={handleRemove}
+               onSubmitTicket={handleSubmit}
+               onCheckout={handleCheckout}
+               onEditItem={handleEditCartItem}
+               onClearCart={() => {}} // Disabled since server cart handles clearing after submit
+             />
+           </div>
          </aside>
       </div>
 
@@ -191,7 +251,12 @@ export default function OrderEntryPage() {
         initialNote={editingCartItem?.note}
         initialOptions={editingCartItem?.options?.map((o) => o.optionId)}
       />
+
+      <TakeawayCustomerModal
+        isOpen={isTakeawayModalOpen}
+        onClose={handleTakeawayCancel}
+        onSubmit={handleTakeawaySubmit}
+      />
     </div>
   )
 }
-

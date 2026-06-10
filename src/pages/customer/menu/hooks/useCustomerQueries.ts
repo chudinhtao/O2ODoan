@@ -5,6 +5,7 @@ import { useWebSocketCtx } from '@/contexts/WebSocketContext'
 
 export const CUSTOMER_QUERY_KEYS = {
   all: ['customer'] as const,
+  profile: () => [...CUSTOMER_QUERY_KEYS.all, 'profile'] as const,
   categories: () => [...CUSTOMER_QUERY_KEYS.all, 'categories'] as const,
   items: (categoryId: string) => [...CUSTOMER_QUERY_KEYS.all, 'items', categoryId] as const,
   item: (id: string) => [...CUSTOMER_QUERY_KEYS.all, 'item', id] as const,
@@ -13,6 +14,15 @@ export const CUSTOMER_QUERY_KEYS = {
 }
 
 // =================== QUERIES ===================
+
+export function useCustomerProfile() {
+  return useQuery({
+    queryKey: CUSTOMER_QUERY_KEYS.profile(),
+    queryFn: async () => {
+      return customerService.getProfile()
+    },
+  })
+}
 
 export function useCustomerCategories() {
   return useQuery({
@@ -54,6 +64,29 @@ export function useCustomerItems(categoryId: string) {
       })
     },
     enabled: true, // Luôn luôn cho phép tải, nếu không có categoryId thì backend trả về tất cả
+  })
+}
+
+/**
+ * Lightweight query for the booking pre-order menu page.
+ * Differences vs useCustomerItems:
+ * - No WebSocket subscription (booking doesn't need real-time stock updates)
+ * - staleTime: 5 min (avoids redundant refetches when navigating back & forth)
+ * - size: 50 (avoids blasting 100 items; enough for smooth UX without pagination UI)
+ */
+export function useBookingMenuItems(categoryId: string) {
+  return useQuery({
+    queryKey: [...CUSTOMER_QUERY_KEYS.all, 'booking-items', categoryId || 'all'],
+    queryFn: async () => {
+      const data = await customerService.getItems(categoryId || '')
+      const items = data.content || []
+      return [...items].sort((a, b) => {
+        if (!!a.isFeatured === !!b.isFeatured) return 0
+        return a.isFeatured ? -1 : 1
+      })
+    },
+    staleTime: 5 * 60 * 1000, // 5 phút — tránh refetch khi navigate back
+    enabled: true,
   })
 }
 

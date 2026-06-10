@@ -28,6 +28,11 @@ export interface ICart {
 
 // ── Request types ──
 
+export interface ITakeawayRequest {
+  customerName?: string
+  customerPhone?: string
+}
+
 export interface IAddCartItemRequest {
   menuItemId: string
   quantity: number

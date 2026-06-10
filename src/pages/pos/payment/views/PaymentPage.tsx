@@ -8,12 +8,13 @@ import { API_ROUTES } from '@/shared/constants/API_ROUTES'
 import http from '@/services/interceptor'
 import { usePosSessionOrder } from '@/pages/pos/order-detail/hooks/usePosOrder'
 import { Button } from '@/shared/components/ui/Button'
-import { ArrowLeft, Printer, Smartphone } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 import { ReceiptPrint } from '../components/ReceiptPrint'
 import { InvoicePanel } from '../components/InvoicePanel'
 import { PaymentActionPanel, PaymentMethod } from '../components/PaymentActionPanel'
 import { usePaymentLogic } from '../hooks/usePaymentLogic'
+import { PosHeader } from '@/layouts/components/PosHeader'
 
 export default function PaymentPage() {
   const { tableId } = useParams<{ tableId: string }>()
@@ -64,6 +65,7 @@ export default function PaymentPage() {
     qrPayosUrl, qrPayosCode,
     isCreatingQrPayos,
     handleQrCreateLink,
+    excessDeposit,
   } = usePaymentLogic(tableId, sessionToken, serverOrder, releaseTable)
 
   // Với Takeaway: session token đến từ location.state (đã có sẵn khi navigate vào)
@@ -105,49 +107,37 @@ export default function PaymentPage() {
     <>
       <div className="flex-1 flex flex-col overflow-hidden bg-surface relative">
         {/* Header - Unified with Order Detail style */}
-        <header className="px-4 py-3 flex items-center justify-between border-b border-outline-variant bg-surface shrink-0">
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="size-9 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all active:scale-90" 
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="size-5" />
-            </Button>
-            <div className="flex flex-col -space-y-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-on-surface font-headline tracking-tighter uppercase">
-                  {t('pos.payment.tableStr', 'Bàn {{num}}', { num: order.tableNumber })}
-                </h2>
-                <span className="text-[10px] font-black text-outline py-0.5 px-2 bg-outline-variant/30 rounded-lg tracking-wider">#{orderIdPrefix}</span>
-              </div>
-              <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80">{t('pos.payment.checkout', 'Thanh toán hóa đơn')}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-             <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-600">
-                <Smartphone className="size-3.5" />
-                <span className="text-[10px] font-black uppercase tracking-tight">{t('pos.payment.qrSession', 'QR Session')}</span>
-             </div>
-             <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handlePrint} 
-                className="h-9 border-outline-variant hover:bg-surface-container rounded-xl text-xs font-bold"
+        {/* Header - Unified with Order Detail style */}
+        <PosHeader
+          title={
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="size-9 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all active:scale-90" 
+                onClick={() => navigate(-1)}
               >
-                <Printer className="size-3.5 mr-2" />
-                {t('pos.payment.printBtn', 'In Tạm Tính')}
+                <ArrowLeft className="size-5" />
               </Button>
-          </div>
-        </header>
+              <div className="flex flex-col -space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-on-surface font-headline tracking-tighter uppercase">
+                    {t('pos.payment.tableStr', 'Bàn {{num}}', { num: order.tableNumber })}
+                  </h2>
+                  <span className="text-[10px] font-black text-outline px-2 py-0.5 bg-surface-variant rounded tracking-wider">#{orderIdPrefix}</span>
+                </div>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80 mt-1">{t('pos.payment.checkout', 'Thanh toán hóa đơn')}</p>
+              </div>
+            </div>
+          }
+          hideStaffCall={true}
+        />
 
         {/* Main Body - 7:3 Layout */}
-        <div className="flex-1 flex flex-row overflow-hidden bg-surface-container-lowest/20">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-surface-container-lowest/20">
           {/* Left Column: Invoice Detail (70%) */}
-          <section className="flex-[7] overflow-y-auto p-4 border-r border-outline-variant/30 scrollbar-hide">
-            <div className="max-w-4xl mx-auto">
+          <section className="w-full lg:flex-[7] p-4 lg:p-6 border-b lg:border-b-0 lg:border-r border-outline-variant/30 bg-surface-container-lowest/20 min-h-[60vh] lg:min-h-0">
+            <div className="max-w-5xl mx-auto h-full w-full">
               <InvoicePanel 
                  order={order}
                  aggregatedItems={aggregatedItems}
@@ -163,12 +153,13 @@ export default function PaymentPage() {
                  voucherCode={voucherCode}
                  setVoucherCode={setVoucherCode}
                  isApplyingVoucher={isApplyingVoucher}
+                 excessDeposit={excessDeposit}
               />
             </div>
           </section>
 
           {/* Right Column: Payment & Actions (30%) */}
-          <aside className="flex-[3] min-w-[360px] bg-surface border-l border-outline-variant/50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.02)]">
+          <aside className="w-full lg:flex-[3] lg:min-w-[360px] bg-surface lg:border-l border-outline-variant/50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.02)] shrink-0">
             <PaymentActionPanel
                orderTotal={orderTotal}
                paymentMethod={paymentMethod}
@@ -193,6 +184,7 @@ export default function PaymentPage() {
               qrPayosCode={qrPayosCode}
                isCreatingQrPayos={isCreatingQrPayos}
                handleQrCreateLink={handleQrCreateLink}
+               excessDeposit={excessDeposit}
             />
           </aside>
         </div>

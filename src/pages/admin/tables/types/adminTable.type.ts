@@ -1,4 +1,4 @@
-export type TableStatus = 'FREE' | 'OCCUPIED' | 'PAYMENT_REQUESTED' | 'CLEANING' | 'MERGED'
+export type TableStatus = 'FREE' | 'OCCUPIED' | 'PAYMENT_REQUESTED' | 'CLEANING' | 'MERGED' | 'RESERVED'
 
 export const TABLE_STATUS = {
   FREE: 'FREE',
@@ -6,6 +6,7 @@ export const TABLE_STATUS = {
   PAYMENT_REQUESTED: 'PAYMENT_REQUESTED',
   CLEANING: 'CLEANING',
   MERGED: 'MERGED',
+  RESERVED: 'RESERVED',
 } as const
 
 export interface ITable {
@@ -31,6 +32,7 @@ export interface IPosTable {
   openedAt?: string
   parentTableId?: string | null
   parentTableNumber?: number | null
+  zone?: string | null
 }
 
 export interface ITableForm {

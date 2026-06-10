@@ -3,6 +3,7 @@ export const ROUTES = {
   unauthorized: '/unauthorized',
   pos: {
     tables:      '/pos/tables',
+    reservations:'/pos/reservations',
     orderEntry:  '/pos/orders/new/:tableId?',
     menu:        '/pos/menu', // Màn hình chọn món trực tiếp
     orderDetail: '/pos/orders/:tableId',
@@ -15,6 +16,7 @@ export const ROUTES = {
   admin: {
     root:       '/admin',
     dashboard:  '/admin/dashboard',
+    reservations: '/admin/reservations',
     menu:       '/admin/menu',
     menuCreate: '/admin/menu/new',
     menuEdit:   '/admin/menu/:id/edit',
@@ -25,12 +27,17 @@ export const ROUTES = {
     staff:      '/admin/staff',
     reports:    '/admin/reports',
     orders:     '/admin/orders',
+    orderDetail:'/admin/orders/:id',
     settings:   '/admin/settings',
+    inventory:  '/admin/inventory',
   },
   customer: {
-    root:    '/',
-    menu:    '/menu',
-    status:  '/order-status',
-    payment: '/payment',
+    root:        '/',
+    booking:     '/booking',
+    menu:        '/menu',
+    status:      '/order-status',
+    payment:     '/payment',
+    bookingMenu: '/booking/menu',
   },
 } as const
+

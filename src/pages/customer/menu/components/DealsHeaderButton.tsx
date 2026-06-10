@@ -1,12 +1,14 @@
 import { Gift } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCustomerActivePromotions } from '../hooks/useCustomerQueries'
+import { useTranslation } from 'react-i18next'
 
 interface DealsHeaderButtonProps {
   onClick: () => void
 }
 
 export function DealsHeaderButton({ onClick }: DealsHeaderButtonProps) {
+  const { t } = useTranslation()
   const { data: bundles } = useCustomerActivePromotions('BUNDLE')
 
   const count = bundles?.length || 0
@@ -22,7 +24,7 @@ export function DealsHeaderButton({ onClick }: DealsHeaderButtonProps) {
           className="relative h-10 px-3 shrink-0 flex items-center gap-1.5 justify-center rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/50 text-orange-600 border border-orange-200 shadow-sm active:scale-90 transition-all font-black text-xs"
         >
           <Gift size={16} strokeWidth={2.5} />
-          <span>{count} Ưu đãi</span>
+          <span className="hidden sm:inline">{t('customer.menu.dealsCount', { count, defaultValue: '{{count}} Ưu đãi' })}</span>
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
              <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>

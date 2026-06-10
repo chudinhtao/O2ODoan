@@ -1,6 +1,17 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import type { IUser } from '@/pages/auth/types/auth.type'
 import type { IRole } from '@/shared/constants/ROLE'
+import { authService } from '@/pages/auth/services/auth.service'
+
+export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, { dispatch }) => {
+  try {
+    await authService.logout()
+  } catch (error) {
+    console.error('Logout error:', error)
+  } finally {
+    dispatch(authSlice.actions.logout())
+  }
+})
 
 interface AuthState {
   user:         IUser | null

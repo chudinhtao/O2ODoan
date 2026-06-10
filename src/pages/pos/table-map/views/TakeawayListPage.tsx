@@ -4,6 +4,7 @@ import { useActiveTakeaways } from '../hooks/usePosTables'
 import { PosTableGrid } from '../components/PosTableGrid'
 import { Button } from '@/shared/components/ui/Button'
 import { ShoppingBag } from 'lucide-react'
+import { PosHeader } from '@/layouts/components/PosHeader'
 
 export default function TakeawayListPage() {
   const { t } = useTranslation()
@@ -15,34 +16,34 @@ export default function TakeawayListPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface">
-      <main className="flex-grow p-4 lg:p-6 overflow-y-auto">
-        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-3xl font-black font-headline text-primary tracking-tight mb-3">
-              {t('pos.takeaway.title', 'Đơn Mang Về')}
-            </h2>
-            <div className="flex flex-wrap gap-3">
-              <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                {t('pos.tableMap.stats.using', { count: activeCount })}
-              </span>
-              <span className="bg-tertiary-container/10 text-tertiary-container px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-tertiary-container shrink-0" />
-                {t('pos.tableMap.stats.waiting', { count: waitingPaymentCount })}
-              </span>
-            </div>
-          </div>
-
+      <PosHeader
+        title={t('pos.takeaway.title', 'Đơn Mang Về')}
+        subtitle={
+          <>
+            <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              {t('pos.tableMap.stats.using', { count: activeCount })}
+            </span>
+            <span className="bg-error/10 text-error px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-error shrink-0" />
+              {t('pos.tableMap.stats.waiting', { count: waitingPaymentCount })}
+            </span>
+          </>
+        }
+        actions={
           <Button
             id="btn-create-takeaway"
             variant="primary"
             onClick={() => navigate('/pos/orders/new/takeaway')}
-            className="bg-primary hover:bg-primary/90 text-white px-5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 whitespace-nowrap"
+            className="bg-primary hover:brightness-110 text-on-primary px-4 rounded-lg font-bold text-xs flex items-center gap-2 shadow-sm whitespace-nowrap h-9 transition-all"
           >
-            <ShoppingBag className="size-4" />
-            {t('pos.tableMap.takeaway', 'Tạo Mang Về')}
+            <ShoppingBag className="size-3.5" />
+            <span className="hidden sm:inline">{t('pos.tableMap.takeaway', 'Tạo Mang Về')}</span>
           </Button>
-        </header>
+        }
+      />
+      
+      <main className="flex-1 p-3 lg:p-4 overflow-y-auto">
 
         <PosTableGrid
           tables={takeaways || []}

@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
-import { useTranslation, Trans } from 'react-i18next'
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } from 'date-fns'
-import { Wallet, ShoppingBag, Receipt, TrendingUp, BarChart2, ChefHat, LineChart } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { format, startOfMonth, subDays } from 'date-fns'
+import { Wallet, ShoppingBag, Receipt, TrendingUp, BarChart2, ChefHat, LineChart, Users, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
+import { AdminPageHeader } from '@/shared/components/ui/AdminPageHeader'
+import { ExportButton } from '@/shared/components/ExportButton'
 import {
   useRevenueReport,
   useSourceReport,
@@ -13,6 +15,11 @@ import {
   useStaffCallStats,
   useKitchenPerformance,
   useCancelledDrilldown,
+  useCategorySales,
+  useStaffTimesheet,
+  useChefPerformance,
+  useServerPerformance,
+  useReservationReport
 } from '../hooks/useReports'
 import { RevenueChart } from '../components/RevenueChart'
 import { SourcePieChart } from '../components/SourcePieChart'
@@ -24,13 +31,57 @@ import { PromotionEffectivenessList } from '../components/PromotionEffectiveness
 import { StaffCallStatsList } from '../components/StaffCallStatsList'
 import { KitchenPerformanceCard } from '../components/KitchenPerformanceCard'
 import { CancelledOrderDrilldownCard } from '../components/CancelledOrderDrilldownCard'
+import { CategorySalesPieChart } from '../components/CategorySalesPieChart'
+import { StaffTimesheetList } from '../components/StaffTimesheetList'
+import { ChefPerformanceList } from '../components/ChefPerformanceList'
+import { ServerPerformanceList } from '../components/ServerPerformanceList'
+import { ReservationReportCard } from '../components/ReservationReportCard'
+import { ReservationTrendChart } from '../components/ReservationTrendChart'
 import type { IRevenueReport } from '../types/report.type'
+import type { IPageResponse } from '@/shared/types/IApiResponse'
+
+// Compact pagination for report cards
+function MiniPagination({ pageData, page, setPage }: {
+  pageData?: IPageResponse<any>
+  page: number
+  setPage: (p: number) => void
+}) {
+  if (!pageData || pageData.totalPages <= 1) return null
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+      <span className="text-[11px] font-semibold text-slate-400">
+        {page * pageData.size + 1}–{Math.min((page + 1) * pageData.size, pageData.totalElements)} / {pageData.totalElements}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          disabled={page === 0}
+          onClick={() => setPage(page - 1)}
+          className="p-1 rounded-md hover:bg-slate-200 text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="text-[11px] font-bold text-slate-500 min-w-[3rem] text-center">
+          {page + 1} / {pageData.totalPages}
+        </span>
+        <button
+          disabled={pageData.last}
+          onClick={() => setPage(page + 1)}
+          className="p-1 rounded-md hover:bg-slate-200 text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // Tab ids for the report sections
 const REPORT_TABS = [
   { id: 'overview', getLabel: (t: any) => t('admin.analytics.tabs.overview', 'Tổng quan'), icon: BarChart2 },
   { id: 'operations', getLabel: (t: any) => t('admin.analytics.tabs.operations', 'Vận hành'), icon: ChefHat },
   { id: 'menu', getLabel: (t: any) => t('admin.analytics.tabs.menu_promo', 'Menu & KM'), icon: LineChart },
+  { id: 'reservations', getLabel: (t: any) => t('admin.analytics.tabs.reservations', 'Đặt bàn'), icon: CalendarDays },
+  { id: 'staff', getLabel: (t: any) => t('admin.analytics.tabs.staff', 'Nhân sự'), icon: Users },
 ] as const
 
 type TabId = (typeof REPORT_TABS)[number]['id']
@@ -38,50 +89,34 @@ type TabId = (typeof REPORT_TABS)[number]['id']
 export default function ReportsManagementPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabId>('overview')
-  const [filterType, setFilterType] = useState<'last7' | 'last30' | 'week' | 'month' | 'year' | 'custom'>('last7')
-  const [customRange, setCustomRange] = useState({
-    from: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-    to: format(new Date(), 'yyyy-MM-dd')
-  })
+  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'))
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [topItemSortBy, setTopItemSortBy] = useState<'QUANTITY' | 'REVENUE'>('QUANTITY')
 
-  const [dateRange, prevDateRange] = useMemo(() => {
-    const today = new Date()
-    let from: Date, to: Date, prevFrom: Date, prevTo: Date
+  // Pagination state per section
+  const PAGE_SIZE = 10
+  const [staffCallPage, setStaffCallPage] = useState(0)
+  const [kitchenPage, setKitchenPage] = useState(0)
+  const [cancelledPage, setCancelledPage] = useState(0)
+  const [topItemsPage, setTopItemsPage] = useState(0)
+  const [promotionPage, setPromotionPage] = useState(0)
+  const [categorySalesPage, setCategorySalesPage] = useState(0)
+  const [staffTimesheetPage, setStaffTimesheetPage] = useState(0)
+  const [chefPage, setChefPage] = useState(0)
+  const [serverPage, setServerPage] = useState(0)
 
-    switch (filterType) {
-      case 'custom':
-        from = new Date(customRange.from); to = new Date(customRange.to)
-        const diff = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1
-        prevFrom = subDays(from, diff); prevTo = subDays(to, diff)
-        break
-      case 'last7':
-        from = subDays(today, 7); to = today
-        prevFrom = subDays(from, 7); prevTo = subDays(to, 7)
-        break
-      case 'last30':
-        from = subDays(today, 30); to = today
-        prevFrom = subDays(from, 30); prevTo = subDays(to, 30)
-        break
-      case 'week':
-        from = startOfWeek(today); to = endOfWeek(today)
-        prevFrom = subDays(from, 7); prevTo = subDays(to, 7)
-        break
-      case 'year':
-        from = startOfYear(today); to = endOfYear(today)
-        prevFrom = subDays(from, 365); prevTo = subDays(to, 365)
-        break
-      case 'month':
-      default:
-        from = startOfMonth(today); to = endOfMonth(today)
-        prevFrom = startOfMonth(subDays(from, 1)); prevTo = endOfMonth(subDays(from, 1))
-        break
-    }
+  const [dateRange, prevDateRange] = useMemo(() => {
+    const from = new Date(startDate)
+    const to = new Date(endDate)
+    const diff = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const prevFrom = subDays(from, diff)
+    const prevTo = subDays(to, diff)
+
     return [
       { from: format(from, 'yyyy-MM-dd'), to: format(to, 'yyyy-MM-dd') },
       { from: format(prevFrom, 'yyyy-MM-dd'), to: format(prevTo, 'yyyy-MM-dd') }
     ]
-  }, [filterType, customRange])
+  }, [startDate, endDate])
 
   // Data fetching — common
   const { data: revenueData = [], isLoading: revenueLoading } = useRevenueReport(dateRange.from, dateRange.to)
@@ -92,92 +127,201 @@ export default function ReportsManagementPage() {
   const { data: hourlyData = [], isLoading: hourlyLoading } = useHourlyTraffic(dateRange.from, dateRange.to)
   const { data: tableData = [], isLoading: tableLoading } = useTableUsageReport(dateRange.from, dateRange.to)
 
-  // Data fetching — Operations tab
-  const { data: staffCallData = [], isLoading: staffCallLoading } = useStaffCallStats(dateRange.from, dateRange.to)
-  const { data: kitchenData = [], isLoading: kitchenLoading } = useKitchenPerformance(dateRange.from, dateRange.to)
-  const { data: cancelledData = [], isLoading: cancelledLoading } = useCancelledDrilldown(dateRange.from, dateRange.to)
+  // Data fetching — Operations tab (paginated)
+  const { data: staffCallPageData, isLoading: staffCallLoading } = useStaffCallStats(dateRange.from, dateRange.to, staffCallPage, PAGE_SIZE)
+  const { data: kitchenPageData, isLoading: kitchenLoading } = useKitchenPerformance(dateRange.from, dateRange.to, kitchenPage, PAGE_SIZE)
+  const { data: cancelledPageData, isLoading: cancelledLoading } = useCancelledDrilldown(dateRange.from, dateRange.to, cancelledPage, PAGE_SIZE)
 
-  // Data fetching — Menu & KM tab
-  const { data: topItems = [], isLoading: topLoading } = useTopItemsReport(dateRange.from, dateRange.to, 10, topItemSortBy)
-  const { data: promotionData = [], isLoading: promotionLoading } = usePromotionEffectiveness(dateRange.from, dateRange.to)
+  // Data fetching — Menu & KM tab (paginated)
+  const { data: topItemsPageData, isLoading: topLoading } = useTopItemsReport(dateRange.from, dateRange.to, topItemSortBy, topItemsPage, PAGE_SIZE)
+  const { data: promotionPageData, isLoading: promotionLoading } = usePromotionEffectiveness(dateRange.from, dateRange.to, promotionPage, PAGE_SIZE)
+  const { data: categorySalesPageData, isLoading: categorySalesLoading } = useCategorySales(dateRange.from, dateRange.to, categorySalesPage, PAGE_SIZE)
+
+  // Data fetching — Staff tab (paginated)
+  const { data: staffTimesheetPageData, isLoading: staffTimesheetLoading } = useStaffTimesheet(dateRange.from, dateRange.to, staffTimesheetPage, PAGE_SIZE)
+  const { data: chefPageData, isLoading: chefPerformanceLoading } = useChefPerformance(dateRange.from, dateRange.to, chefPage, PAGE_SIZE)
+  const { data: serverPageData, isLoading: serverPerformanceLoading } = useServerPerformance(dateRange.from, dateRange.to, serverPage, PAGE_SIZE)
+
+  // Extract .content arrays for components
+  const staffCallData = staffCallPageData?.content ?? []
+  const kitchenData = kitchenPageData?.content ?? []
+  const cancelledData = cancelledPageData?.content ?? []
+  const topItems = topItemsPageData?.content ?? []
+  const promotionData = promotionPageData?.content ?? []
+  const categorySales = categorySalesPageData?.content ?? []
+  const staffTimesheet = staffTimesheetPageData?.content ?? []
+  const chefPerformance = chefPageData?.content ?? []
+  const serverPerformance = serverPageData?.content ?? []
+
+  // Data fetching — Reservations tab
+  const { data: reservationReport, isLoading: reservationReportLoading } = useReservationReport(dateRange.from, dateRange.to)
 
   // Calculations
-  const totalRevenue = useMemo(() => revenueData.reduce((acc: number, curr: IRevenueReport) => acc + curr.revenue, 0), [revenueData])
+  const { totalGrossRevenue, totalTax, totalNetRevenue } = useMemo(() => {
+    return revenueData.reduce((acc: any, curr: IRevenueReport) => ({
+      totalGrossRevenue: acc.totalGrossRevenue + curr.revenue,
+      totalTax: acc.totalTax + (curr.taxAmount || 0),
+      totalNetRevenue: acc.totalNetRevenue + (curr.netRevenue || 0)
+    }), { totalGrossRevenue: 0, totalTax: 0, totalNetRevenue: 0 })
+  }, [revenueData])
+
   const prevTotalRevenue = useMemo(() => prevRevenueData.reduce((acc: number, curr: IRevenueReport) => acc + curr.revenue, 0), [prevRevenueData])
   const totalOrders = useMemo(() => revenueData.reduce((acc: number, curr: IRevenueReport) => acc + curr.totalOrders, 0), [revenueData])
-  const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  const aov = totalOrders > 0 ? totalGrossRevenue / totalOrders : 0
 
-  const growth = prevTotalRevenue === 0 ? (totalRevenue > 0 ? 100 : 0) : ((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100
+  const growth = prevTotalRevenue === 0 ? (totalGrossRevenue > 0 ? 100 : 0) : ((totalGrossRevenue - prevTotalRevenue) / prevTotalRevenue) * 100
   const growthStr = `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 p-4 lg:p-6 space-y-6 overflow-y-auto w-full custom-scrollbar">
-      <div className="w-full max-w-[2000px] mx-auto space-y-6">
-        {/* Header */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-black font-display text-primary">{t('admin.reports')}</h1>
-          <p className="text-xs text-on-primary/60 mt-1">
-            <Trans i18nKey="admin.analytics.data_from_to" values={{ from: dateRange.from, to: dateRange.to }}>
-              Dữ liệu từ {{from: dateRange.from}} đến {{to: dateRange.to}}
-            </Trans>
-          </p>
-        </div>
+    <div className="flex flex-col h-full bg-slate-50/50 overflow-hidden">
+      <AdminPageHeader
+        title={t('admin.reports')}
+        description={t('admin.analytics.data_from_to', { from: dateRange.from, to: dateRange.to })}
+        actions={
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200 h-9">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="!px-3 !rounded-lg !text-[11px] !font-bold hover:!bg-slate-50"
+                onClick={() => {
+                  setStartDate(format(subDays(new Date(), 7), 'yyyy-MM-dd'))
+                  setEndDate(format(new Date(), 'yyyy-MM-dd'))
+                }}
+              >
+                {t('admin.dashboard.shortcut_7_days', '7 ngày')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="!px-3 !rounded-lg !text-[11px] !font-bold hover:!bg-slate-50"
+                onClick={() => {
+                  setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
+                  setEndDate(format(new Date(), 'yyyy-MM-dd'))
+                }}
+              >
+                {t('admin.dashboard.shortcut_this_month', 'Tháng này')}
+              </Button>
+            </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="flex items-center gap-2 bg-white p-1 rounded-lg shadow-sm border border-slate-200">
-            <Button
-               variant={filterType === 'last7' ? 'primary' : 'ghost'}
-               size="sm"
-               className="!px-3"
-               onClick={() => setFilterType('last7')}
-            >
-              {t('admin.analytics.last_7_days', '7 ngày qua')}
-            </Button>
-            <Button
-               variant={filterType === 'month' ? 'primary' : 'ghost'}
-               size="sm"
-               className="!px-3"
-               onClick={() => setFilterType('month')}
-            >
-              {t('admin.analytics.this_month')}
-            </Button>
-            <Button
-               variant={filterType === 'custom' ? 'primary' : 'ghost'}
-               size="sm"
-               className="!px-3"
-               onClick={() => setFilterType('custom')}
-            >
-              {t('admin.analytics.custom_range', 'Tùy chọn')}
-            </Button>
-          </div>
-
-          {filterType === 'custom' && (
-            <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-right-2 duration-300">
+            <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 h-9">
               <input
                 type="date"
-                value={customRange.from}
-                onChange={(e) => setCustomRange(prev => ({ ...prev, from: e.target.value }))}
-                className="bg-transparent border-none text-sm font-medium focus:ring-0 px-2"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0"
               />
-              <span className="text-slate-300">→</span>
+              <span className="text-slate-300 text-xs">→</span>
               <input
                 type="date"
-                value={customRange.to}
-                onChange={(e) => setCustomRange(prev => ({ ...prev, to: e.target.value }))}
-                className="bg-transparent border-none text-sm font-medium focus:ring-0 px-2"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0"
+                min={startDate}
               />
             </div>
-          )}
-        </div>
-      </div>
+
+            <ExportButton
+              data={
+                activeTab === 'overview' ? revenueData.map(r => ({
+                  date: r.day,
+                  orders: r.totalOrders,
+                  gross: r.revenue,
+                  tax: r.taxAmount || 0,
+                  net: r.netRevenue || 0
+                })) :
+                activeTab === 'operations' ? staffCallData.map(s => ({
+                  tableNumber: s.tableNumber,
+                  callType: s.callType,
+                  callCount: s.callCount,
+                  avgResolveMinutes: s.avgResolveMinutes || 0
+                })) :
+                activeTab === 'menu' ? topItems.map(item => ({
+                  name: item.itemName,
+                  quantity: item.totalSold,
+                  revenue: item.revenue
+                })) :
+                activeTab === 'reservations' && reservationReport ? [{
+                  totalReservations: reservationReport.totalReservations,
+                  totalCompleted: reservationReport.totalCompleted,
+                  totalCancelled: reservationReport.totalCancelled,
+                  totalDeposits: reservationReport.totalDeposits,
+                  refunded: reservationReport.refunded,
+                }] :
+                staffTimesheet.map(s => ({
+                  staff: s.staffName,
+                  role: s.role,
+                  shifts: s.totalShifts,
+                  hours: s.totalWorkingHours,
+                  revenue: s.role === 'CASHIER' ? s.totalRevenue : '',
+                  itemsPrepared: s.role === 'KITCHEN' ? s.itemsPrepared : '',
+                  callsResolved: s.role === 'SERVER' ? s.callsResolved : ''
+                }))
+              }
+              fileName={t('admin.analytics.exportFileName', { tab: activeTab, date: new Date().toISOString().split('T')[0], defaultValue: `Bao_cao_${activeTab}_${startDate}_den_${endDate}` })}
+              sheetName="BaoCao"
+              headers={
+                activeTab === 'overview' ? {
+                  'date': t('admin.analytics.colDate', 'Ngày'),
+                  'orders': t('admin.analytics.colOrders', 'Số đơn hàng'),
+                  'gross': t('admin.analytics.colGross', 'Doanh thu (Gross)'),
+                  'tax': t('admin.analytics.colTax', 'Thuế (VAT)'),
+                  'net': t('admin.analytics.colNet', 'Doanh thu thuần')
+                } :
+                activeTab === 'operations' ? {
+                  'tableNumber': t('admin.analytics.colTableNumber', 'Số bàn'),
+                  'callType': t('admin.analytics.colCallType', 'Loại yêu cầu'),
+                  'callCount': t('admin.analytics.colCallCount', 'Số lần gọi'),
+                  'avgResolveMinutes': t('admin.analytics.colAvgResolve', 'Thời gian xử lý trung bình (phút)')
+                } :
+                activeTab === 'menu' ? {
+                  'name': t('admin.analytics.colItemName', 'Món ăn'),
+                  'quantity': t('admin.analytics.colQty', 'Số lượng bán'),
+                  'revenue': t('admin.analytics.colRevenue', 'Doanh thu')
+                } : activeTab === 'reservations' ? {
+                  'totalReservations': t('admin.analytics.colTotalRes', 'Tổng số đặt bàn'),
+                  'totalCompleted': t('admin.analytics.colCompletedRes', 'Đã hoàn thành'),
+                  'totalCancelled': t('admin.analytics.colCancelledRes', 'Đã huỷ'),
+                  'totalDeposits': t('admin.analytics.colDeposits', 'Tổng tiền cọc'),
+                  'refunded': t('admin.analytics.colRefunded', 'Đã hoàn tiền')
+                } : {
+                  'staff': t('admin.analytics.colStaffName', 'Nhân viên'),
+                  'role': t('admin.analytics.colRole', 'Vai trò'),
+                  'shifts': t('admin.analytics.colShifts', 'Số ca làm'),
+                  'hours': t('admin.analytics.colHours', 'Số giờ công'),
+                  'revenue': t('admin.analytics.colRevenue', 'Doanh thu (Thu ngân)'),
+                  'itemsPrepared': t('admin.analytics.colItemsPrepared', 'Món đã nấu (Bếp)'),
+                  'callsResolved': t('admin.analytics.colCallsResolved', 'Yêu cầu đã xử lý (Phục vụ)')
+                }
+              }
+            />
+          </div>
+        }
+      />
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 space-y-6">
+        <div className="w-full max-w-[2000px] mx-auto space-y-6">
 
       {/* Summary Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 xl:gap-6">
         <StatCard
-          title={t('admin.dashboard.revenue')}
-          value={`${totalRevenue.toLocaleString()} ₫`}
+          title={t('admin.dashboard.revenue_gross', 'Doanh thu (Gross)')}
+          value={`${totalGrossRevenue.toLocaleString()} ₫`}
           icon={Wallet}
+          isLoading={revenueLoading}
+        />
+        <StatCard
+          title={t('admin.dashboard.tax_vat', 'Tiền thuế (VAT)')}
+          value={`${totalTax.toLocaleString()} ₫`}
+          icon={Receipt}
+          color="amber"
+          isLoading={revenueLoading}
+        />
+        <StatCard
+          title={t('admin.dashboard.net_revenue', 'Doanh thu thuần')}
+          value={`${totalNetRevenue.toLocaleString()} ₫`}
+          icon={TrendingUp}
+          color="emerald"
           isLoading={revenueLoading}
         />
         <StatCard
@@ -193,7 +337,7 @@ export default function ReportsManagementPage() {
           isLoading={revenueLoading}
         />
         <StatCard
-          title={t('admin.analytics.revenue_trend', 'Tăng trưởng')}
+          title={t('admin.analytics.growth', 'Tăng trưởng')}
           value={growthStr}
           trend={growthStr}
           icon={TrendingUp}
@@ -229,7 +373,7 @@ export default function ReportsManagementPage() {
           <div className="flex flex-col gap-6 xl:gap-8">
             {/* Row 1: Full width revenue */}
             <div className="w-full">
-              <RevenueChart data={revenueData} isLoading={revenueLoading} totalRevenue={totalRevenue} />
+              <RevenueChart data={revenueData} isLoading={revenueLoading} totalRevenue={totalGrossRevenue} />
             </div>
             
             {/* Row 2: Pie chart (1/3) & Hourly Traffic (2/3) */}
@@ -252,34 +396,95 @@ export default function ReportsManagementPage() {
         {/* === OPERATIONS TAB === */}
         {activeTab === 'operations' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
-            <div className="w-full h-[420px]">
-              <KitchenPerformanceCard data={kitchenData} isLoading={kitchenLoading} />
+            <div className="w-full flex flex-col">
+              <div className="flex-1 min-h-[360px]">
+                <KitchenPerformanceCard data={kitchenData} isLoading={kitchenLoading} />
+              </div>
+              <MiniPagination pageData={kitchenPageData} page={kitchenPage} setPage={setKitchenPage} />
             </div>
-            <div className="w-full h-[420px]">
-              <StaffCallStatsList data={staffCallData} isLoading={staffCallLoading} />
+            <div className="w-full flex flex-col">
+              <div className="flex-1 min-h-[360px]">
+                <StaffCallStatsList data={staffCallData} isLoading={staffCallLoading} />
+              </div>
+              <MiniPagination pageData={staffCallPageData} page={staffCallPage} setPage={setStaffCallPage} />
             </div>
-            <div className="w-full h-[420px]">
-              <CancelledOrderDrilldownCard data={cancelledData} isLoading={cancelledLoading} />
+            <div className="w-full flex flex-col">
+              <div className="flex-1 min-h-[360px]">
+                <CancelledOrderDrilldownCard data={cancelledData} isLoading={cancelledLoading} />
+              </div>
+              <MiniPagination pageData={cancelledPageData} page={cancelledPage} setPage={setCancelledPage} />
             </div>
           </div>
         )}
 
         {/* === MENU & KM TAB === */}
         {activeTab === 'menu' && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8 items-stretch">
-            <div className="w-full h-[420px]">
-              <TopItemsList
-                data={topItems}
-                isLoading={topLoading}
-                sortBy={topItemSortBy}
-                onChangeSortBy={setTopItemSortBy}
-              />
+          <div className="flex flex-col gap-6 xl:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 items-stretch">
+              <div className="lg:col-span-1 h-[420px] w-full">
+                <CategorySalesPieChart data={categorySales} isLoading={categorySalesLoading} />
+              </div>
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8 w-full h-[420px]">
+                <div className="w-full h-[420px]">
+                  <TopItemsList
+                    data={topItems}
+                    isLoading={topLoading}
+                    sortBy={topItemSortBy}
+                    onChangeSortBy={setTopItemSortBy}
+                  />
+                </div>
+                <div className="w-full h-[420px]">
+                  <PromotionEffectivenessList data={promotionData} isLoading={promotionLoading} />
+                </div>
+              </div>
             </div>
-            <div className="w-full h-[420px]">
-              <PromotionEffectivenessList data={promotionData} isLoading={promotionLoading} />
+            {/* Pagination row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8">
+              <div className="lg:col-span-1">
+                <MiniPagination pageData={categorySalesPageData} page={categorySalesPage} setPage={setCategorySalesPage} />
+              </div>
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8">
+                <MiniPagination pageData={topItemsPageData} page={topItemsPage} setPage={setTopItemsPage} />
+                <MiniPagination pageData={promotionPageData} page={promotionPage} setPage={setPromotionPage} />
+              </div>
             </div>
           </div>
         )}
+
+        {/* === RESERVATIONS TAB === */}
+        {activeTab === 'reservations' && (
+          <div className="flex flex-col gap-6 xl:gap-8 w-full h-auto">
+            <ReservationReportCard data={reservationReport} isLoading={reservationReportLoading} />
+            <ReservationTrendChart data={reservationReport?.dailyTrend} isLoading={reservationReportLoading} />
+          </div>
+        )}
+
+        {/* === STAFF TAB === */}
+        {activeTab === 'staff' && (
+          <div className="flex flex-col gap-6 xl:gap-8">
+            <div className="w-full">
+              <div className="h-[400px]">
+                <StaffTimesheetList data={staffTimesheet} isLoading={staffTimesheetLoading} />
+              </div>
+              <MiniPagination pageData={staffTimesheetPageData} page={staffTimesheetPage} setPage={setStaffTimesheetPage} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 xl:gap-8 items-stretch">
+              <div className="w-full">
+                <div className="h-[400px]">
+                  <ChefPerformanceList data={chefPerformance} isLoading={chefPerformanceLoading} />
+                </div>
+                <MiniPagination pageData={chefPageData} page={chefPage} setPage={setChefPage} />
+              </div>
+              <div className="w-full">
+                <div className="h-[400px]">
+                  <ServerPerformanceList data={serverPerformance} isLoading={serverPerformanceLoading} />
+                </div>
+                <MiniPagination pageData={serverPageData} page={serverPage} setPage={setServerPage} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       </div>
       </div>
     </div>

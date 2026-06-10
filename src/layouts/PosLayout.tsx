@@ -1,25 +1,27 @@
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { useAppDispatch } from '@/store/hooks'
-import { logout } from '@/store/slices/auth.slice'
+import { logoutUser } from '@/store/slices/auth.slice'
 import { clearSession } from '@/store/slices/session.slice'
 import { clearCart }    from '@/store/slices/cart.slice'
 import { ROUTES } from '@/shared/constants/ROUTES'
 import { queryClient } from '@/providers/AppProviders'
 import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
+import QuickGrnModal from '../pages/pos/components/QuickGrnModal'
+import { ShiftGuard } from '@/pages/shift/components/ShiftGuard'
 
 export default function PosLayout() {
   const location = useLocation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-
+  const [isQuickGrnOpen, setIsQuickGrnOpen] = useState(false)
 
   const isActive = (path: string) => location.pathname.includes(path)
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
     dispatch(clearSession())
     dispatch(clearCart())
     queryClient.clear()
@@ -29,7 +31,7 @@ export default function PosLayout() {
 
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+    <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-800">
       {/* 1. Left Sidebar (Stitch UI) */}
       <aside className="w-[80px] bg-white border-r border-slate-200 flex flex-col items-center py-6 shrink-0 z-50">
         <div className="size-12 rounded-xl bg-[#2463eb] flex items-center justify-center mb-8 shadow-sm">
@@ -40,6 +42,11 @@ export default function PosLayout() {
             ${isActive('/pos/tables') ? 'border-l-4 border-[#2463eb] bg-[#2463eb]/5 text-[#2463eb]' : 'border-l-4 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
             <span className="material-symbols-outlined text-[24px]">grid_view</span>
             <span className="text-[10px] font-black uppercase tracking-wider">Tables</span>
+          </Link>
+          <Link to="/pos/reservations" className={`w-full flex flex-col items-center justify-center py-4 gap-1 relative group transition-all
+            ${isActive('/pos/reservations') ? 'border-l-4 border-[#2463eb] bg-[#2463eb]/5 text-[#2463eb]' : 'border-l-4 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
+            <span className="material-symbols-outlined text-[24px]">book_online</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Booking</span>
           </Link>
           <Link to="/pos/takeaways" className={`w-full flex flex-col items-center justify-center py-4 gap-1 relative group transition-all
             ${isActive('/pos/takeaways') ? 'border-l-4 border-[#2463eb] bg-[#2463eb]/5 text-[#2463eb]' : 'border-l-4 border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}>
@@ -56,6 +63,10 @@ export default function PosLayout() {
             <span className="material-symbols-outlined text-[24px]">bar_chart</span>
             <span className="text-[10px] font-bold uppercase tracking-wider">Reports</span>
           </Link>
+          <button onClick={() => setIsQuickGrnOpen(true)} className="w-full flex flex-col items-center justify-center py-4 gap-1 relative group transition-all border-l-4 border-transparent text-slate-400 hover:text-[#2463eb] hover:bg-slate-50">
+            <span className="material-symbols-outlined text-[24px]">inventory_2</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Quick In</span>
+          </button>
         </nav>
         <div className="mt-auto w-full flex flex-col items-center gap-4">
           <LanguageToggle variant="plain" />
@@ -74,11 +85,17 @@ export default function PosLayout() {
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <ErrorBoundary>
             <Suspense fallback={<PosPageSkeleton />}>
-              <Outlet />
+              <main className="flex-1 flex flex-col overflow-hidden bg-white">
+                <ShiftGuard>
+                  <Outlet />
+                </ShiftGuard>
+              </main>
             </Suspense>
           </ErrorBoundary>
         </div>
       </main>
+
+      {isQuickGrnOpen && <QuickGrnModal onClose={() => setIsQuickGrnOpen(false)} />}
     </div>
   )
 }

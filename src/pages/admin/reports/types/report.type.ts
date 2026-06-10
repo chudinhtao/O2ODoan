@@ -1,8 +1,10 @@
 export interface IRevenueReport {
   day: string;
-  revenue: number;
+  revenue: number; // Gross
+  taxAmount: number;
+  netRevenue: number;
   totalOrders: number;
-  avgOrderValue: number; // F1: Giá trị đơn TB theo ngày
+  avgOrderValue: number;
 }
 
 export interface ITopItemTarget {
@@ -78,4 +80,89 @@ export interface ICancelledOrderDrilldown {
   cancelCount: number;
   cancelledRevenue: number;
   cancelRate: number;
+}
+
+// New: Profit & Loss
+export interface IProfitLossReport {
+  startDate: string;
+  endDate: string;
+  totalRevenue: number; // Net Revenue (if BE returns totalNetRevenue in totalRevenue field, but BE usually sends it as totalRevenue)
+  totalTax: number;
+  totalCogs: number;
+  totalWaste: number;
+  grossProfit: number;
+  netProfit: number;
+  profitMargin: number;
+}
+
+// New: Inventory Variance (TvA)
+export interface IInventoryVarianceReport {
+  id?: string | number;
+  ingredientId: string;
+  ingredientName: string;
+  uomName: string;
+  theoreticalUsage: number;
+  actualUsage: number;
+  variance: number;
+  varianceValue: number;
+}
+
+export interface IChefPerformance {
+  chefId: string;
+  chefName: string;
+  totalItemsPrepared: number;
+  avgPrepMinutes: number;
+  lateItemCount: number;
+  lateRate: number;
+}
+
+export interface IServerPerformance {
+  serverId: string;
+  serverName: string;
+  totalCallsResolved: number;
+  avgResponseSeconds: number;
+  avgResolutionMinutes: number;
+  totalItemsServed: number;
+  avgDeliverySeconds: number;
+}
+
+export interface ICategorySales {
+  categoryId: string;
+  categoryName: string;
+  totalQuantitySold: number;
+  totalRevenue: number; // Gross
+  totalTax: number;
+  totalNetRevenue: number;
+  revenuePercentage: number;
+}
+
+export interface IStaffTimesheet {
+  staffId: string;
+  staffName: string;
+  role: string;
+  totalShifts: number;
+  totalWorkingHours: number;
+  totalRevenue: number;
+  revenuePerHour: number;
+  itemsPrepared: number;    // KITCHEN only
+  callsResolved: number;    // SERVER only
+}
+
+export interface IDailyReservationTrend {
+  day: string;
+  totalReservations: number;
+  totalCompleted: number;
+  totalCancelled: number;
+}
+
+export interface IReservationReport {
+  totalReservations: number;
+  totalCompleted: number;
+  totalCancelled: number;
+  totalNoShow: number;
+  totalDeposits: number;
+  pendingRefund: number;
+  refunded: number;
+  forfeited: number;
+  dailyTrend: IDailyReservationTrend[];
 }

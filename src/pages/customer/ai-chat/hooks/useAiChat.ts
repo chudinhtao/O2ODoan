@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { aiChatService } from '../services/aiChatService'
 import type { IChatMessage } from '../types'
@@ -19,9 +19,45 @@ function makeBotMsg(text: string, isError = false): IChatMessage {
 }
 
 export function useAiChat(sessionToken: string | null) {
-  const [messages, setMessages] = useState<IChatMessage[]>([
-    makeBotMsg('Xin chào! Em là Ami 🤖, trợ lý ẩm thực của nhà hàng. Anh/chị cần em tư vấn gì ạ?'),
-  ])
+  const getStorageKey = useCallback(() => `customer_chat_messages_${sessionToken || 'guest'}`, [sessionToken])
+
+  const [messages, setMessages] = useState<IChatMessage[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(`customer_chat_messages_${sessionToken || 'guest'}`)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        return parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }))
+      }
+    } catch (e) {
+      console.error('Failed to parse chat history', e)
+    }
+    return [
+      makeBotMsg('Xin chào! Em là Ami 🤖, trợ lý ẩm thực của nhà hàng. Anh/chị cần em tư vấn gì ạ?'),
+    ]
+  })
+
+  // Lưu lịch sử mỗi khi có tin nhắn mới
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem(getStorageKey(), JSON.stringify(messages))
+    }
+  }, [messages, getStorageKey])
+
+  // Cập nhật lại màn hình nếu đổi sessionToken (khách quét mã bàn khác)
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(getStorageKey())
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })))
+      } else {
+        setMessages([makeBotMsg('Xin chào! Em là Ami 🤖, trợ lý ẩm thực của nhà hàng. Anh/chị cần em tư vấn gì ạ?')])
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [sessionToken, getStorageKey])
+
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)

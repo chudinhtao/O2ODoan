@@ -16,19 +16,19 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const variants = {
-    primary: 'bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow active:shadow-none',
+    primary: 'bg-primary hover:bg-primary/90 text-white shadow-sm transition-all active:scale-[0.98]',
     secondary: 'bg-secondary hover:bg-secondary/80 text-white shadow-sm',
-    outline: 'border border-slate-200 hover:bg-slate-50 text-slate-700 bg-white shadow-sm',
-    ghost: 'hover:bg-slate-100 text-slate-700 bg-transparent shadow-none',
+    outline: 'border border-slate-200 hover:bg-slate-50 text-slate-600 bg-white shadow-sm',
+    ghost: 'hover:bg-slate-100 text-slate-600 bg-transparent',
     danger: 'bg-red-500 hover:bg-red-600 text-white shadow-sm',
-    icon: 'text-slate-600 bg-transparent hover:bg-slate-100',
-    guest: 'bg-guest-primary hover:bg-guest-primary/90 text-white shadow-md shadow-guest-primary/15'
+    icon: 'text-slate-500 bg-transparent hover:bg-slate-100',
+    guest: 'bg-guest-primary hover:bg-guest-primary/90 text-white shadow-md'
   }
   
   const sizes = {
-    default: 'text-sm font-semibold py-2 px-3.5 rounded-lg',
-    lg: 'text-sm font-bold py-2.5 px-5 rounded-xl',
-    sm: 'text-xs font-semibold py-1.5 px-3 rounded-lg',
+    default: 'text-sm font-bold py-2 px-4 rounded-lg',
+    lg: 'text-sm font-bold py-2.5 px-6 rounded-xl',
+    sm: 'text-xs font-bold py-1.5 px-3 rounded-md',
     icon: 'p-2 rounded-lg'
   }
 

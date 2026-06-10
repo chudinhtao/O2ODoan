@@ -2,6 +2,7 @@ import { IMenuItem } from '../types'
 import { CountdownTimer } from './CountdownTimer'
 import { useServerTime } from '@/shared/hooks/useServerTime'
 import { UtensilsCrossed, Flame, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface MenuItemCardProps {
   item: IMenuItem
@@ -13,6 +14,7 @@ const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
 // ─── Vertical (Featured) Card ──────────────────────────────────────────────
 function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
+  const { t } = useTranslation()
   const { isExpired, isScheduleActive, getActiveScheduleEndTime } = useServerTime(10000) // 10s check 1 lần cho danh sách để tối ưu
   
   const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
@@ -35,7 +37,7 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
       onClick={() => item.isAvailable && onAdd(item)}
       className={`relative rounded-3xl overflow-hidden cursor-pointer group shadow-[0_4px_24px_-6px_rgba(0,0,0,0.15)] transition-all duration-300 active:scale-[0.97] ${!item.isAvailable ? 'opacity-70' : ''}`}
     >
-      <div className="aspect-[4/3] w-full bg-slate-100 overflow-hidden relative">
+      <div className="aspect-[3/4] w-full bg-slate-100 overflow-hidden relative">
         {item.imageUrl ? (
           <img src={item.imageUrl} alt={item.name} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${!item.isAvailable ? 'grayscale-[60%]' : ''}`} />
         ) : (
@@ -44,7 +46,7 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/50 pointer-events-none" />
 
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 items-start">
@@ -66,7 +68,7 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
           )}
           {!item.isAvailable && (
             <span className="bg-slate-800/80 backdrop-blur-sm text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-              Hết hàng
+              {t('customer.menu.outOfStock', 'Hết hàng')}
             </span>
           )}
         </div>
@@ -99,6 +101,7 @@ function VerticalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) 
 
 // ─── Horizontal (Regular) Card ─────────────────────────────────────────────
 function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem) => void }) {
+  const { t } = useTranslation()
   const { isExpired, isScheduleActive, getActiveScheduleEndTime } = useServerTime(10000)
   
   const isSaleExpired = item.saleEndAt ? isExpired(item.saleEndAt) : false
@@ -160,7 +163,7 @@ function HorizontalCard({ item, onAdd }: { item: IMenuItem; onAdd: (i: IMenuItem
             )}
           </div>
           {!item.isAvailable ? (
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Hết hàng</span>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{t('customer.menu.outOfStock', 'Hết hàng')}</span>
           ) : (
             <button
               onClick={e => { e.stopPropagation(); onAdd(item) }}

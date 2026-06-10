@@ -1,4 +1,4 @@
-import { Plus, Minus, X, Check, Flame, Snowflake, Coffee, Star } from 'lucide-react'
+import { Plus, Minus, X, Check, Flame, Snowflake, Coffee, Star, UtensilsCrossed } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { IMenuItem } from '@/pages/admin/menu/types/adminMenu.type'
 import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
@@ -67,24 +67,24 @@ export function ItemModifierModal({
         onClick={onClose}
       />
 
-      <div className="relative bg-surface rounded-3xl shadow-2xl w-full max-w-3xl flex overflow-hidden animate-in zoom-in-95 duration-250 max-h-[90vh] ring-1 ring-outline-variant/30">
+      <div className="relative bg-surface rounded-xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden animate-in zoom-in-95 duration-250 h-[90vh] md:h-[85vh] max-h-[800px] min-h-[600px] ring-1 ring-outline-variant/30">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 size-8 flex items-center justify-center rounded-full bg-surface hover:bg-surface-variant text-on-surface transition-all shadow-md ring-1 ring-outline-variant/30"
+        >
+          <X className="size-4" />
+        </button>
+
         {/* ── LEFT: Image + Item Info ── */}
-        <div className="w-80 shrink-0 flex flex-col bg-surface-container-lowest">
-          <div className="relative h-64 shrink-0 overflow-hidden bg-surface-container">
+        <div className="w-full md:w-[400px] shrink-0 flex flex-col bg-surface-container-lowest border-b md:border-b-0 md:border-r border-outline-variant/30">
+          <div className="relative h-80 shrink-0 overflow-hidden bg-surface-container hidden md:block">
             <ImageWithFallback
               src={item.imageUrl || ''}
               alt={item.name}
               fallback="https://placehold.co/400x400/f1f5f9/94a3b8?text=No+Image"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 z-10 size-8 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white transition-all border border-white/10"
-            >
-              <X className="size-4" />
-            </button>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
             {hasSale && (
               <span className="absolute bottom-3 left-3 z-10 bg-error text-on-error text-[11px] font-black px-2.5 py-1 rounded-full shadow-md">
@@ -93,8 +93,8 @@ export function ItemModifierModal({
             )}
           </div>
 
-          <div className="flex flex-col flex-1 p-5 gap-3">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col shrink-0 md:flex-1 p-4 md:p-5 gap-2 md:gap-3">
+            <div className="hidden md:flex flex-wrap items-center gap-2">
               {item.categoryName && (
                 <span className="text-[11px] font-semibold text-outline uppercase tracking-wide">
                   {item.categoryName}
@@ -119,7 +119,7 @@ export function ItemModifierModal({
             </h3>
 
             {item.description && (
-              <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3">
+              <p className="hidden md:block text-sm text-on-surface-variant leading-relaxed line-clamp-3">
                 {item.description}
               </p>
             )}
@@ -138,11 +138,11 @@ export function ItemModifierModal({
         </div>
 
         {/* ── RIGHT: Options + Note + Footer ── */}
-        <div className="flex-1 flex flex-col min-w-0 border-l border-outline-variant/30">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 pt-4 md:pt-14 space-y-6 scrollbar-hide">
             {!hasGroups && (
-              <div className="flex flex-col items-center justify-center h-full gap-2 text-on-surface-variant py-8">
-                <span className="text-4xl">🍽️</span>
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-outline py-12">
+                <UtensilsCrossed className="size-12 stroke-1" />
                 <p className="text-sm font-medium">{t('pos.menu.modifier.noOptions', 'Món này không có tuỳ chọn thêm')}</p>
               </div>
             )}
@@ -172,7 +172,7 @@ export function ItemModifierModal({
                       <button
                         key={opt.id}
                         onClick={() => handleToggleOption(group, opt.id!)}
-                        className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`flex items-center justify-between p-3.5 rounded-lg border-2 transition-all text-left ${
                           isSelected
                             ? 'bg-primary/5 border-primary shadow-sm'
                             : 'bg-surface-container-lowest border-outline-variant/40 hover:border-outline hover:bg-surface-container'
@@ -204,24 +204,29 @@ export function ItemModifierModal({
               </div>
             ))}
 
-            <div className="space-y-2 pt-2 border-t border-outline-variant/30">
-              <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wide">
-                {t('pos.menu.modifier.specialNote', 'Ghi chú')}
-              </h4>
-              <Textarea
-                placeholder={t('pos.menu.modifier.notePlaceholder', 'Vd: Ít đường, không đá, không cay...')}
-                value={note}
-                onChange={e => setNote(e.target.value)}
-                className="!bg-surface-container-lowest !border-2 !border-outline-variant/40 focus-within:!border-primary/60 !text-on-surface resize-none"
-              />
-            </div>
           </div>
 
-          <div className="shrink-0 p-5 border-t border-outline-variant/30 bg-surface-container-lowest flex items-center gap-4">
-            <div className="flex items-center bg-surface-container rounded-2xl p-1 gap-1 ring-1 ring-outline-variant/30">
+          {/* ── Fixed Note & Footer ── */}
+          <div className="shrink-0 flex flex-col bg-surface-container-lowest border-t border-outline-variant/30">
+            <div className="p-5 pb-0">
+              <div className="space-y-2">
+                <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wide">
+                  {t('pos.menu.modifier.specialNote', 'Ghi chú')}
+                </h4>
+                <Textarea
+                  placeholder={t('pos.menu.modifier.notePlaceholder', 'Vd: Ít đường, không đá, không cay...')}
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  className="!bg-surface-container-lowest !border-2 !border-outline-variant/40 focus-within:!border-primary/60 !text-on-surface resize-none min-h-[80px]"
+                />
+              </div>
+            </div>
+
+            <div className="p-5 flex items-center gap-4">
+            <div className="flex items-center bg-surface-container rounded-lg p-1 gap-1 ring-1 ring-outline-variant/30">
               <button
                 onClick={handleDecreaseQuantity}
-                className="size-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
+                className="size-9 rounded-md bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
               >
                 <Minus className="size-4 stroke-2" />
               </button>
@@ -230,7 +235,7 @@ export function ItemModifierModal({
               </span>
               <button
                 onClick={handleIncreaseQuantity}
-                className="size-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
+                className="size-9 rounded-md bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
               >
                 <Plus className="size-4 stroke-2" />
               </button>
@@ -240,7 +245,7 @@ export function ItemModifierModal({
               size="lg"
               onClick={handleAdd}
               disabled={!isValid}
-              className="flex-1 rounded-2xl font-bold py-3 flex items-center justify-between px-5 shadow-md hover:shadow-lg transition-all"
+              className="flex-1 rounded-xl font-bold py-4 flex items-center justify-between px-5 shadow-md hover:shadow-lg transition-all"
             >
               <span className="text-base">{t('pos.menu.modifier.addToCart', 'Thêm vào giỏ')}</span>
               <span className="text-base font-black">{formatPrice(totalPrice)}</span>
@@ -248,6 +253,7 @@ export function ItemModifierModal({
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

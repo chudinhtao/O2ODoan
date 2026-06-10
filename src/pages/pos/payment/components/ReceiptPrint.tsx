@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IOrder } from '@/pages/admin/orders/types/order.type'
+import { useStoreProfile } from '@/shared/hooks/useStoreProfile'
 
 interface ReceiptPrintProps {
   order: IOrder
@@ -8,12 +9,15 @@ interface ReceiptPrintProps {
   cashGiven?: number
   paymentMethod?: string
   paymentDetail?: Record<string, number> | null
+  excessDeposit?: number
 }
 
 // Chuyên dùng để in ra máy in nhiệt 80mm
 export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
-  ({ order, items, cashGiven = 0, paymentMethod, paymentDetail }, ref) => {
+  ({ order, items, cashGiven = 0, paymentMethod, paymentDetail, excessDeposit = 0 }, ref) => {
     const { t } = useTranslation()
+    const { data: profile } = useStoreProfile()
+    
     return (
       <div
         ref={ref}
@@ -21,16 +25,22 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
         style={{ color: 'black' }}
       >
         <div className="text-center mb-6">
-          <h2 className="text-xl font-bold mb-1 uppercase tracking-wider text-black">SUNTIME CAFE</h2>
-          <p className="text-sm text-black">123 Street Name, City</p>
-          <p className="text-sm text-black">Tel: 0123 456 789</p>
+          <h2 className="text-xl font-bold mb-1 uppercase tracking-wider text-black">
+            {profile?.name || 'SUNTIME CAFE'}
+          </h2>
+          <p className="text-sm text-black">{profile?.address || '123 Street Name, City'}</p>
+          <p className="text-sm text-black">Tel: {profile?.phone || '0123 456 789'}</p>
         </div>
 
         <div className="text-center mb-4 border-b border-black/20 pb-4">
           <h3 className="text-lg font-bold mb-2 text-black">{t('pos.payment.receiptTitle', 'PHIẾU THANH TOÁN')}</h3>
           <p className="text-sm text-black">{t('pos.payment.receiptTable', 'Bàn:')} <span className="font-bold">{order.tableNumber}</span></p>
           <p className="text-sm text-black">{t('pos.payment.receiptInvoice', 'Hóa đơn:')} #{order.id ? order.id.split('-')[0].toUpperCase() : t('pos.payment.newOrder', 'MỚI')}</p>
+          <p className="text-sm text-black">{t('pos.payment.receiptOrderType', 'Loại đơn:')} <span className="font-bold">{order.orderType === 'TAKEAWAY' ? t('pos.payment.takeaway', 'MANG ĐI') : t('pos.payment.dineIn', 'TẠI BÀN')}</span></p>
           <p className="text-sm text-black">{t('pos.payment.receiptDate', 'Ngày:')} {order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN')}</p>
+          {order.cashierId && (
+            <p className="text-sm text-black">{t('pos.payment.receiptCashier', 'Thu ngân:')} {order.cashierId.split('-')[0].toUpperCase()}</p>
+          )}
         </div>
 
         <table className="w-full text-sm mb-4 border-b border-black/20 pb-4">
@@ -62,10 +72,22 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
             <span>{t('pos.payment.receiptSubtotal', 'Tạm tính:')}</span>
             <span>{order.subtotal.toLocaleString('vi-VN')}đ</span>
           </div>
-          {order.subtotal > order.total && (
+          {(order.depositAmount || 0) > 0 && (
+            <div className="flex justify-between text-sm text-black">
+              <span>Tiền cọc:</span>
+              <span>-{(order.depositAmount || 0).toLocaleString('vi-VN')}đ</span>
+            </div>
+          )}
+          {(order.discount || 0) > 0 && (
             <div className="flex justify-between text-sm text-black">
               <span>{t('pos.payment.receiptDiscount', 'Giảm giá:')}</span>
-              <span>-{(order.subtotal - order.total).toLocaleString('vi-VN')}đ</span>
+              <span>-{(order.discount || 0).toLocaleString('vi-VN')}đ</span>
+            </div>
+          )}
+          {order.tax !== undefined && order.tax > 0 && (
+            <div className="flex justify-between text-sm text-black">
+              <span>{t('pos.payment.receiptTax', 'Thuế VAT:')}</span>
+              <span>{order.tax.toLocaleString('vi-VN')}đ</span>
             </div>
           )}
           <div className="flex justify-between text-lg font-bold mt-2 text-black">
@@ -94,10 +116,16 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
                 </div>
                 <div className="flex justify-between text-sm text-black">
                   <span>{t('pos.payment.receiptChange', 'Tiền thừa:')}</span>
-                  <span>{Math.max(0, cashGiven - order.total).toLocaleString('vi-VN')}đ</span>
+                  <span>{(Math.max(0, cashGiven - order.total) + excessDeposit).toLocaleString('vi-VN')}đ</span>
                 </div>
               </>
             )
+          )}
+          {excessDeposit > 0 && !(cashGiven > 0) && (
+            <div className="flex justify-between text-sm text-black mt-2 font-bold">
+              <span>{t('pos.payment.excessDeposit', 'Tiền cọc thừa cần hoàn:')}</span>
+              <span>{excessDeposit.toLocaleString('vi-VN')}đ</span>
+            </div>
           )}
         </div>
 

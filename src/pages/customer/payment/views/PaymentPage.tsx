@@ -67,7 +67,7 @@ export default function CustomerPaymentPage() {
         <div className="bg-red-50 p-6 rounded-2xl border border-red-100 max-w-sm w-full">
           <Ban size={40} className="text-red-400 mx-auto mb-3" />
           <h1 className="text-base font-black text-red-700 mb-2">{errorMsg}</h1>
-          <p className="text-sm text-red-400 mb-5">Vui lòng quét mã QR mới tại bàn.</p>
+          <p className="text-sm text-red-400 mb-5">{t('customer.menu.error.pleaseRescan', 'Vui lòng quét mã QR mới tại bàn.')}</p>
           <button onClick={() => navigate('/')} className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors">
             {t('customer.payment.backToHome', 'Về trang chủ')}
           </button>
@@ -242,8 +242,8 @@ export default function CustomerPaymentPage() {
                       <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center mb-3">
                         <QrCode size={30} className="text-guest-primary" />
                       </div>
-                      <p className="text-sm font-black text-slate-700 mb-1">Thanh toán an toàn qua PayOS</p>
-                      <p className="text-xs text-slate-500 mb-4 px-2">Hệ thống sẽ chuyển hướng bạn đến cổng thanh toán bảo mật để quét mã VietQR tự động.</p>
+                      <p className="text-sm font-black text-slate-700 mb-1">{t('customer.payment.payosSafe', 'Thanh toán an toàn qua PayOS')}</p>
+                      <p className="text-xs text-slate-500 mb-4 px-2">{t('customer.payment.payosDesc', 'Hệ thống sẽ chuyển hướng bạn đến cổng thanh toán bảo mật để quét mã VietQR tự động.')}</p>
                       
                       <button
                         onClick={handleRequestPayment}
@@ -251,8 +251,8 @@ export default function CustomerPaymentPage() {
                         className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-guest-primary to-orange-500 text-white font-bold text-sm hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.98] transition-all disabled:opacity-60"
                       >
                         {createPayOSLinkMutation.isPending
-                          ? <><Loader2 size={18} className="animate-spin" /> Đang tạo mã...</>
-                          : <><QrCode size={18} strokeWidth={2.5} /> Tiến hành Thanh toán ({fmt(order.total)}đ)</>
+                          ? <><Loader2 size={18} className="animate-spin" /> {t('customer.payment.creatingCode', 'Đang tạo mã...')}</>
+                          : <><QrCode size={18} strokeWidth={2.5} /> {t('customer.payment.proceedToPay', 'Tiến hành Thanh toán')} ({fmt(order.total)}đ)</>
                         }
                       </button>
                     </div>

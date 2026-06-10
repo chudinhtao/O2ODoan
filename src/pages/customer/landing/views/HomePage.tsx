@@ -7,7 +7,7 @@ import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { StaffSupportModal } from '../components/StaffSupportModal'
 import { RecentOrderSummary } from '../components/RecentOrderSummary'
 import { useTranslation } from 'react-i18next'
-import { QrCode, AlertTriangle, Coffee } from 'lucide-react'
+import { QrCode, AlertTriangle, Coffee, ChevronRight, Banknote, UtensilsCrossed, CheckCircle2, Ban } from 'lucide-react'
 import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
 import http from '@/services/interceptor'
@@ -164,32 +164,38 @@ export default function CustomerLandingPage() {
         <div className="relative h-52 w-full overflow-hidden">
           <img src={heroBanner} alt="Hero" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute bottom-5 left-5 z-10">
+          <div className="absolute bottom-10 left-5 z-10">
             <h2 className="text-white text-3xl font-black leading-tight tracking-tight drop-shadow-md">
               {storeName}
             </h2>
             <p className="text-white/80 text-sm font-medium mt-0.5">{storeSlogan}</p>
           </div>
-          {/* "Order now" pill */}
-          <button
-            onClick={() => navigate(`/menu?t=${sessionToken}`)}
-            className="absolute bottom-5 right-5 bg-gradient-to-r from-[#ff7a00] to-[#ff5000] text-white text-xs font-black px-4 py-2 rounded-full shadow-lg active:scale-95 transition-all"
-          >
-            Gọi món
-          </button>
         </div>
 
         {/* ── Status card ── */}
         <div className="px-4 -mt-5 relative z-10">
-          <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] p-4 border border-slate-100 flex items-center gap-4">
+          <div 
+            onClick={() => {
+              if (sessionOrder?.status === 'PAYMENT_REQUESTED') navigate(`/payment?t=${sessionToken}`)
+              else navigate(`/tracking?t=${sessionToken}`)
+            }}
+            className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] p-4 border border-slate-100 flex items-center gap-4 cursor-pointer active:scale-95 transition-all"
+          >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-              sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-100' : 'bg-orange-100'
+              sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-100' : 
+              sessionOrder?.status === 'PAID' ? 'bg-emerald-100' :
+              sessionOrder?.status === 'CANCELLED' ? 'bg-red-100' :
+              'bg-orange-100'
             }`}>
-              <span className={`material-symbols-outlined text-xl ${
-                sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'text-amber-500' : 'text-guest-primary'
-              }`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                {sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'payments' : 'restaurant'}
-              </span>
+              {sessionOrder?.status === 'PAYMENT_REQUESTED' ? (
+                <Banknote size={20} className="text-amber-500" strokeWidth={2.5} />
+              ) : sessionOrder?.status === 'PAID' ? (
+                <CheckCircle2 size={20} className="text-emerald-500" strokeWidth={2.5} />
+              ) : sessionOrder?.status === 'CANCELLED' ? (
+                <Ban size={20} className="text-red-500" strokeWidth={2.5} />
+              ) : (
+                <UtensilsCrossed size={20} className="text-guest-primary" strokeWidth={2.5} />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               {isSessionLoading ? (
@@ -199,24 +205,41 @@ export default function CustomerLandingPage() {
                 </>
               ) : (
                 <>
-                  <p className="font-black text-slate-900 text-sm leading-snug">
-                    {sessionOrder?.status === 'PAYMENT_REQUESTED' ? t('customer.home.waitingPayment') : t('customer.home.tableOpened')}
-                  </p>
-                  <p className="text-slate-400 text-xs font-medium mt-0.5">
-                    {sessionOrder?.status === 'PAYMENT_REQUESTED' ? t('customer.home.pleasePay') : t('customer.home.sessionActive')}
+                  <div className="flex justify-between items-center mb-0.5">
+                    <p className="font-black text-slate-900 text-sm leading-snug truncate pr-2">
+                      {sessionOrder?.status === 'PAYMENT_REQUESTED' 
+                        ? t('customer.home.waitingPayment', { defaultValue: 'Chờ thanh toán' }) 
+                        : sessionOrder?.status === 'PAID'
+                        ? 'Đã thanh toán hoàn tất'
+                        : sessionOrder?.status === 'CANCELLED'
+                        ? 'Bàn đã bị hủy'
+                        : t('customer.home.tableOpened', { defaultValue: 'Bàn đang mở' }) + (sessionOrder?.tableNumber ? ` - Bàn ${sessionOrder.tableNumber}` : '')}
+                    </p>
+                    <ChevronRight size={16} className="text-slate-400 shrink-0" />
+                  </div>
+                  <p className="text-slate-500 text-xs font-medium">
+                    {sessionOrder?.status === 'PAYMENT_REQUESTED' 
+                      ? t('customer.home.pleasePay', { defaultValue: 'Bấm để xem hóa đơn' }) 
+                      : sessionOrder?.status === 'PAID'
+                      ? 'Cảm ơn quý khách!'
+                      : sessionOrder?.status === 'CANCELLED'
+                      ? 'Vui lòng liên hệ nhân viên'
+                      : (sessionOrder?.tickets?.length ? `Bạn đã đặt ${sessionOrder.tickets.reduce((acc: number, t: any) => acc + t.items.length, 0)} món` : t('customer.home.sessionActive', { defaultValue: 'Bấm để xem trạng thái đơn' }))}
                   </p>
                 </>
               )}
             </div>
             {/* Pulse indicator */}
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-70 ${
-                sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-400' : 'bg-guest-primary'
-              }`} />
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-500' : 'bg-guest-primary'
-              }`} />
-            </span>
+            {sessionOrder?.status !== 'PAID' && sessionOrder?.status !== 'CANCELLED' && (
+              <span className="relative flex h-2.5 w-2.5 shrink-0 ml-1">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-70 ${
+                  sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-400' : 'bg-guest-primary'
+                }`} />
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                  sessionOrder?.status === 'PAYMENT_REQUESTED' ? 'bg-amber-500' : 'bg-guest-primary'
+                }`} />
+              </span>
+            )}
           </div>
         </div>
 

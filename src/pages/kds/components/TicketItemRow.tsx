@@ -1,6 +1,8 @@
 import { IKdsTicketItem } from '../types/kds.type';
+import { useState } from 'react';
 import { CheckSquare, Square, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 
 interface Props {
   item: IKdsTicketItem;
@@ -13,31 +15,41 @@ interface Props {
 
 export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelRequest, isLoading, isTicketPending }: Props) => {
   const { t } = useTranslation();
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const isDone = item.status === 'DONE' || item.status === 'SERVED';
   const isCancelled = item.status === 'CANCELLED' || item.status === 'RETURNED';
 
   const isPreparing = item.status === 'PREPARING';
 
   const handleClick = () => {
-    if (isLoading || isCancelled || isDone || isTicketPending) return;
+    if (isLoading || isCancelled || isTicketPending) return;
     if (item.status === 'PENDING') {
       onStatusChange(item.id, 'PREPARING');
     } else if (item.status === 'PREPARING') {
       onStatusChange(item.id, 'DONE');
+    } else if (item.status === 'DONE') {
+      onStatusChange(item.id, 'PREPARING'); // Revert back to preparing
     }
   };
 
   const handleCancel = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isLoading || isCancelled || isDone || !onItemCancelRequest || !orderId || isTicketPending) return;
-    onItemCancelRequest(orderId, item.id, 'Hết nguyên liệu');
+    setIsCancelConfirmOpen(true);
+  };
+
+  const confirmCancel = () => {
+    if (!onItemCancelRequest || !orderId) return;
+    onItemCancelRequest(orderId, item.id, t('kds.actions.rejectReasonItem', 'Hết nguyên liệu'));
+    setIsCancelConfirmOpen(false);
   };
 
   // Nếu bị huỷ, cho hiển thị màu đỏ mờ thay vì xám mờ như Done
   return (
-    <div 
-      onClick={handleClick}
-      className={`
+    <>
+      <div 
+        onClick={handleClick}
+        className={`
         flex items-start gap-4 py-2 px-1 transition-all duration-300 rounded-lg
         ${(isLoading || isTicketPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-700/50'}
         ${isDone ? 'opacity-50 grayscale' : ''}
@@ -67,7 +79,7 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
 
             {item.kitchenAlertSent && !isCancelled && !isDone && (
               <span className="inline-block mt-1 text-[11px] font-black px-2 py-0.5 rounded uppercase bg-red-500/20 text-red-500 border border-red-500/30 animate-pulse">
-                QUÁ LÂU!
+                {t('kds.item.status.overdue', 'QUÁ LÂU!')}
               </span>
             )}
 
@@ -117,7 +129,20 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
             * {item.note}
           </div>
         )}
+        </div>
       </div>
-    </div>
+
+      <ConfirmDialog
+        isOpen={isCancelConfirmOpen}
+        onCancel={() => setIsCancelConfirmOpen(false)}
+        onConfirm={confirmCancel}
+        title={t('kds.actions.cancel', 'HỦY MÓN')}
+        description={t('kds.confirm.cancelItem', { name: item.itemName, defaultValue: `Bạn có chắc chắn muốn báo hết và HỦY món "${item.itemName}" không?` })}
+        confirmText={t('kds.actions.cancel', 'HỦY MÓN')}
+        cancelText={t('common.cancel', 'Hủy')}
+        variant="danger"
+        isLoading={isLoading}
+      />
+    </>
   );
 };

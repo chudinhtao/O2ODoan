@@ -22,7 +22,9 @@ export interface IOrderTicketItem {
   note: string | null
   status: OrderTicketItemStatus
   station: string
+  imageUrl?: string
   createdAt: string
+  servedAt?: string
   options: IOrderItemOption[]
   isAlertSent?: boolean
   kitchenAlertSent?: boolean
@@ -48,13 +50,32 @@ export interface IOrder {
   status: OrderStatus
   source: OrderSource
   orderType: OrderType
+  customerName?: string | null
+  customerPhone?: string | null
   subtotal: number
+  depositAmount?: number
   discount?: number
+  discountType?: string
+  discountRate?: number
+  tax?: number
+  serviceFee?: number
   total: number
   promotionId?: string | null
   promotionCode?: string | null
+  paymentMethod?: string
+  paymentDetail?: string
+  payosOrderCode?: number | null
+  paidAt?: string | null
+  cashierId?: string | null
+  cancelledBy?: string | null
+  cancelReason?: string | null
+  minOrderAmount?: number
+  maxDiscountValue?: number
+  isStackable?: boolean
   createdAt: string
+  updatedAt: string
   tickets: IOrderTicket[]
+  summaryItems?: any[]
 }
 
 export interface OrderFiltersParams {
@@ -63,9 +84,21 @@ export interface OrderFiltersParams {
   sort?: string
   status?: OrderStatus | ''
   source?: OrderSource | ''
+  orderType?: OrderType | ''
+  paymentMethod?: string
   search?: string
   startDate?: string
   endDate?: string
 }
 
 export type IOrderPageResponse = IPageResponse<IOrder>
+
+export interface IAuditLog {
+  id: string
+  orderId: string
+  actionName: string
+  details?: string
+  userId: string
+  role: string
+  createdAt: string
+}

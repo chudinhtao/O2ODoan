@@ -131,14 +131,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             disabled={disabled}
             onClick={() => !disabled && setIsOpen(!isOpen)}
             className={[
-              'w-full py-2.5 pr-10 bg-white border rounded-xl text-sm shadow-sm transition-all focus:outline-none flex items-center justify-between text-left',
+              'w-full py-2.5 pr-10 bg-white border rounded-lg text-sm text-slate-800 shadow-sm transition-all focus:outline-none flex items-center justify-between text-left',
               props.icon ? 'pl-9' : 'pl-4',
               error ? 'border-red-500 ring-2 ring-red-500/20' : isOpen ? 'border-primary ring-2 ring-primary/20' : 'border-slate-200',
               disabled ? 'cursor-not-allowed opacity-60 bg-slate-50' : 'cursor-pointer hover:border-slate-300',
               className || ''
             ].join(' ')}
           >
-            <span className={`block truncate ${!currentOption ? 'text-slate-400' : 'text-slate-800'}`}>
+            <span className={`block truncate ${!currentOption ? '!text-slate-400' : ''}`}>
               {currentOption ? currentOption.label : '...'}
             </span>
             <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-primary' : ''}`}>
@@ -148,7 +148,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           
           {/* Custom Dropdown Options Menu */}
           {isOpen && options && (
-            <div className={`absolute ${placement === 'top' ? 'bottom-[calc(100%+4px)] origin-bottom' : 'top-[calc(100%+4px)] origin-top'} left-0 z-50 w-full bg-white border border-slate-200 rounded-xl shadow-xl py-2 max-h-60 overflow-y-auto filter drop-shadow-md animate-in fade-in zoom-in-95 duration-100`}>
+            <div className={`absolute ${placement === 'top' ? 'bottom-[calc(100%+4px)] origin-bottom' : 'top-[calc(100%+4px)] origin-top'} left-0 z-[100] w-full bg-white border border-slate-200 rounded-lg shadow-xl py-2 max-h-60 overflow-y-auto filter drop-shadow-md animate-in fade-in zoom-in-95 duration-100`}>
               {options.map((opt) => {
                 const isSelected = String(opt.value) === String(selectedValue)
                 return (

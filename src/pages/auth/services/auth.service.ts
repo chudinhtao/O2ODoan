@@ -16,5 +16,9 @@ export const authService = {
   getMe: async (): Promise<IUser> => {
     const res = await http.get<IApiResponse<IUser>>(API_ROUTES.auth.me)
     return res.data.data
+  },
+  logout: async () => {
+    const res = await http.post<IApiResponse<void>>(API_ROUTES.auth.logout)
+    return res.data
   }
 }

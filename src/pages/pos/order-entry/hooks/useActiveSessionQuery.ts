@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import http from '@/services/interceptor'
 import { IApiResponse } from '@/shared/types/IApiResponse'
 import { unwrapApiData } from '@/shared/utils/apiResponse'
+import { ITakeawayRequest } from '../types/posOrder.type'
 
 interface ActiveSessionData {
   sessionToken: string
@@ -20,8 +21,8 @@ export function useActiveSessionQuery(tableId?: string) {
 
 export function useTakeawaySessionMutation() {
   return useMutation({
-    mutationFn: async () => {
-      return http.post<IApiResponse<ActiveSessionData>>('/sessions/open/takeaway').then(unwrapApiData)
+    mutationFn: async (payload?: ITakeawayRequest) => {
+      return http.post<IApiResponse<ActiveSessionData>>('/sessions/open/takeaway', payload || {}).then(unwrapApiData)
     }
   })
 }

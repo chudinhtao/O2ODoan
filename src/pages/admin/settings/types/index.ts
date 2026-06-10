@@ -6,6 +6,9 @@ export interface IProfileData {
   bannerUrl: string
   address: string
   phone: string
+  openTime?: string
+  closeTime?: string
+  localCultureNotes?: string
 }
 
 export interface IProfileRequest {
@@ -15,4 +18,7 @@ export interface IProfileRequest {
   bannerUrl: string
   address: string
   phone: string
+  openTime?: string
+  closeTime?: string
+  localCultureNotes?: string
 }

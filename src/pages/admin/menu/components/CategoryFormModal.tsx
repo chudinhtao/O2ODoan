@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useCategoryForm } from '../hooks/useCategoryForm'
 import { Button } from '@/shared/components/ui/Button'
 import { Input } from '@/shared/components/ui/Input'
+import { NumberInput } from '@/shared/components/ui/NumberInput'
 import { Controller } from 'react-hook-form'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 
@@ -64,17 +65,28 @@ export function CategoryFormModal({ isOpen, onClose, categoryId }: Props) {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 uppercase tracking-wide px-1">
-                {t('admin.categories.form.displayOrder')}
-              </label>
-              <Input 
-                {...register('displayOrder', { valueAsNumber: true })}
-                type="number" 
-                className="!bg-white !py-3 !px-4 !rounded-xl border border-slate-200 outline-none focus:!ring-4 focus:!ring-primary/10 focus:!border-primary transition-all !shadow-sm" 
-                placeholder="0"
-                error={errors.displayOrder as any}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide px-1">
+                  {t('admin.categories.form.displayOrder')}
+                </label>
+                <NumberInput 
+                  {...register('displayOrder', { valueAsNumber: true })}
+                  placeholder="0"
+                  error={errors.displayOrder as any}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide px-1">
+                  {t('admin.categories.form.taxRate', 'Thuế suất (%)')} <span className="text-red-500">*</span>
+                </label>
+                <NumberInput 
+                  {...register('taxRate', { valueAsNumber: true })}
+                  placeholder="8"
+                  suffix="%"
+                  error={errors.taxRate as any}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

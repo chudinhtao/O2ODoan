@@ -1,6 +1,7 @@
 import { Coffee } from 'lucide-react'
 import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { useTranslation } from 'react-i18next'
+import { useStoreProfile } from '@/shared/hooks/useStoreProfile'
 
 interface InvoiceCardProps {
   order: IOrder
@@ -10,6 +11,7 @@ const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
 export function InvoiceCard({ order }: InvoiceCardProps) {
   const { t } = useTranslation()
+  const { data: profile } = useStoreProfile()
 
   // Aggregate items — skip CANCELLED / RETURNED
   const itemsMap: Record<string, { name: string; quantity: number; lineTotal: number }> = {}
@@ -37,9 +39,9 @@ export function InvoiceCard({ order }: InvoiceCardProps) {
           <Coffee size={22} className="text-white" strokeWidth={2} />
         </div>
         <div className="text-white">
-          <h2 className="font-black text-lg leading-tight">{t('customer.invoice.brand')}</h2>
+          <h2 className="font-black text-lg leading-tight">{profile?.name || t('customer.invoice.brand')}</h2>
           <p className="text-white/70 text-xs font-medium mt-0.5">
-            #{order.id.slice(0, 6).toUpperCase()} · {new Date(order.createdAt).toLocaleDateString('vi-VN')} · Bàn {order.tableNumber}
+            #{order.id.slice(0, 6).toUpperCase()} · {new Date(order.createdAt).toLocaleDateString('vi-VN')} · {t('customer.menu.table', 'Bàn')} {order.tableNumber}
           </p>
         </div>
       </div>
@@ -48,7 +50,7 @@ export function InvoiceCard({ order }: InvoiceCardProps) {
         {/* Items list */}
         <div className="space-y-2.5">
           {aggregated.length === 0 ? (
-            <p className="text-slate-400 text-sm text-center py-3">Chưa có món nào</p>
+            <p className="text-slate-400 text-sm text-center py-3">{t('customer.cart.emptyTitle', 'Chưa có món nào')}</p>
           ) : aggregated.map((item, idx) => (
             <div key={idx} className="flex justify-between items-center">
               <div className="flex items-center gap-2 min-w-0">
@@ -95,7 +97,7 @@ export function InvoiceCard({ order }: InvoiceCardProps) {
           </div>
           <div className="text-right mt-1">
             <span className="text-[10px] text-slate-400 font-medium italic">
-              (Giá đã bao gồm {fmt(Math.round(order.total - (order.total / 1.08)))}đ thuế VAT 8%)
+              {t('customer.cart.taxIncluded', '(Giá đã bao gồm VAT)')}
             </span>
           </div>
         </div>

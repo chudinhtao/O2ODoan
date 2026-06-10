@@ -6,6 +6,7 @@ import { useKdsSocket } from '../hooks/useKdsSocket';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { IKdsTicket } from '../types/kds.type';
 import { Flame, Snowflake, Coffee } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /** Danh sách các trạm bếp có thể chọn */
 const STATIONS = [
@@ -26,9 +27,9 @@ const loadStations = (): string[] => {
 };
 
 export const KdsPage = () => {
+  const { t } = useTranslation();
   const { tickets, isLoading, updateItemStatus, updateTicketStatus, cancelOrderItem } = useKdsQuery();
   const { isConnected } = useKdsSocket();
-  const [showFilter, setShowFilter] = useState(false);
 
   // Phase 3: Station filter — lưu vào localStorage để Tablet nhớ qua lần tắt/mở
   const [activeStations, setActiveStations] = useState<string[]>(loadStations);
@@ -60,40 +61,16 @@ export const KdsPage = () => {
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col font-['Inter'] text-slate-100">
       <KdsHeader 
-        stations={STATIONS}
+        stations={STATIONS.map(s => ({ ...s, label: t(`kds.stations.${s.key}`, s.label) }))}
         activeStations={activeStations}
         onToggleStation={toggleStation}
         isConnected={isConnected}
-        onToggleFilter={() => setShowFilter(v => !v)}
       />
-
-      {/* Mobile Station Filter Panel */}
-      {showFilter && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-slate-800 px-4 py-4 flex gap-3 flex-wrap shadow-2xl md:hidden border-b border-slate-700">
-          {STATIONS.map(s => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.key}
-                onClick={() => toggleStation(s.key)}
-                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all shadow-sm flex items-center gap-2 ${
-                  activeStations.includes(s.key)
-                    ? 'text-white border-transparent ' + s.color
-                    : 'text-slate-300 border-slate-700 bg-slate-900/50'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {s.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* Active Station Badge */}
       {activeStations.length === 0 && (
         <div className="fixed top-16 left-0 right-0 z-30 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold text-center py-2 shadow-lg">
-          ⚠️ Chưa chọn trạm bếp nào. Hãy chọn ít nhất 1 trạm để hiển thị món ăn.
+          {t('kds.grid.noStationSelected', '⚠️ Chưa chọn trạm bếp nào. Hãy chọn ít nhất 1 trạm để hiển thị món ăn.')}
         </div>
       )}
 

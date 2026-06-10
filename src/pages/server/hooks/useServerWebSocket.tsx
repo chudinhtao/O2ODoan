@@ -30,7 +30,8 @@ export const useServerWebSocket = () => {
         }
 
         if (payload.cancelledItems) {
-          toast.error(t('server.alert_cancel', { number: payload.tableNumber }), { duration: 8000, icon: <AlertOctagon className="size-5 text-white" /> });
+          // Chuông đen đỏ (Hủy món)
+          toast.error(payload.message || t('server.alert_cancel', { number: payload.tableNumber }), { duration: 8000, icon: <AlertOctagon className="size-5 text-white" /> });
         } else if (isUrgent) {
           // Chuông đỏ (Spillover/Radar)
           toast(payload.message || t('server.alert_urgent'), { icon: <AlertTriangle className="size-5 text-red-500" />, duration: 5000 });

@@ -6,16 +6,25 @@ import { format } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import type { IPromotionForm } from '../types/adminPromotion.type'
 import { useCreatePromotion, useUpdatePromotion, usePromotionById } from './usePromotions'
-import { useAdminCategories, useAdminMenuItems } from '../../menu/hooks/useMenuQueries'
+import { useAdminCategories } from '../../menu/hooks/useMenuQueries'
 import { timeService } from '@/services/time.service'
 import { useServerTime } from '@/shared/hooks/useServerTime'
 
 // ─── Zod Schema ────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createPromotionSchema = (t: any) => {
-  const optNum = z.union([z.number(), z.string(), z.undefined(), z.null()])
-    .transform(v => (v === '' || v === null || v === undefined || Number.isNaN(Number(v)) ? undefined : Number(v)))
+  const parseNum = (v: unknown) => {
+    if (v === '' || v === null || v === undefined) return undefined
+    const n = Number(v)
+    if (Number.isNaN(n)) return undefined
+    return n
+  }
+
+  const optNum = z.preprocess(parseNum, z.number().optional())
     .refine(v => v === undefined || v >= 0, { message: t('admin.promotion.validation.positiveNumber', 'Giá trị phải >= 0') })
+
+  const reqNum = z.preprocess((v) => parseNum(v) ?? 0, z.number())
 
   return z.object({
     name: z.string().min(1, t('admin.promotion.validation.requiredName', 'Tên không được để trống')),
@@ -29,19 +38,19 @@ export const createPromotionSchema = (t: any) => {
     discountType: z.enum(['PERCENT', 'FIX_AMOUNT', 'FIX_PRICE'], {
       message: t('admin.promotion.validation.invalidDiscountType', 'Loại giảm giá không hợp lệ')
     }),
-    discountValue: optNum.refine((v) => v !== undefined, { message: t('admin.promotion.validation.greaterThanZero', 'Bắt buộc nhập số') }),
+    discountValue: reqNum.refine((v) => v >= 0, { message: t('admin.promotion.validation.greaterThanZero', 'Bắt buộc nhập số') }),
     maxDiscount: optNum.optional(),
     usageLimit: optNum.optional(),
-    priority: z.coerce.number().min(0, t('admin.promotion.validation.positiveNumber', 'Phải >= 0')).default(0),
+    priority: reqNum.default(0),
     startAt: z.string().optional(),
     endAt: z.string().optional(),
     stackable: z.boolean().default(false),
-    minOrderAmount: optNum.optional(),
+    minOrderAmount: reqNum.default(0),
     targetType: z.enum(['GLOBAL', 'CATEGORY', 'ITEM']).default('GLOBAL'),
     targetId: z.string().nullable().optional(),
     bundleItems: z.array(z.object({
       itemId: z.string().min(1, t('admin.promotion.validation.requiredItem', 'Bắt buộc chọn món')),
-      quantity: z.coerce.number().min(1, t('admin.promotion.validation.greaterThanZero', 'SL > 0')),
+      quantity: z.preprocess((v) => parseNum(v) ?? 0, z.number().min(1, t('admin.promotion.validation.greaterThanZero', 'SL > 0'))),
       role: z.enum(['BUY', 'GET'])
     })).default([]),
     schedules: z.array(z.object({
@@ -108,9 +117,7 @@ export function usePromotionForm({ promoId, onSuccess }: UsePromotionFormProps) 
   // ── Queries ──
   const { data: editingPromo, isFetching: isLoadingPromo } = usePromotionById(promoId || null)
   const { data: catData } = useAdminCategories({ size: 100 })
-  const { data: itemData } = useAdminMenuItems({ size: 100 })
   const categories = catData?.content || []
-  const menuItems = itemData?.content || []
 
   // ── Mutations ──
   const createMutation = useCreatePromotion()
@@ -124,6 +131,7 @@ export function usePromotionForm({ promoId, onSuccess }: UsePromotionFormProps) 
   const schemaResolver = useMemo(() => zodResolver(createPromotionSchema(t)), [t])
 
   const form = useForm<PromotionFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: schemaResolver as any,
     defaultValues: getInitialDefaults()
   })
@@ -195,7 +203,7 @@ export function usePromotionForm({ promoId, onSuccess }: UsePromotionFormProps) 
       },
       targets: [
         {
-          targetType: data.targetType as any,
+          targetType: data.targetType as 'GLOBAL' | 'CATEGORY' | 'ITEM',
           targetId: data.targetId ?? null
         }
       ],
@@ -230,7 +238,6 @@ export function usePromotionForm({ promoId, onSuccess }: UsePromotionFormProps) 
     isLoadingPromo,
     isSubmitting,
     categories,
-    menuItems,
     serverTimeStr,
     bundleArray,
     scheduleArray,

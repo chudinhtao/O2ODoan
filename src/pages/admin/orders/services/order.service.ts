@@ -1,5 +1,5 @@
 import http from '@/services/interceptor'
-import type { IOrder, IOrderPageResponse, OrderFiltersParams } from '../types/order.type'
+import type { IOrder, IOrderPageResponse, OrderFiltersParams, IAuditLog } from '../types/order.type'
 import type { IApiResponse } from '@/shared/types/IApiResponse'
 import { unwrapApiResponse } from '@/shared/utils/apiResponse'
 
@@ -11,6 +11,11 @@ class OrderService {
 
   async getOrderById(id: string): Promise<IOrder> {
     const { data } = await http.get<IApiResponse<IOrder>>(`/orders/${id}`)
+    return data.data
+  }
+
+  async getOrderTimeline(id: string): Promise<IAuditLog[]> {
+    const { data } = await http.get<IApiResponse<IAuditLog[]>>(`/orders/${id}/timeline`)
     return data.data
   }
 
@@ -40,8 +45,8 @@ class OrderService {
     return data
   }
 
-  async cancelItem(orderId: string, itemId: string, reason?: string): Promise<IApiResponse<unknown>> {
-    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/items/${itemId}/cancel`, { reason }).then(unwrapApiResponse)
+  async cancelItem(orderId: string, itemId: string, reason?: string, kitchenStatus?: string): Promise<IApiResponse<unknown>> {
+    return http.patch<IApiResponse<unknown>>(`/orders/${orderId}/items/${itemId}/cancel`, { reason, kitchenStatus }).then(unwrapApiResponse)
   }
 
   async cancelTicket(orderId: string, ticketId: string, reason?: string): Promise<IApiResponse<unknown>> {

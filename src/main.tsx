@@ -7,7 +7,18 @@ import './index.css'
 
 createRoot(document.getElementById('root')!).render(
     <AppProviders>
-      <Toaster position="top-right" richColors />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        expand={true}
+        toastOptions={{
+          style: {
+            width: '350px',
+            fontSize: '14px',
+            padding: '16px'
+          }
+        }}
+      />
       <AppRouter />
     </AppProviders>
 )

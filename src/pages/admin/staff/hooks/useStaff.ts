@@ -1,59 +1,58 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminStaffService } from '../services/staffService';
-import { ICreateStaffRequest, IUpdateStaffRequest } from '../types/adminStaff.type';
-import { useTranslation } from 'react-i18next';
+import StaffService from '../services/staff.service';
 import { toast } from 'sonner';
+import i18n from 'i18next';
+import { ICreateStaffRequest, IUpdateStaffRequest } from '../types/staff.type';
 
-const getSuccessMessage = (message: string | undefined, fallback: string) => message && message !== 'Success' ? message : fallback;
-
-export const ADMIN_STAFF_KEYS = {
-  all: ['admin-staff'] as const,
-  list: (params: any) => [...ADMIN_STAFF_KEYS.all, 'list', params] as const,
-};
-
-export const useGetStaffList = (params?: { keyword?: string; role?: string; active?: boolean; }) => {
-  return useQuery({
-    queryKey: ADMIN_STAFF_KEYS.list(params),
-    queryFn: () => adminStaffService.getStaffList(params),
-    staleTime: 5 * 60 * 1000,
+export const useStaff = (params?: { page?: number, size?: number, keyword?: string }) => {
+  const { data: staffPage, isLoading, error } = useQuery({
+    queryKey: ['staff-profiles', params],
+    queryFn: () => StaffService.getAllStaff(params),
   });
+
+  return { staffPage, staff: staffPage?.content || [], isLoading, error };
 };
 
 export const useCreateStaff = () => {
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
   return useMutation({
-    mutationFn: (payload: ICreateStaffRequest) => adminStaffService.createStaff(payload),
-    onSuccess: (res) => {
-      toast.success(getSuccessMessage(res.message, t('admin.staffModule.createSuccess')));
-      queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
+    mutationFn: (data: ICreateStaffRequest) => StaffService.createStaff(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-profiles'] });
+      toast.success(i18n.t('admin.staff.create_success', 'Tạo nhân viên thành công'));
+    }
   });
 };
 
 export const useUpdateStaff = () => {
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: IUpdateStaffRequest }) => adminStaffService.updateStaff(id, payload),
-    onSuccess: (res) => {
-      toast.success(getSuccessMessage(res.message, t('admin.staffModule.updateSuccess')));
-      queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
+    mutationFn: ({ id, data }: { id: string, data: IUpdateStaffRequest }) => StaffService.updateStaff(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-profiles'] });
+      toast.success(i18n.t('admin.staff.update_success', 'Cập nhật thành công'));
+    }
   });
 };
 
 export const useToggleStaff = () => {
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
   return useMutation({
-    mutationFn: (id: string) => adminStaffService.toggleStaffStatus(id),
-    onSuccess: (res) => {
-      toast.success(getSuccessMessage(res.message, t('admin.staffModule.toggleSuccess')));
-      queryClient.invalidateQueries({ queryKey: ADMIN_STAFF_KEYS.all });
-    },
+    mutationFn: (id: string) => StaffService.toggleActive(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-profiles'] });
+      toast.success(i18n.t('admin.staff.toggle_success', 'Cập nhật trạng thái thành công'));
+    }
+  });
+};
+
+export const useDeleteStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => StaffService.deleteStaff(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-profiles'] });
+      toast.success(i18n.t('admin.staff.delete_success', 'Xóa nhân viên thành công'));
+    }
   });
 };

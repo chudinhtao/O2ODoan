@@ -8,27 +8,45 @@ import { useCreateMenuItem, useUpdateMenuItem } from './useMenuMutations'
 
 export const optionSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredOption'),
-  extraPrice: z.number().min(0, 'admin.menu.validation.priceMinZero'),
+  extraPrice: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.menu.validation.priceMinZero')),
 })
 
 export const optionGroupSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredGroup'),
   isRequired: z.boolean(),
   type: z.enum(['SINGLE', 'MULTI']),
-  displayOrder: z.number(),
+  displayOrder: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number()),
   options: z.array(optionSchema).min(1, 'admin.menu.validation.minOptions')
 })
 
 export const menuSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredName'),
   categoryId: z.string().min(1, 'admin.menu.validation.requiredCategory'),
-  basePrice: z.number().min(0, 'admin.menu.validation.priceMinZero'),
+  basePrice: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.menu.validation.priceMinZero').optional()),
   station: z.enum(['HOT', 'COLD', 'DRINK']),
   description: z.string().optional(),
-  isAvailable: z.boolean(),
-  isFeatured: z.boolean(),
-  imageUrl: z.string().optional().nullable(),
-  optionGroups: z.array(optionGroupSchema).optional()
+  isAvailable: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
+  taxRate: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.categories.validation.minTax').max(100, 'admin.categories.validation.maxTax').optional().nullable()),
+  imageUrl: z.string().optional(),
+  optionGroups: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1, 'admin.menu.validation.requiredGroup'),
+      displayOrder: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().optional()),
+      isRequired: z.boolean().default(false),
+      type: z.enum(['SINGLE', 'MULTI']),
+      minChoices: z.number().optional(),
+      maxChoices: z.number().optional(),
+      options: z.array(
+        z.object({
+          id: z.string().optional(),
+          name: z.string().min(1, 'admin.menu.validation.requiredOption'),
+          extraPrice: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.menu.validation.priceMinZero'))
+        })
+      ).min(1, 'admin.menu.validation.minOptions')
+    })
+  ).optional()
 })
 
 export type MenuFormValues = z.infer<typeof menuSchema>
@@ -50,7 +68,7 @@ export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
   const updateMutation = useUpdateMenuItem()
 
   const form = useForm<MenuFormValues>({
-    resolver: zodResolver(menuSchema),
+    resolver: zodResolver(menuSchema as any),
     defaultValues: {
       name: '',
       categoryId: '',
@@ -59,6 +77,7 @@ export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
       description: '',
       isAvailable: true,
       isFeatured: false,
+      taxRate: 0,
       imageUrl: '',
       optionGroups: []
     },
@@ -83,6 +102,7 @@ export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
         description: '',
         isAvailable: true,
         isFeatured: false,
+        taxRate: 0,
         imageUrl: '',
         optionGroups: []
       })
@@ -107,6 +127,7 @@ export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
         description: itemData.description || '',
         isAvailable: itemData.isAvailable,
         isFeatured: itemData.isFeatured,
+        taxRate: itemData.taxRate ?? 0,
         imageUrl: itemData.imageUrl || '',
         optionGroups: mappedOptionGroups
       })
@@ -132,11 +153,12 @@ export function useMenuForm({ itemId, onSuccess }: UseMenuFormProps) {
     const payload: IMenuItemRequest = {
       name: data.name,
       categoryId: data.categoryId,
-      basePrice: data.basePrice,
+      basePrice: data.basePrice ?? 0,
       description: data.description || '',
       station: data.station,
       isFeatured: data.isFeatured,
       isAvailable: data.isAvailable,
+      taxRate: data.taxRate ?? 0,
       imageUrl: data.imageUrl || null,
       optionGroups: groupsPayload
     }

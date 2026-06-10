@@ -5,18 +5,18 @@ import type { IOrderTicket } from '@/pages/admin/orders/types/order.type'
 
 export const TICKET_STATUS_MAP: Record<string, { label: string; cls: string }> = {
   // Ticket / Item status
-  PENDING:    { label: 'Chờ bếp',   cls: 'bg-amber-100 text-amber-700' },
-  IN_PROGRESS:{ label: 'Đang làm',  cls: 'bg-blue-100 text-blue-700' },
-  PREPARING:  { label: 'Đang làm',  cls: 'bg-blue-100 text-blue-700' }, // Đồng bộ với KDS
-  DONE:       { label: 'Xong',      cls: 'bg-emerald-100 text-emerald-700' },
-  COMPLETED:  { label: 'Xong',      cls: 'bg-emerald-100 text-emerald-700' },
-  SERVED:     { label: 'Đã lên món', cls: 'bg-emerald-100 text-emerald-700' }, // Đã bưng
+  PENDING:    { label: 'Chờ bếp',   cls: 'bg-amber-500/10 text-amber-600' },
+  IN_PROGRESS:{ label: 'Đang làm',  cls: 'bg-indigo-500/10 text-indigo-600' },
+  PREPARING:  { label: 'Đang làm',  cls: 'bg-indigo-500/10 text-indigo-600' }, // Đồng bộ với KDS
+  DONE:       { label: 'Xong',      cls: 'bg-emerald-500/10 text-emerald-600' },
+  COMPLETED:  { label: 'Xong',      cls: 'bg-emerald-500/10 text-emerald-600' },
+  SERVED:     { label: 'Đã lên món', cls: 'bg-emerald-500/10 text-emerald-600' }, // Đã bưng
   CANCELLED:  { label: 'Đã huỷ',   cls: 'bg-error-container text-on-error-container' },
   RETURNED:   { label: 'Đã trả hàng', cls: 'bg-outline-variant/30 text-on-surface-variant' },
   // Order status
-  OPEN:       { label: 'Đang mở',   cls: 'bg-blue-100 text-blue-700' },
-  PAYMENT_REQUESTED: { label: 'Chờ thu ngân', cls: 'bg-amber-100 text-amber-700' },
-  PAID:       { label: 'Đã TT', cls: 'bg-emerald-100 text-emerald-700' },
+  OPEN:       { label: 'Đang mở',   cls: 'bg-indigo-500/10 text-indigo-600' },
+  PAYMENT_REQUESTED: { label: 'Chờ thu ngân', cls: 'bg-amber-500/10 text-amber-600' },
+  PAID:       { label: 'Đã TT', cls: 'bg-emerald-500/10 text-emerald-600' },
 }
 
 export function TicketStatusBadge({ status }: { status: string }) {
@@ -24,7 +24,7 @@ export function TicketStatusBadge({ status }: { status: string }) {
   const upperStatus = status?.toUpperCase() || ''
   const s = TICKET_STATUS_MAP[upperStatus] ?? { label: upperStatus, cls: 'bg-surface-variant text-on-surface-variant' }
   const translatedLabel = t(`pos.orderDetail.status.${upperStatus.toLowerCase()}`, s.label)
-  return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{translatedLabel}</span>
+  return <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${s.cls}`}>{translatedLabel}</span>
 }
 
 export function TicketCard({ 
@@ -49,17 +49,17 @@ export function TicketCard({
     : tickStat === 'CANCELLED' ? Ban : Clock
 
   return (
-    <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm transition-all hover:shadow-md">
+    <div className="bg-surface rounded-md border border-outline-variant overflow-hidden shadow-sm transition-all hover:shadow-md">
       {/* Ticket Header - More compact */}
-      <div className="flex items-center justify-between px-4 py-3 bg-surface-container/50 border-b border-outline-variant/50">
+      <div className="flex items-center justify-between px-3 py-2 bg-surface-container/50 border-b border-outline-variant/50">
         <div className="flex items-center gap-2.5">
-          <div className={`p-1.5 rounded-lg ${tickStat === 'DONE' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-primary/10 text-primary'}`}>
+          <div className={`p-1.5 rounded ${tickStat === 'DONE' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
             <Icon className="size-4" />
           </div>
           <span className="text-sm font-black text-on-surface tracking-tight uppercase">
             {t('pos.orderDetail.ticket', { index: idx + 1 })}
           </span>
-          <span className="text-[10px] font-bold text-outline px-1.5 py-0.5 bg-surface-variant rounded-md">
+          <span className="text-[10px] font-bold text-outline px-1.5 py-0.5 bg-surface-variant rounded">
             {new Date(ticket.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
@@ -70,7 +70,7 @@ export function TicketCard({
               variant="ghost"
               size="sm"
               onClick={() => onCancelTicket(ticket.id, idx)}
-              className="h-7 !text-error/70 hover:!text-error hover:!bg-error/10 !bg-transparent text-[11px] font-black px-2 rounded-lg transition-all"
+              className="h-7 !text-error/70 hover:!text-error hover:!bg-error/10 !bg-transparent text-[11px] font-black px-2 rounded transition-all"
             >
               {t('common.cancel', 'Huỷ phiếu')}
             </Button>
@@ -80,7 +80,7 @@ export function TicketCard({
       </div>
 
       {/* Item List - Denser padding */}
-      <div className="divide-y divide-outline-variant/20 px-4 bg-surface-container-lowest/30">
+      <div className="divide-y divide-outline-variant/20 px-3 bg-surface-container-lowest/30">
         {ticket.items.map(item => (
           <div key={item.id} className="py-2.5 flex justify-between items-center group">
             <div className="min-w-0 flex-1 flex items-start gap-3">
@@ -98,7 +98,7 @@ export function TicketCard({
                 )}
                 
                 {item.note && (
-                  <div className="flex items-center gap-1.5 mt-1 bg-error/5 border border-error/10 w-fit px-2 py-0.5 rounded-md">
+                  <div className="flex items-center gap-1.5 mt-1 bg-error/5 border border-error/10 w-fit px-2 py-0.5 rounded">
                     <StickyNote className="size-2.5 text-error opacity-70" />
                     <p className="text-[10px] font-bold text-error italic leading-none">{item.note}</p>
                   </div>
@@ -121,7 +121,7 @@ export function TicketCard({
                           variant="ghost"
                           size="icon"
                           onClick={() => onReturnItem(item.id, item.itemName)}
-                          className="size-8 rounded-lg !bg-amber-500/10 !text-amber-600 hover:!bg-amber-600 hover:!text-white transition-all"
+                          className="size-8 rounded !bg-amber-500/10 !text-amber-600 hover:!bg-amber-600 hover:!text-white transition-all"
                         >
                           <Ban className="size-3.5 stroke-[3]" />
                         </Button>
@@ -133,7 +133,7 @@ export function TicketCard({
                         variant="ghost"
                         size="icon"
                         onClick={() => onCancelItem(item.id, item.itemName, ticket.status)}
-                        className="size-8 rounded-lg !bg-error/10 !text-error hover:!bg-error hover:!text-white transition-all"
+                        className="size-8 rounded !bg-error/10 !text-error hover:!bg-error hover:!text-white transition-all"
                       >
                         <X className="size-4 stroke-[3]" />
                       </Button>

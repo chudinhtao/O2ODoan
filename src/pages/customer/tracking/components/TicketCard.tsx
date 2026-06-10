@@ -87,7 +87,7 @@ export function TicketCard({
               strokeWidth={2.5}
               className={badge.pulse ? 'animate-pulse' : ''}
             />
-            {badge.label}
+            {t(`customer.tracking.ticket.statusConfig.${ticket.status}`, badge.label)}
           </span>
         </div>
 
@@ -151,7 +151,7 @@ export function TicketCard({
               <span className="text-slate-900 font-black text-sm">{fmt(totalAmount)}đ</span>
             </div>
             <span className="text-[10px] text-slate-400 font-medium italic mt-0.5">
-              (Giá đã bao gồm {fmt(Math.round(totalAmount - (totalAmount / 1.08)))}đ thuế VAT 8%)
+              {t('customer.cart.taxIncluded', '(Giá đã bao gồm Thuế GTGT)')}
             </span>
           </div>
           {canCancelTicket && (

@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/ui/Button'
 export function StaffCallPopover() {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
+  const [processingId, setProcessingId] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   
   useOnClickOutside(menuRef as any, () => setIsOpen(false))
@@ -36,7 +37,7 @@ export function StaffCallPopover() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-surface rounded-xl shadow-lg border border-outline-variant overflow-hidden z-20 animate-in fade-in slide-in-from-top-2">
+        <div className="fixed inset-x-4 md:inset-x-auto top-[100px] md:absolute md:left-0 xl:left-auto xl:right-0 md:top-full mt-2 md:w-[450px] xl:w-[500px] 2xl:w-[600px] md:max-w-none bg-surface rounded-xl shadow-2xl border border-outline-variant overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2">
           <div className="px-4 py-3 bg-surface-variant border-b border-outline-variant flex justify-between items-center">
             <h3 className="text-sm font-bold text-on-surface">{t('pos.staffCalls.popoverTitle')}</h3>
             <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full font-bold">
@@ -44,7 +45,7 @@ export function StaffCallPopover() {
             </span>
           </div>
           
-          <div className="max-h-[360px] overflow-y-auto">
+          <div className="max-h-[75vh] xl:max-h-[85vh] min-h-[300px] xl:min-h-[450px] overflow-y-auto">
             {activeCount === 0 ? (
               <div className="px-4 py-8 text-center text-on-surface-variant flex flex-col items-center gap-2">
                 <Bell className="size-8 opacity-20" />
@@ -53,22 +54,22 @@ export function StaffCallPopover() {
             ) : (
               <div className="divide-y divide-outline-variant/50">
                 {calls!.map((call) => {
-                  const isTakeaway = call.callType === 'TAKEAWAY_READY';
+                  const isTakeaway = call.callType === 'TAKEAWAY_READY' || call.callType === 'TAKEAWAY_TIMEOUT';
                   return (
-                  <div key={call.id} className={`p-3 transition-colors flex flex-col group gap-2 ${isTakeaway ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-surface-variant/30'}`}>
+                  <div key={call.id} className={`p-2.5 sm:p-3 transition-colors flex flex-col group gap-2 ${isTakeaway ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-surface-variant/30'}`}>
                     <div className="flex justify-between items-start">
                       <div className="min-w-0 pr-3">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-bold px-1.5 rounded flex items-center gap-1 ${isTakeaway ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}>
                             {isTakeaway && <ShoppingBag className="size-3" />}
-                            {call.tableNumber ? t('pos.staffCalls.tableBadge', { number: call.tableNumber }) : 'Mang về'}
+                            {call.tableNumber ? t('pos.staffCalls.tableBadge', { number: call.tableNumber }) : (isTakeaway ? t('pos.tableMap.takeaway', 'Mang về') : t('pos.staffCalls.systemAlert', 'Hệ thống'))}
                           </span>
                           <span className={`text-xs font-semibold ${isTakeaway ? 'text-primary' : 'text-on-surface-variant'}`}>
                             {t(`pos.staffCalls.type.${call.callType}`, call.callType)}
                           </span>
                           {call.isSpilloverSent && (
                             <span className="text-[10px] bg-error text-white px-1.5 py-0.5 rounded font-black animate-pulse flex items-center gap-1">
-                              <Bell className="size-3" /> CỨU VIỆN
+                              <Bell className="size-3" /> <span className="hidden sm:inline">{t('pos.staffCalls.urgent', 'CỨU VIỆN')}</span>
                             </span>
                           )}
                         </div>
@@ -79,18 +80,22 @@ export function StaffCallPopover() {
                         )}
                         <div className="flex items-center gap-1 text-[10px] text-on-surface-variant">
                           <Clock className="size-3" />
-                          {new Date(call.createdAt).toLocaleTimeString('vi-VN')}
+                          {new Date(call.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                       
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => resolve(call.id)}
-                        className={`shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 ${isTakeaway ? 'text-primary hover:bg-primary text-white' : 'text-primary hover:bg-primary/10'}`}
+                        disabled={processingId === call.id}
+                        onClick={() => {
+                          setProcessingId(call.id)
+                          resolve(call.id, { onSettled: () => setProcessingId(null) })
+                        }}
+                        className={`shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 disabled:opacity-50 ${isTakeaway ? 'text-primary hover:bg-primary text-white' : 'text-primary hover:bg-primary/10'}`}
                         title={t('pos.staffCalls.resolveHint')}
                       >
-                        <Check className="size-4" />
+                        {processingId === call.id ? <Clock className="size-4 animate-spin" /> : <Check className="size-4" />}
                       </Button>
                     </div>
 
@@ -100,16 +105,23 @@ export function StaffCallPopover() {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="text-xs h-8 py-0 flex-1 border-primary text-primary hover:bg-primary/5 font-bold"
+                          disabled={processingId === call.id}
+                          className="text-[11px] sm:text-xs h-8 py-0 flex-1 border-primary text-primary hover:bg-primary/5 font-bold disabled:opacity-50"
                           onClick={() => {
+                            setProcessingId(call.id)
                             if (call.tableId) {
-                              markCleaned(call.tableId)
-                              resolve(call.id)
+                              markCleaned(call.tableId, { 
+                                onSettled: () => {
+                                  resolve(call.id, { onSettled: () => setProcessingId(null) })
+                                }
+                              })
+                            } else {
+                              resolve(call.id, { onSettled: () => setProcessingId(null) })
                             }
                           }}
                         >
-                          <Brush className="size-3 mr-1" />
-                          Dọn xong & Giải phóng
+                          {processingId === call.id ? <Clock className="size-3 mr-1 animate-spin" /> : <Brush className="size-3 mr-1" />}
+                          {processingId === call.id ? t('pos.staffCalls.processing', 'Đang xử lý...') : t('pos.staffCalls.cleanAndFree', 'Dọn xong & Giải phóng')}
                         </Button>
                       </div>
                     )}
@@ -118,11 +130,15 @@ export function StaffCallPopover() {
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
-                          className="text-xs h-8 py-0 flex-1 bg-primary text-white hover:bg-primary/90 font-bold"
-                          onClick={() => resolve(call.id)}
+                          disabled={processingId === call.id}
+                          className="text-[11px] sm:text-xs h-8 py-0 flex-1 bg-primary text-white hover:bg-primary/90 font-bold disabled:opacity-50"
+                          onClick={() => {
+                            setProcessingId(call.id)
+                            resolve(call.id, { onSettled: () => setProcessingId(null) })
+                          }}
                         >
-                          <Check className="size-3 mr-1" />
-                          Đã giao cho khách
+                          {processingId === call.id ? <Clock className="size-3 mr-1 animate-spin" /> : <Check className="size-3 mr-1" />}
+                          {processingId === call.id ? t('pos.staffCalls.processing', 'Đang xử lý...') : t('pos.staffCalls.delivered', 'Đã giao cho khách')}
                         </Button>
                       </div>
                     )}

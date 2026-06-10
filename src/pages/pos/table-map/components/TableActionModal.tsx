@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, ArrowLeftRight, Link } from 'lucide-react'
+import { ArrowLeftRight, Link } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { IPosTable } from '@/pages/admin/tables/types/adminTable.type'
 import { Button } from '@/shared/components/ui/Button'
@@ -43,12 +43,12 @@ export function TableActionModal({
     }
   }, [isOpen, initialActionType])
 
-  /* eslint-disable react-hooks/rules-of-hooks */
+   
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
-  /* eslint-enable react-hooks/rules-of-hooks */
+   
 
   if (!isOpen) return null
 
@@ -76,48 +76,61 @@ export function TableActionModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
       
-      <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-[720px] flex flex-col h-[85vh] sm:h-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
-        <Button variant="outline" onClick={onClose} className="absolute top-4 right-4 !p-2 h-auto rounded-full z-10 border-transparent bg-surface-variant hover:bg-outline-variant">
-          <X className="size-5" />
-        </Button>
-
+      <div className="relative bg-white rounded-2xl shadow-2xl w-[95vw] max-w-[900px] flex flex-col h-[85vh] sm:h-[600px] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-6 border-b border-outline-variant bg-surface shrink-0">
-          <h2 className="text-xl font-bold font-headline text-on-surface">
-            {t('pos.table.actionModal.title', 'Thao tác Bàn')}
-          </h2>
-          <p className="text-sm text-on-surface-variant mt-1">
-            {isMerge 
-              ? t('pos.table.actionModal.mergeSubtitle', 'Chọn các bàn cần gộp vào bàn hiện tại')
-              : t('pos.table.actionModal.subtitle', 'Chọn bàn đích mong muốn')}
-          </p>
+        <div className="px-6 py-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+          <div>
+            <h2 className="text-xl font-black font-headline text-slate-800 flex items-center gap-3">
+              {t('pos.table.actionModal.title', 'Thao tác Bàn')}
+            </h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {isMerge 
+                ? t('pos.table.actionModal.mergeSubtitle', 'Chọn các bàn cần gộp vào bàn hiện tại')
+                : t('pos.table.actionModal.subtitle', 'Chọn bàn đích mong muốn')}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="px-5 font-bold" onClick={onClose} disabled={isSubmitting}>
+              {t('common.cancel', 'Hủy')}
+            </Button>
+            <Button 
+              variant="primary"
+              className="px-6 font-bold" 
+              onClick={handleSubmit} 
+              disabled={!actualSourceTable || !hasSelection || isSubmitting}
+              isLoading={isSubmitting}
+            >
+              {isMerge 
+                ? `${t('pos.table.actionModal.mergeNow', 'Gộp Ngay')}${selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}`
+                : t('pos.table.actionModal.transferNow', 'Chuyển Ngay')}
+            </Button>
+          </div>
         </div>
 
         {/* Body */}
-        <div className="flex-1 flex flex-col min-h-0 p-6 bg-surface-variant/30 space-y-6">
-          {/* Action Tabs */}
-          <div className="shrink-0 flex bg-surface-variant p-1 rounded-xl shadow-inner border border-outline-variant/50 gap-1">
-            <Button
-              variant={actionType === 'TRANSFER' ? 'primary' : 'outline'}
-              onClick={() => { setActionType('TRANSFER'); setTargetId(''); setSelectedIds([]) }}
-              className={`flex-1 py-2.5 flex justify-center items-center gap-2 rounded-lg text-sm font-bold transition-all border-transparent ${
-                actionType !== 'TRANSFER' && 'bg-transparent text-on-surface-variant shadow-none hover:bg-surface'
-              }`}
-            >
-              <ArrowLeftRight className="size-4" />
-              {t('common.transfer', 'Chuyển Bàn')}
-            </Button>
-            <Button
-              variant={actionType === 'MERGE' ? 'primary' : 'outline'}
-              onClick={() => { setActionType('MERGE'); setTargetId(''); setSelectedIds([]) }}
-              className={`flex-1 py-2.5 flex justify-center items-center gap-2 rounded-lg text-sm font-bold transition-all border-transparent ${
-                actionType !== 'MERGE' && 'bg-transparent text-on-surface-variant shadow-none hover:bg-surface'
-              }`}
-            >
-              <Link className="size-4" />
-              {t('common.merge', 'Gộp Bàn')}
-            </Button>
+        <div className="flex-1 flex flex-col min-h-0 bg-slate-50/50">
+          {/* Action Tabs - Clean Underline */}
+          <div className="px-6 pt-3 border-b border-slate-200 bg-white shrink-0">
+            <div className="flex gap-6">
+              <button 
+                onClick={() => { setActionType('TRANSFER'); setTargetId(''); setSelectedIds([]) }}
+                className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${actionType === 'TRANSFER' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+              >
+                <ArrowLeftRight className="size-4" />
+                {t('common.transferTable', 'Chuyển Bàn')}
+              </button>
+              <button 
+                onClick={() => { setActionType('MERGE'); setTargetId(''); setSelectedIds([]) }}
+                className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${actionType === 'MERGE' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+              >
+                <Link className="size-4" />
+                {t('common.mergeTable', 'Gộp Bàn')}
+              </button>
+            </div>
           </div>
+
+          <div className="flex-1 flex flex-col min-h-0 p-6">
 
           {!actualSourceTable ? (
             <div className="flex-1 flex flex-col px-4 py-6 bg-surface border border-outline-variant/50 rounded-2xl shadow-sm min-h-0">
@@ -153,22 +166,6 @@ export function TableActionModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-5 border-t border-outline-variant bg-surface shrink-0 flex gap-3">
-          <Button variant="outline" className="flex-1 py-3 cursor-pointer" onClick={onClose} disabled={isSubmitting}>
-            {t('common.cancel', 'Hủy')}
-          </Button>
-          <Button 
-            variant="primary"
-            className="flex-1 py-3 cursor-pointer" 
-            onClick={handleSubmit} 
-            disabled={!actualSourceTable || !hasSelection || isSubmitting}
-            isLoading={isSubmitting}
-          >
-            {isMerge 
-              ? `${t('pos.table.actionModal.mergeNow', 'Gộp Ngay')}${selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}`
-              : t('pos.table.actionModal.transferNow', 'Chuyển Ngay')}
-          </Button>
         </div>
       </div>
     </div>

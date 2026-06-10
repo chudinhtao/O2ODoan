@@ -6,13 +6,14 @@ import { Button } from '@/shared/components/ui/Button'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
 import { ROUTES } from '@/shared/constants/ROUTES'
-import { Undo2, AlertCircle, ShoppingBag, CreditCard, RefreshCw, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer, ShieldAlert } from 'lucide-react'
+import { Undo2, AlertCircle, ShoppingBag, CreditCard, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer, ShieldAlert } from 'lucide-react'
 import { usePosCancelItem, usePosReturnItem, usePosRequestPayment, usePosCancelTicket } from '../hooks/usePosOrder'
 import { Input } from '@/shared/components/ui/Input'
 import http from '@/services/interceptor'
 import { API_ROUTES } from '@/shared/constants/API_ROUTES'
 
 import { TicketCard, TicketStatusBadge } from '../components/TicketCard'
+import { PosHeader } from '@/layouts/components/PosHeader'
 
 export default function OrderDetailPage() {
   const { t } = useTranslation()
@@ -51,7 +52,7 @@ export default function OrderDetailPage() {
     return () => { isMounted = false; };
   }, [tableId, sessionToken]);
 
-  const { data: order, isLoading, refetch, isFetching } = usePosSessionOrder(sessionToken)
+  const { data: order, isLoading } = usePosSessionOrder(sessionToken)
   const { mutate: cancelOrder, isPending: isCancelling } = usePosCancelOrder()
   const { mutate: cancelItem, isPending: isCancellingItem } = usePosCancelItem()
   const { mutate: returnItem, isPending: isReturningItem } = usePosReturnItem()
@@ -87,7 +88,7 @@ export default function OrderDetailPage() {
   const handleConfirmCancelItem = () => {
     if (!order || !cancelItemState) return
     cancelItem(
-      { orderId: order.id, itemId: cancelItemState.itemId, reason: cancelItemState.reason },
+      { orderId: order.id, itemId: cancelItemState.itemId, reason: cancelItemState.reason, kitchenStatus: cancelItemState.status },
       { onSuccess: () => setCancelItemState(null) }
     )
   }
@@ -111,52 +112,46 @@ export default function OrderDetailPage() {
   return (
     <div className="flex flex-col h-full min-h-0 bg-surface">
       {/* Header */}
-      <header className="h-16 px-6 flex items-center justify-between border-b border-outline-variant shrink-0">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (window.history.length > 2) {
-                navigate(-1)
-              } else {
-                navigate(ROUTES.pos.tables)
-              }
-            }}
-            className="size-8 rounded-lg hover:bg-surface-variant transition-colors"
-          >
-            <ArrowLeft className="size-4 text-on-surface-variant" />
-          </Button>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-lg font-black font-headline text-on-surface tracking-tight leading-none">
-                {t('pos.orderDetail.title', { number: order?.tableNumber ?? '...' })}
-              </h2>
-              {order && <TicketStatusBadge status={order.status} />}
+      <PosHeader
+        title={
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (window.history.length > 2) {
+                  navigate(-1)
+                } else {
+                  navigate(ROUTES.pos.tables)
+                }
+              }}
+              className="size-9 rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all active:scale-90"
+            >
+              <ArrowLeft className="size-5" />
+            </Button>
+            <div className="flex flex-col -space-y-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-black font-headline text-on-surface tracking-tighter uppercase">
+                  {t('pos.orderDetail.title', { number: order?.tableNumber ?? '...' })}
+                </h2>
+                {order && <TicketStatusBadge status={order.status} />}
+              </div>
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80 mt-1">
+                {order ? t('pos.orderDetail.summary', { count: order.tickets.length, total: order.total.toLocaleString('vi-VN') }) : t('pos.orderDetail.loading')}
+              </p>
             </div>
-            <p className="text-[10px] font-black text-outline uppercase tracking-widest flex items-center gap-1.5 opacity-80">
-              {order ? t('pos.orderDetail.summary', { count: order.tickets.length, total: order.total.toLocaleString('vi-VN') }) : t('pos.orderDetail.loading')}
-            </p>
           </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="size-9 rounded-lg hover:bg-surface-variant transition-colors"
-        >
-          <RefreshCw className={`size-4 text-on-surface-variant ${isFetching ? 'animate-spin' : ''}`} />
-        </Button>
-      </header>
+        }
+        hideStaffCall={true}
+      />
 
       {/* Main Body - 2 Columns Layout (7:3) */}
-      <div className="flex-1 overflow-hidden flex flex-row bg-surface-container-lowest/20">
+      <div className="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row bg-surface-container-lowest/20">
         
         {/* Left Column: Ticket List (70%) */}
-        <div className="flex-[7] overflow-y-auto p-4 space-y-4 border-r border-outline-variant/30 scrollbar-hide">
+        <div className="w-full lg:flex-[7] overflow-y-auto p-4 space-y-4 border-b lg:border-b-0 lg:border-r border-outline-variant/30 scrollbar-hide min-h-[50vh] lg:min-h-0">
           {isLoading || initSessionLoading ? (
-            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
           ) : !order ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-outline">
               <AlertCircle className="size-10 opacity-30" />
@@ -173,7 +168,7 @@ export default function OrderDetailPage() {
               <p className="text-xs font-bold text-outline max-w-[240px] leading-relaxed">
                 {t('pos.orderDetail.noTicketsHint', 'Hãy chọn thêm món từ menu để bắt đầu phiếu mới.')}
               </p>
-              <Button variant="primary" size="sm" onClick={() => navigate(`/pos/orders/new/${tableId}`, { state: { sessionToken } })} className="rounded-xl px-6 mt-6">
+              <Button variant="primary" size="sm" onClick={() => navigate(`/pos/orders/new/${tableId}`, { state: { sessionToken } })} className="rounded-lg px-6 mt-6">
                  {t('pos.orderDetail.addMore')}
               </Button>
             </div>
@@ -192,17 +187,17 @@ export default function OrderDetailPage() {
           )}
         </div>
 
-        <aside className="flex-[3] min-w-[340px] bg-surface border-l border-outline-variant/50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.02)]">
+        <aside className="w-full lg:flex-[3] lg:min-w-[300px] lg:max-w-[360px] bg-surface lg:border-l border-outline-variant/50 flex flex-col shadow-[-4px_0_20px_rgba(0,0,0,0.02)] shrink-0 min-h-[400px] lg:min-h-0">
           {order ? (
             <div className="flex flex-col h-full">
-              <div className="p-5 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest shrink-0">
+              <div className="p-3 lg:p-4 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest shrink-0">
                <div className="flex items-center gap-3">
-                 <div className="size-8 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
+                 <div className="size-8 rounded-lg bg-orange-500/10 text-orange-600 flex items-center justify-center">
                     <ReceiptText className="size-4.5" />
                  </div>
                  <h3 className="text-[10px] font-black text-on-surface uppercase tracking-[0.2em]">{t('pos.orderDetail.info_label', 'Chi tiết đơn hàng')}</h3>
                </div>
-               <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border ${order.source === 'QR' ? 'bg-indigo-500/5 border-indigo-500/10 text-indigo-600' : 'bg-amber-500/5 border-amber-500/10 text-amber-600'}`}>
+               <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${order.source === 'QR' ? 'bg-indigo-500/5 border-indigo-500/10 text-indigo-600' : 'bg-amber-500/5 border-amber-500/10 text-amber-600'}`}>
                   {order.source === 'QR' ? <Smartphone className="size-3" /> : <Keyboard className="size-3" />}
                   <span className="text-[9px] font-bold uppercase tracking-widest">
                     {order.source === 'QR' ? t('pos.orders.source.qr', 'QR Order') : t('pos.orders.source.pos', 'Manual')}
@@ -210,7 +205,7 @@ export default function OrderDetailPage() {
                </div>
               </div>
             
-              <div className="p-5 space-y-5 overflow-y-auto scrollbar-hide">
+              <div className="p-3 lg:p-4 space-y-4 overflow-y-auto scrollbar-hide">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center px-1">
                     <span className="text-[10px] font-black text-outline uppercase tracking-wider">{t('pos.order.table', 'Số Bàn')}</span>
@@ -222,7 +217,7 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
 
-                <div className="pt-5 border-t border-outline-variant/30 space-y-4">
+                <div className="pt-4 border-t border-outline-variant/30 space-y-3">
                   <div className="flex justify-between items-end px-1">
                     <span className="text-[10px] font-black text-outline uppercase tracking-widest">{t('pos.orderDetail.progress', 'Tiến độ phục vụ')}</span>
                     <span className="text-[11px] font-black text-primary">{Math.round((itemsDone/totalItems)*100)}%</span>
@@ -244,11 +239,11 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-outline-variant/30 space-y-4">
+                <div className="pt-4 border-t border-outline-variant/30 space-y-3">
                    <h4 className="px-1 text-[10px] font-black text-primary uppercase tracking-widest">{t('pos.orderDetail.tickets_list', 'Theo dõi phiếu món')}</h4>
                    <div className="space-y-2">
                       {order.tickets.map((ticket, idx) => (
-                        <div key={ticket.id} className="flex justify-between items-center p-3 rounded-2xl bg-surface-container-low/50 border border-outline-variant/20 hover:border-primary/30 transition-all cursor-default">
+                        <div key={ticket.id} className="flex justify-between items-center p-3 rounded-lg bg-surface-container-low/50 border border-outline-variant/20 hover:border-primary/30 transition-all cursor-default">
                           <span className="text-[10px] font-black text-on-surface uppercase">{t('pos.orderDetail.ticket', 'Phiếu #{{index}}', {index: idx + 1})}</span>
                           <span className="text-[10px] font-bold text-outline uppercase">{ticket.items.length} {t('pos.orderDetail.items_unit', 'món')}</span>
                         </div>
@@ -257,7 +252,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              <div className="mt-auto p-6 bg-surface-container-lowest border-t border-outline-variant/40 space-y-5">
+              <div className="mt-auto p-4 bg-surface-container-lowest border-t border-outline-variant/40 space-y-4">
                 <div className="space-y-2.5 px-1 font-sans">
                   <div className="flex justify-between text-[11px] font-black text-outline uppercase tracking-widest opacity-60">
                     <span>{t('pos.orderDetail.summary_label', 'Tạm tính')}</span>
@@ -278,7 +273,7 @@ export default function OrderDetailPage() {
                 <div className="flex flex-col gap-2.5">
                   <Button 
                     variant="primary" 
-                    className="w-full h-13 rounded-2xl shadow-xl shadow-primary/20 text-xs font-black uppercase tracking-wide flex items-center justify-center gap-3 transition-all active:scale-95"
+                    className="w-full h-13 rounded-lg shadow-xl shadow-primary/20 text-xs font-black uppercase tracking-wide flex items-center justify-center gap-3 transition-all active:scale-95"
                     onClick={handleCheckout}
                     disabled={order.status !== 'OPEN' && order.status !== 'PAYMENT_REQUESTED'}
                   >
@@ -291,7 +286,7 @@ export default function OrderDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/pos/orders/new/${tableId}`, { state: { sessionToken } })}
-                      className="h-11 border text-[11px] font-black rounded-xl border-outline-variant bg-surface hover:border-primary hover:text-primary active:scale-[0.98] transition-all"
+                      className="h-11 border text-[11px] font-black rounded-lg border-outline-variant bg-surface hover:border-primary hover:text-primary active:scale-[0.98] transition-all"
                     >
                       <ShoppingBag className="size-3.5 mr-2" /> 
                       {t('pos.orderDetail.addMore', 'Thêm món')}
@@ -300,7 +295,7 @@ export default function OrderDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={handlePrint}
-                      className="h-11 border text-[11px] font-black rounded-xl border-outline-variant bg-surface hover:bg-surface-container active:scale-[0.98] transition-all"
+                      className="h-11 border text-[11px] font-black rounded-lg border-outline-variant bg-surface hover:bg-surface-container active:scale-[0.98] transition-all"
                     >
                       <Printer className="size-3.5 mr-2" /> 
                       {t('pos.payment.printBtn', 'In Bill')}
@@ -331,10 +326,10 @@ export default function OrderDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="p-5 space-y-6">
-              <Skeleton className="h-20 w-full rounded-2xl" />
-              <div className="mt-auto pt-10">
-                <Skeleton className="h-40 w-full rounded-2xl" />
+            <div className="p-4 space-y-4">
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <div className="mt-auto pt-8">
+                <Skeleton className="h-40 w-full rounded-lg" />
               </div>
             </div>
           )}
@@ -361,7 +356,7 @@ export default function OrderDetailPage() {
       {cancelItemState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setCancelItemState(null)} />
-          <div className="relative bg-surface rounded-3xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
+          <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
             <h3 className="text-xl font-bold font-headline text-on-surface mb-2">{t('pos.orderDetail.cancelItem.title', 'Huỷ món')}</h3>
             <p className="text-sm text-on-surface-variant mb-4 flex-wrap">
               {t('pos.orderDetail.cancelItem.desc1', 'Bạn đang huỷ món ')} <span className="font-bold text-on-surface ml-1">{cancelItemState.name}</span>.
@@ -369,6 +364,42 @@ export default function OrderDetailPage() {
                 ? ' ' + t('pos.orderDetail.cancelItem.desc2', 'Món này đã được bếp xử lý, VUI LÒNG NHẬP LÝ DO:') 
                 : ''}
             </p>
+            
+            <div className="mb-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant/30">
+              <label className="block text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">
+                Trạng thái thực tế tại Bếp (Quan trọng cho Kho)
+              </label>
+              <div className="flex flex-col gap-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="kitchenStatus" 
+                    value="PENDING"
+                    className="size-4 text-primary focus:ring-primary border-outline accent-primary"
+                    checked={cancelItemState.status === 'PENDING'}
+                    onChange={(e) => setCancelItemState(prev => prev ? {...prev, status: e.target.value} : null)}
+                  />
+                  <div>
+                    <div className="text-sm font-medium">Bếp chưa làm</div>
+                    <div className="text-xs text-on-surface-variant">Hệ thống sẽ hoàn trả nguyên liệu vào kho.</div>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="kitchenStatus" 
+                    value="DONE"
+                    className="size-4 text-error focus:ring-error border-outline accent-error"
+                    checked={cancelItemState.status !== 'PENDING'}
+                    onChange={(e) => setCancelItemState(prev => prev ? {...prev, status: e.target.value} : null)}
+                  />
+                  <div>
+                    <div className="text-sm font-bold text-error">Bếp đang làm / Đã làm xong</div>
+                    <div className="text-xs text-error/80">Không hoàn kho. Ghi nhận là chi phí hao hụt!</div>
+                  </div>
+                </label>
+              </div>
+            </div>
             
             <Input
               autoFocus
@@ -379,12 +410,12 @@ export default function OrderDetailPage() {
             />
             
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setCancelItemState(null)} disabled={isCancellingItem}>
+              <Button variant="outline" className="flex-1 rounded-lg" onClick={() => setCancelItemState(null)} disabled={isCancellingItem}>
                 {t('common.cancel', 'Hủy bỏ')}
               </Button>
               <Button 
                 variant="primary" 
-                className="flex-1 !bg-error hover:!bg-error/90 !text-on-error rounded-xl shadow-none border-none ring-0" 
+                className="flex-1 !bg-error hover:!bg-error/90 !text-on-error rounded-lg shadow-none border-none ring-0" 
                 onClick={handleConfirmCancelItem}
                 isLoading={isCancellingItem}
                 disabled={!cancelItemState.reason.trim() && (cancelItemState.status === 'PREPARING' || cancelItemState.status === 'DONE')}
@@ -400,7 +431,7 @@ export default function OrderDetailPage() {
       {returnItemState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setReturnItemState(null)} />
-          <div className="relative bg-surface rounded-3xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
+          <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
             <h3 className="text-xl font-bold font-headline text-on-surface mb-2">{t('pos.orderDetail.returnItem.title', 'Hoàn Trả món đã lên / nấu xong')}</h3>
             <p className="text-sm text-on-surface-variant mb-4 flex-wrap">
               {t('pos.orderDetail.returnItem.desc1', 'Thao tác sẽ trừ tiền món ')} <span className="font-bold text-on-surface ml-1">{returnItemState.name}</span> và khóa không cho tính phí.
@@ -415,12 +446,12 @@ export default function OrderDetailPage() {
             />
             
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setReturnItemState(null)} disabled={isReturningItem}>
+              <Button variant="outline" className="flex-1 rounded-lg" onClick={() => setReturnItemState(null)} disabled={isReturningItem}>
                 {t('common.cancel', 'Hủy bỏ')}
               </Button>
               <Button 
                 variant="primary" 
-                className="flex-1 !bg-amber-500 hover:!bg-amber-600 !text-white rounded-xl shadow-none border-none ring-0" 
+                className="flex-1 !bg-amber-500 hover:!bg-amber-600 !text-white rounded-lg shadow-none border-none ring-0" 
                 onClick={handleConfirmReturnItem}
                 isLoading={isReturningItem}
                 disabled={!returnItemState.reason.trim()}
@@ -437,7 +468,7 @@ export default function OrderDetailPage() {
       {cancelTicketState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setCancelTicketState(null)} />
-          <div className="relative bg-surface rounded-3xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
+          <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
             <h3 className="text-xl font-bold font-headline text-on-surface mb-2">{t('pos.orderDetail.cancelTicket.title', 'Huỷ phiếu yêu cầu')}</h3>
             <p className="text-sm text-on-surface-variant mb-4 flex-wrap">
               {t('pos.orderDetail.cancelTicket.desc1', 'Bạn đang huỷ toàn bộ phiếu #')} <span className="font-bold text-on-surface ml-1">{cancelTicketState.index + 1}</span>.
@@ -453,12 +484,12 @@ export default function OrderDetailPage() {
             />
             
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setCancelTicketState(null)} disabled={isCancellingTicket}>
+              <Button variant="outline" className="flex-1 rounded-lg" onClick={() => setCancelTicketState(null)} disabled={isCancellingTicket}>
                 {t('common.cancel', 'Hủy bỏ')}
               </Button>
               <Button 
                 variant="primary" 
-                className="flex-1 !bg-error hover:!bg-error/90 !text-on-error rounded-xl shadow-none border-none ring-0" 
+                className="flex-1 !bg-error hover:!bg-error/90 !text-on-error rounded-lg shadow-none border-none ring-0" 
                 onClick={handleConfirmCancelTicket}
                 isLoading={isCancellingTicket}
               >

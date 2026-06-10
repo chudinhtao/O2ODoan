@@ -24,10 +24,10 @@ export const useActiveCalls = (zones: string[]) => {
   });
 };
 
-export const useServerKpi = () => {
+export const useServerKpi = (startFrom?: string) => {
   return useQuery({
-    queryKey: ['server', 'kpi'],
-    queryFn: () => serverApiService.getKpiToday(),
+    queryKey: ['server', 'kpi', startFrom],
+    queryFn: () => serverApiService.getKpiToday(startFrom),
     refetchInterval: 60000,
   });
 };
@@ -74,6 +74,8 @@ export const useUnserveItemsMutation = () => {
   });
 };
 
+import { toast } from 'sonner';
+
 export const useAcceptCallMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -81,7 +83,8 @@ export const useAcceptCallMutation = () => {
       serverApiService.acceptCall(callId, userName),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server', 'calls'] });
-    },
+      import('@/config/i18n').then(({ default: i18n }) => toast.success(i18n.t('server.accept_success')));
+    }
   });
 };
 
@@ -92,6 +95,7 @@ export const useResolveCallMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server', 'calls'] });
       queryClient.invalidateQueries({ queryKey: ['server', 'kpi'] });
-    },
+      import('@/config/i18n').then(({ default: i18n }) => toast.success(i18n.t('server.resolve_success')));
+    }
   });
 };

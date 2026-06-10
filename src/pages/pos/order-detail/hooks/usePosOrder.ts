@@ -112,8 +112,8 @@ export function usePosCancelItem() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ orderId, itemId, reason }: { orderId: string, itemId: string, reason?: string }) =>
-      orderService.cancelItem(orderId, itemId, reason),
+    mutationFn: ({ orderId, itemId, reason, kitchenStatus }: { orderId: string, itemId: string, reason?: string, kitchenStatus?: string }) =>
+      orderService.cancelItem(orderId, itemId, reason, kitchenStatus),
     onSuccess: (res) => {
       toast.success(getSuccessMessage(res.message, i18n.t('pos.orderDetail.cancelItemSuccess', 'Đã hủy món thành công')))
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all })

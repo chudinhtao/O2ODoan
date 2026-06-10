@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={[
-              'w-full py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all',
+              'w-full py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all',
               props.disabled ? 'cursor-not-allowed opacity-60 bg-slate-50' : 'cursor-text hover:border-slate-300',
               icon ? 'pl-12' : 'px-4',
               rightAddon ? 'pr-12' : icon ? 'pr-4' : '',

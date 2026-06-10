@@ -52,26 +52,31 @@
   --color-inverse-surface: #0f172a;
   --color-error: #ef4444;
   --color-on-background: #0f172a;
-
+  
+  /* Semantic UI Colors missing in original config */
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-border: #e2e8f0;
+  --color-text-base: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
   --font-headline: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Manrope', sans-serif;
   --font-label: 'Manrope', sans-serif;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
+  --radius-sm: 0.125rem; /* 2px - Sharp */
+  --radius-md: 0.25rem;  /* 4px - Sharp-ish */
+  --radius-lg: 0.5rem;   /* 8px - Medium */
+  --radius-xl: 1rem;     /* 16px - Soft */
+  --radius-2xl: 1.5rem;  /* 24px */
   --radius-full: 9999px;
 
   /* Guest Theme Colors */
   --color-guest-primary: #ff6933;
   --color-guest-primary-light: #ff8559;
-  --color-guest-bg: #fffdf9;
-  --color-guest-bg-dark: #23140f;
-  --color-guest-surface: #ffffff;
-  --color-guest-surface-dark: #1e293b;
+  --color-guest-primary-dark: #e65124;
+  --color-guest-background: #F8F4F0;
+  --color-guest-surface: #FAFAF8;
+  --color-guest-border: #F0EBE5;
 }
 
 @layer base {

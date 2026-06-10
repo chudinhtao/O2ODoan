@@ -1,41 +1,27 @@
 import { useTranslation } from 'react-i18next'
 import { useShiftOrders } from '../hooks/useShiftOrders'
 import { Badge } from '@/shared/components/ui/Badge'
-import { Skeleton } from '@/shared/components/ui/Skeleton'
+
 import { useState } from 'react'
 import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { ShiftOrderModal } from './ShiftOrderModal'
+import { DataTable } from '@/shared/components/DataTable/DataTable'
+import { ColumnDef } from '@/shared/components/DataTable/types'
 
-export function ShiftInvoiceList({ date }: { date: string }) {
+export function ShiftInvoiceList({ startDate, endDate }: { startDate: string, endDate: string }) {
   const { t, i18n } = useTranslation()
-  const { data, isLoading, error } = useShiftOrders(date)
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(10)
+  const [keyword, setKeyword] = useState('')
+  const { data, isLoading, error } = useShiftOrders(startDate, endDate, page, size, keyword)
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null)
 
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
-      style: 'currency',
-      currency: 'VND',
-      currencyDisplay: 'symbol'
-    }).format(amount)
+    return amount.toLocaleString('vi-VN') + ' đ'
   }
 
   const formatDateTime = (dateStr: string) => {
     return new Date(dateStr).toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden">
-        <div className="p-4 border-b border-outline-variant shrink-0">
-           <Skeleton className="h-6 w-48" />
-        </div>
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      </div>
-    )
   }
 
   if (error) {
@@ -47,15 +33,6 @@ export function ShiftInvoiceList({ date }: { date: string }) {
   }
 
   const invoices = data?.content || []
-
-  if (invoices.length === 0) {
-    return (
-      <div className="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden p-8 text-center flex flex-col items-center justify-center text-on-surface-variant">
-        <p className="font-medium">{t('report.page.noInvoices', 'Trống')}</p>
-        <p className="text-sm mt-1">{t('report.page.noInvoicesDesc', 'Chưa có hóa đơn nào được chốt trong ca này.')}</p>
-      </div>
-    )
-  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -72,45 +49,61 @@ export function ShiftInvoiceList({ date }: { date: string }) {
     }
   }
 
+  const columns: ColumnDef<IOrder>[] = [
+    {
+      header: t('admin.orders.table.id', 'Mã Đơn'),
+      accessorKey: 'id',
+      cell: (item) => <span className="font-mono text-sm">#{item.id.substring(0, 8)}</span>
+    },
+    {
+      header: t('admin.orders.table.createdAt', 'Thời gian'),
+      accessorKey: 'createdAt',
+      cell: (item) => <span className="text-sm text-on-surface-variant whitespace-nowrap">{formatDateTime(item.createdAt)}</span>
+    },
+    {
+      header: t('admin.orders.table.table', 'Bàn'),
+      accessorKey: 'tableNumber',
+      cell: (item) => <span className="text-sm font-medium capitalize">{item.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (item.tableNumber || '--')}</span>
+    },
+    {
+      header: t('admin.orders.table.total', 'Tổng tiền'),
+      accessorKey: 'total',
+      align: 'right',
+      cell: (item) => <span className="text-sm font-bold text-primary whitespace-nowrap">{formatPrice(item.total)}</span>
+    },
+    {
+      header: t('admin.orders.table.status', 'Trạng thái'),
+      accessorKey: 'status',
+      align: 'center',
+      cell: (item) => getStatusBadge(item.status)
+    }
+  ]
+
   return (
-    <div className="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden flex flex-col min-h-0 relative print:border-none print:shadow-none">
-      <div className="p-4 border-b border-outline-variant bg-surface shrink-0 sticky top-0 z-10 hidden md:block print:border-b-2 print:border-black">
-        <div className="grid grid-cols-5 gap-4 font-semibold text-sm text-on-surface-variant">
-          <div>{t('admin.orders.table.id', 'Mã Đơn')}</div>
-          <div>{t('admin.orders.table.createdAt', 'Thời gian')}</div>
-          <div>{t('admin.orders.table.table', 'Bàn')}</div>
-          <div>{t('admin.orders.table.total', 'Tổng tiền')}</div>
-          <div>{t('admin.orders.table.status', 'Trạng thái')}</div>
-        </div>
-      </div>
-      <div className="divide-y divide-outline-variant overflow-y-auto max-h-[400px] print:max-h-none print:overflow-visible">
-        {invoices.map((invoice) => (
-          <div 
-            key={invoice.id} 
-            onClick={() => setSelectedOrder(invoice)}
-            className="p-4 grid grid-cols-1 md:grid-cols-5 gap-4 md:items-center hover:bg-surface-variant/50 cursor-pointer transition-colors"
-          >
-            <div className="font-mono text-sm text-on-surface">
-              <span className="md:hidden text-on-surface-variant mr-2">ID:</span>
-              #{invoice.id.substring(0, 8)}
-            </div>
-            <div className="text-sm text-on-surface-variant">
-              {formatDateTime(invoice.createdAt)}
-            </div>
-            <div className="text-sm font-medium text-on-surface capitalize">
-              <span className="md:hidden text-on-surface-variant mr-2">{t('admin.orders.table.table', 'Bàn')}:</span>
-              {invoice.orderType === 'TAKEAWAY' ? t('pos.tableMap.takeaway', 'Mang về') : (invoice.tableNumber || '--')}
-            </div>
-            <div className="text-sm font-bold text-primary">
-              <span className="md:hidden text-on-surface-variant mr-2 font-normal">{t('admin.orders.table.total', 'Tổng tiền')}:</span>
-              {formatPrice(invoice.total)}
-            </div>
-            <div>
-              {getStatusBadge(invoice.status)}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="bg-surface rounded-xl shadow-sm border border-outline-variant flex flex-col min-h-[450px] flex-1 relative print:border-none print:shadow-none overflow-hidden print:max-h-none print:overflow-visible">
+      <DataTable 
+        columns={columns}
+        data={invoices}
+        isLoading={isLoading}
+        searchValue={keyword}
+        onSearchChange={(val) => {
+          setKeyword(val)
+          setPage(0)
+        }}
+        searchPlaceholder={t('admin.orders.search', 'Tìm kiếm...')}
+        onRowClick={(item) => setSelectedOrder(item)}
+        pagination={data ? {
+          currentPage: data.page,
+          totalPages: data.totalPages,
+          totalElements: data.totalElements,
+          pageSize: data.size,
+          onPageChange: (p) => setPage(p),
+          onPageSizeChange: (s) => {
+            setSize(s)
+            setPage(0)
+          }
+        } : undefined}
+      />
       <ShiftOrderModal 
         isOpen={selectedOrder !== null} 
         order={selectedOrder} 

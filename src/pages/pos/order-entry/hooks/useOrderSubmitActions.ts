@@ -7,7 +7,7 @@ import http from '@/services/interceptor'
 import { API_ROUTES } from '@/shared/constants/API_ROUTES'
 import { QUERY_KEYS } from '@/shared/constants/QUERY_KEYS'
 import type { IApiResponse } from '@/shared/types/IApiResponse'
-import { getApiErrorMessage, getSuccessMessage, unwrapApiData } from '@/shared/utils/apiResponse'
+import { getSuccessMessage, unwrapApiData } from '@/shared/utils/apiResponse'
 import type { ICart } from '../types/posOrder.type'
 import { posOrderService } from '../services/posOrder.service'
 
@@ -34,7 +34,7 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart }: UseOrderS
       const data = await http.post<IApiResponse<{ sessionToken: string }>>('/sessions/open/takeaway').then(unwrapApiData)
       return data.sessionToken
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t('pos.order.openSessionError', 'Lỗi khi mở phiên làm việc.')))
+      // Error is handled by interceptor
       return null
     }
   }
@@ -86,7 +86,7 @@ export function useOrderSubmitActions({ tableId, sessionToken, cart }: UseOrderS
         toast.error(t('pos.order.sessionRequired', 'Không thể khởi tạo phiên làm việc.'))
       }
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t('pos.order.checkoutProcessError', 'Lỗi khi xử lý thanh toán')))
+      // Error is handled by interceptor
     } finally {
       setIsSubmitting(false)
     }

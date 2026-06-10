@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle2, PlusCircle, Check } from 'lucide-react'
 import { ICart, IMenuItem } from '../types'
+import { useTranslation } from 'react-i18next'
 import { customerService } from '../services/customerService'
 
 interface BundleMissionDrawerProps {
@@ -19,6 +20,7 @@ export function BundleMissionDrawer({
   cart,
   onQuickAdd
 }: BundleMissionDrawerProps) {
+  const { t } = useTranslation()
   const [itemsInfo, setItemsInfo] = useState<Record<string, IMenuItem>>({})
 
   useEffect(() => {
@@ -72,14 +74,14 @@ export function BundleMissionDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm"
           />
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-[32px] overflow-hidden flex flex-col max-h-[85vh]"
+            className="fixed inset-x-0 bottom-0 z-[60] bg-white rounded-t-[32px] overflow-hidden flex flex-col max-h-[85vh]"
           >
             <div className="shrink-0 flex justify-center pt-3 pb-2">
               <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
@@ -88,7 +90,7 @@ export function BundleMissionDrawer({
             <div className="px-6 pb-4 shrink-0 flex items-start flex-col gap-2">
               <div className="flex w-full justify-between items-center mb-1">
                 <span className="px-2.5 py-1 bg-orange-100 text-orange-700 text-[11px] font-black uppercase rounded-lg">
-                  Nhiệm vụ Combo
+                  {t('customer.menu.bundleMissionTitle', 'Nhiệm vụ Combo')}
                 </span>
                 <button
                   onClick={onClose}
@@ -101,7 +103,7 @@ export function BundleMissionDrawer({
                 {bundle.name}
               </h2>
               <p className="text-sm text-slate-500 font-medium">
-                Hãy thu thập đủ các món dưới đây vào giỏ hàng để giải mã ưu đãi này nhé!
+                {t('customer.menu.bundleMissionDesc', 'Hãy thu thập đủ các món dưới đây vào giỏ hàng để giải mã ưu đãi này nhé!')}
               </p>
             </div>
 
@@ -144,7 +146,7 @@ export function BundleMissionDrawer({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="text-[10px] font-black uppercase text-slate-400">
-                          {task.role === 'BUY' ? 'Món mua' : (task.role === 'GET' ? 'Món tặng' : 'Món bắt buộc')}
+                          {task.role === 'BUY' ? t('customer.menu.roleBuy', 'Món mua') : (task.role === 'GET' ? t('customer.menu.roleGet', 'Món tặng') : t('customer.menu.roleRequired', 'Món bắt buộc'))}
                         </span>
                       </div>
                       <h3 className="text-sm font-bold text-slate-800 line-clamp-1 mb-0.5">

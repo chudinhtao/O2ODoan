@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { QUERY_KEYS } from '@/shared/constants/QUERY_KEYS'
 import { getSuccessMessage } from '@/shared/utils/apiResponse'
 import { orderService } from '../services/order.service'
-import type { IOrder, IOrderPageResponse, OrderFiltersParams } from '../types/order.type'
+import type { IOrder, IOrderPageResponse, OrderFiltersParams, IAuditLog } from '../types/order.type'
 
 export function useOrders(params: OrderFiltersParams) {
   return useQuery<IOrderPageResponse>({
@@ -18,6 +18,14 @@ export function useOrderDetails(id: string | null | undefined) {
   return useQuery<IOrder>({
     queryKey: QUERY_KEYS.order.byId(id!),
     queryFn: () => orderService.getOrderById(id!),
+    enabled: !!id,
+  })
+}
+
+export function useOrderTimeline(id: string | null | undefined) {
+  return useQuery<IAuditLog[]>({
+    queryKey: [...QUERY_KEYS.order.byId(id!), 'timeline'],
+    queryFn: () => orderService.getOrderTimeline(id!),
     enabled: !!id,
   })
 }

@@ -37,7 +37,7 @@ export function TableSelector({ tables, selectedIds, onSelect, emptyMessage, sea
           {emptyMessage}
         </div>
       ) : (
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 flex-1 overflow-y-auto pr-1 pb-1">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 flex-1 overflow-y-auto pr-2 pb-1 scrollbar-thin content-start">
           {filteredTables.map(tbl => {
             const isSelected = selectedIds.includes(tbl.id)
             return (

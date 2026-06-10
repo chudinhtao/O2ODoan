@@ -5,17 +5,23 @@ import httpClient from '@/services/interceptor';
 import type { IKdsTicket } from '../types/kds.type';
 import { getSuccessMessage } from '@/shared/utils/apiResponse';
 
+import { useShift } from '@/shared/hooks/useShift';
+
 export const useKdsQuery = () => {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { currentShift } = useShift();
+  const checkInTime = currentShift?.data?.checkIn;
 
   const fetchActiveTickets = async (): Promise<IKdsTicket[]> => {
-    const res = await httpClient.get('kds/tickets/active');
+    const res = await httpClient.get('kds/tickets/active', {
+      params: { startFrom: checkInTime || undefined }
+    });
     return res.data;
   };
 
   const { data: tickets, isLoading, isError } = useQuery<IKdsTicket[]>({
-    queryKey: ['kds-active-tickets'],
+    queryKey: ['kds-active-tickets', checkInTime],
     queryFn: fetchActiveTickets,
   });
 

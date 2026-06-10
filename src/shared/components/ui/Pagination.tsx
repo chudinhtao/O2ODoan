@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Select } from './Select';
 import { useTranslation } from 'react-i18next';
+import { Select } from './Select';
 
 interface PaginationProps {
   currentPage: number;
@@ -53,47 +53,51 @@ export function Pagination({
   };
 
   return (
-    <div className={`shrink-0 flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-200 bg-white z-10 w-full gap-4 ${className}`}>
-      <div className="flex items-center gap-4 w-full sm:w-auto">
-        <div className="w-36">
-          <Select
-            value={pageSize}
-            onChange={(e: any) => onPageSizeChange(Number(e.target.value))}
-            className="!py-2 !px-3 font-medium bg-slate-50"
-            placement="top"
-            options={pageSizeOptions.map(size => ({
-              value: size,
-              label: t('common.pagination.size', { size })
-            }))}
-          />
-        </div>
-        <p className="text-sm text-slate-500 font-medium whitespace-nowrap">
+    <div className={`shrink-0 flex flex-col sm:flex-row items-center justify-between px-6 py-3 border-t border-slate-100 bg-white z-10 w-full gap-4 ${className}`}>
+      <div className="flex items-center text-sm text-slate-500">
+        <span className="whitespace-nowrap">
           {t(infoKey, {
-            start: currentPage * pageSize + 1,
+            start: totalElements === 0 ? 0 : currentPage * pageSize + 1,
             end: Math.min((currentPage + 1) * pageSize, totalElements),
             total: totalElements
           })}
-        </p>
+        </span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <span className="whitespace-nowrap text-xs">{t('common.pagination.showLabel', 'Hiển thị:')}</span>
+          <div className="w-24">
+            <Select 
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              placement="top"
+              className="!py-1 !px-2 !pr-8 !text-xs font-semibold shadow-sm"
+              options={pageSizeOptions.map(size => ({
+                label: t('common.pagination.size', { size, defaultValue: `${size} dòng` }),
+                value: size
+              }))}
+            />
+          </div>
+        </div>
+
         <div className="flex items-center gap-1">
           <button
             disabled={currentPage === 0}
             onClick={() => onPageChange(currentPage - 1)}
-            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-400 disabled:opacity-50 transition-colors"
+            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-2 px-2">
+          <div className="flex items-center gap-1.5 px-1">
             <input
               type="text"
               value={inputPage}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
               onKeyDown={handleKeyDown}
-              className="w-10 h-10 rounded-lg border border-slate-200 text-center text-sm font-bold text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:border-slate-300"
+              className="w-9 h-7 rounded-lg border border-slate-200 text-center text-sm font-semibold text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all hover:border-slate-300"
             />
             <span className="text-sm text-slate-400 font-medium">/ {totalPages || 1}</span>
           </div>
@@ -101,9 +105,9 @@ export function Pagination({
           <button
             disabled={currentPage >= totalPages - 1 || totalPages === 0}
             onClick={() => onPageChange(currentPage + 1)}
-            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50 transition-colors"
+            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

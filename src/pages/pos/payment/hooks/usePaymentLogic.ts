@@ -1,15 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useNavigate, useLocation } from 'react-router-dom'
-import http from '@/services/interceptor'
+import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/ROUTES'
-import { API_ROUTES } from '@/shared/constants/API_ROUTES'
-import { IOrder, IOrderTicket, IOrderTicketItem } from '@/pages/admin/orders/types/order.type'
-import { ICartItem } from '@/pages/pos/order-entry/types/posOrder.type'
+import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { usePosCheckout, usePosApplyPromotion } from '@/pages/pos/order-detail/hooks/usePosOrder'
 import { AggregatedItem } from '../components/InvoicePanel'
-import { IApiResponse } from '@/shared/types/IApiResponse'
 import { orderService } from '@/pages/admin/orders/services/order.service'
 
 export function usePaymentLogic(
@@ -20,11 +16,9 @@ export function usePaymentLogic(
 ) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const location = useLocation()
   const { mutate: checkout, isPending: isCheckingOut } = usePosCheckout()
   const [cashGivenStr, setCashGivenStr] = useState('')
   const [voucherCode, setVoucherCode] = useState('')
-  const [takeawayPromo, setTakeawayPromo] = useState<{ code: string; discount: number } | null>(null)
   const { mutate: applyPromoServer, isPending: isApplyingPromoServer } = usePosApplyPromotion()
 
   // QR thuần (PayOS full amount) state
@@ -39,50 +33,18 @@ export function usePaymentLogic(
 
   const order = useMemo<IOrder | null>(() => {
     if (serverOrder) return serverOrder as IOrder
-
-    if (tableId === 'takeaway') {
-      const cart = location.state?.cart
-      if (!cart) return null
-
-      const sub = cart.totalAmount || 0
-      const disc = takeawayPromo?.discount || 0
-
-      return {
-        id: 'TAKEAWAY-TEMP',
-        tableNumber: t('pos.payment.takeawayTable', 'Mang về'),
-        subtotal: sub,
-        discount: disc,
-        total: Math.max(0, sub - disc),
-        promotionCode: takeawayPromo?.code,
-        tickets: [
-          {
-            id: 'T1',
-            status: 'COMPLETED',
-            items: cart.items.map(
-              (it: ICartItem) =>
-                ({
-                  id: it.cartItemId,
-                  menuItemId: it.menuItemId,
-                  itemName: it.name || t('pos.payment.unknownItem', 'Món'),
-                  quantity: it.quantity,
-                  unitPrice: it.basePrice || 0,
-                  options: (it.options || []).map((o) => ({
-                    id: o.optionId,
-                    optionName: o.optionName,
-                    extraPrice: o.extraPrice,
-                  })),
-                  note: it.note,
-                  status: 'PENDING',
-                  station: 'KITCHEN',
-                  createdAt: new Date().toISOString(),
-                }) as unknown as IOrderTicketItem
-            ),
-          } as unknown as IOrderTicket,
-        ],
-      } as unknown as IOrder
-    }
     return null
-  }, [tableId, location.state?.cart, serverOrder, t, takeawayPromo])
+  }, [serverOrder])
+
+  // Lắng nghe sự kiện thanh toán thành công từ Webhook (real-time)
+  useEffect(() => {
+    if (order?.status === 'PAID') {
+      toast.success(t('pos.payment.autoPaid', 'Đơn hàng đã được thanh toán thành công (Webhook)!'), {
+        duration: 5000,
+      })
+      navigate(tableId === 'takeaway' ? '/pos/takeaways' : ROUTES.pos.tables)
+    }
+  }, [order?.status, navigate, tableId, t])
 
   const aggregatedItems = useMemo<AggregatedItem[]>(() => {
     if (!order) return []
@@ -125,35 +87,14 @@ export function usePaymentLogic(
   }
 
   const handleApplyVoucher = async (code: string) => {
-    if (tableId === 'takeaway') {
-      if (!code.trim()) {
-        setTakeawayPromo(null)
-        setVoucherCode('')
-        return
-      }
-      try {
-        const subtotal = order?.subtotal || 0
-        const res = await http.get<IApiResponse<{ discount: number; type: string; value: number }>>(
-          API_ROUTES.promotion.validate,
-          { params: { code, amount: subtotal } }
-        )
-        if (res.data.success) {
-          setTakeawayPromo({ code: code.toUpperCase(), discount: res.data.data.discount })
-          setVoucherCode('')
-          toast.success(t('pos.payment.appliedPromo', 'Đã áp dụng mã giảm giá'))
-        }
-      } catch (err: any) {
-        const msg = err.response?.data?.message || t('pos.payment.invalidVoucher', 'Mã không khả dụng')
-        toast.error(msg)
-      }
-      return
-    }
-
     if (!order?.id) return
     applyPromoServer({ orderId: order.id, code }, { onSuccess: () => setVoucherCode('') })
   }
 
   const orderTotal = Math.max(0, order?.total || 0)
+  const actualTotalBeforeDeposit = Math.max(0, (order?.subtotal || 0) - (order?.discount || 0))
+  const excessDeposit = order?.depositAmount ? Math.max(0, order.depositAmount - actualTotalBeforeDeposit) : 0
+
   const cashGiven = cashGivenStr ? parseInt(cashGivenStr, 10) : 0
 
   // Số tiền còn thiếu cần quét QR (chỉ dùng trong luồng MIXED)
@@ -175,7 +116,7 @@ export function usePaymentLogic(
       if (data.qrCode) setQrPayosCode(data.qrCode)
       toast.success(t('pos.payment.qrCreated', 'Đã tạo mã QR – Hướng dẫn khách quét'))
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('pos.payment.qrError', 'Không thể tạo mã QR PayOS'))
+      // Error is handled by interceptor
     } finally {
       setIsCreatingQrPayos(false)
     }
@@ -196,7 +137,7 @@ export function usePaymentLogic(
       if (data.qrCode) setMixedQrCode(data.qrCode)
       toast.success(t('pos.payment.mixedQrCreated', 'Đã tạo mã QR – Hướng dẫn khách quét'))
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('pos.payment.mixedQrError', 'Không thể tạo mã QR'))
+      // Error is handled by interceptor
     } finally {
       setIsCreatingQr(false)
     }
@@ -205,30 +146,6 @@ export function usePaymentLogic(
   /** Hàm chính xử lý checkout, nhận paymentMethod từ UI */
   const handlePaymentSubmit = (paymentMethod: string) => {
     if (!order) return
-
-    // --- Luồng Takeaway ---
-    if (tableId === 'takeaway' && (!serverOrder || !sessionToken)) {
-      const takeawayReq = {
-        note: '',
-        promotionCode: takeawayPromo?.code || '',
-        items: order.tickets[0].items.map((i) => ({
-          menuItemId: i.menuItemId,
-          quantity: i.quantity,
-          note: i.note,
-          options: i.options.map((o) => ({ optionId: o.id })),
-        })),
-      }
-      http
-        .post('/orders/takeaway', takeawayReq)
-        .then(() => {
-          toast.success(t('pos.payment.takeawaySuccess', 'Thanh toán Takeaway thành công'))
-          navigate('/pos/takeaways')
-        })
-        .catch((err) =>
-          toast.error(t('pos.payment.errorPrefix', 'Lỗi: ') + (err.response?.data?.message || err.message))
-        )
-      return
-    }
 
     if (!sessionToken) return
 
@@ -247,11 +164,7 @@ export function usePaymentLogic(
           onSuccess: () => {
             toast.success(t('pos.payment.successCleaning', 'Thanh toán thành công! Bàn đang được dọn dẹp.'))
             navigate(tableId === 'takeaway' ? '/pos/takeaways' : ROUTES.pos.tables)
-          },
-          onError: (err: unknown) => {
-            const error = err as { response?: { data?: { message?: string } }; message?: string }
-            toast.error(error.response?.data?.message || t('pos.payment.failure', 'Lỗi thanh toán'))
-          },
+          }
         }
       )
       return
@@ -276,11 +189,7 @@ export function usePaymentLogic(
           onSuccess: () => {
             toast.success(t('pos.payment.mixedSuccess', 'Thanh toán Mixed thành công!'))
             navigate(tableId === 'takeaway' ? '/pos/takeaways' : ROUTES.pos.tables)
-          },
-          onError: (err: unknown) => {
-            const error = err as { response?: { data?: { message?: string } }; message?: string }
-            toast.error(error.response?.data?.message || t('pos.payment.failure', 'Lỗi thanh toán'))
-          },
+          }
         }
       )
       return
@@ -302,11 +211,7 @@ export function usePaymentLogic(
             : t('pos.payment.successServing', 'Thanh toán thành công! (Bàn vẫn tiếp tục phục vụ)')
           toast.success(msg)
           navigate(tableId === 'takeaway' ? '/pos/takeaways' : ROUTES.pos.tables)
-        },
-        onError: (err: unknown) => {
-          const error = err as { response?: { data?: { message?: string } }; message?: string }
-          toast.error(error.response?.data?.message || t('pos.payment.failure', 'Lỗi thanh toán'))
-        },
+        }
       }
     )
   }
@@ -337,6 +242,7 @@ export function usePaymentLogic(
     qrAmount,
     isMixedReady,
     handleMixedCreateQr,
+    excessDeposit,
   }
 }
 

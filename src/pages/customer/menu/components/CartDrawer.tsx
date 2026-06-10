@@ -54,7 +54,7 @@ export function CartDrawer({ isOpen, onClose, cart, onUpdateQuantity, onRemoveIt
               </button>
               <div className="flex-1">
                 <h2 className="font-black text-lg text-slate-900">{t('customer.cart.title')}</h2>
-                {itemCount > 0 && <p className="text-xs text-slate-400 font-medium">{itemCount} món đã chọn</p>}
+                {itemCount > 0 && <p className="text-xs text-slate-400 font-medium">{t('customer.cart.itemsSelected', { count: itemCount, defaultValue: '{{count}} món đã chọn' })}</p>}
               </div>
               {itemCount > 0 && (
                 <button
@@ -129,7 +129,7 @@ export function CartDrawer({ isOpen, onClose, cart, onUpdateQuantity, onRemoveIt
                   <span className="text-2xl font-black text-guest-primary">{fmt(cart.totalAmount)}đ</span>
                 </div>
                 <div className="text-right mb-4">
-                  <span className="text-[10px] text-slate-400 font-medium italic">(Giá đã bao gồm VAT)</span>
+                  <span className="text-[10px] text-slate-400 font-medium italic">{t('customer.cart.taxIncluded', '(Giá đã bao gồm VAT)')}</span>
                 </div>
                 <button
                   onClick={onCheckout}

@@ -4,12 +4,14 @@ export interface ICategory {
   imageUrl?: string
   displayOrder: number
   isActive: boolean
+  taxRate?: number
 }
 
 export interface ICategoryRequest {
   name: string
   imageUrl?: string
   displayOrder?: number
+  taxRate?: number
 }
 
 export interface IOption {
@@ -34,6 +36,7 @@ export interface IMenuItem {
   categoryId?: string
   categoryName?: string
   basePrice: number
+  taxRate?: number
   salePrice?: number
   saleStartAt?: string
   saleEndAt?: string
@@ -50,6 +53,7 @@ export interface IMenuItemRequest {
   name: string
   categoryId: string
   basePrice: number
+  taxRate?: number
   description?: string
   station: 'HOT' | 'COLD' | 'DRINK'
   isFeatured: boolean

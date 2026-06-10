@@ -74,7 +74,7 @@ export function CartItemRow({ item, isLast, onUpdateQuantity, onRemoveItem }: Ca
                 <span className="font-black text-guest-primary text-sm">{fmt(item.lineTotal)}đ</span>
                 {hasActiveFlashSale && (
                    <span className="flex items-center gap-0.5 text-[8px] text-red-500 font-bold bg-red-50 px-1 rounded border border-red-100 uppercase animate-pulse">
-                     Sắp hết
+                     {t('customer.menu.almostEmpty', 'Sắp hết')}
                    </span>
                 )}
               </div>

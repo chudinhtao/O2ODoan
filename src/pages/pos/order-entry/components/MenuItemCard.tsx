@@ -46,7 +46,7 @@ export function MenuItemCard({ item, onAdd }: MenuItemCardProps) {
         }`}
     >
       {/* ── Image ── */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-surface-container">
+      <div className="relative w-full aspect-[4/3] shrink-0 overflow-hidden bg-surface-container">
         <ImageWithFallback
           src={item.imageUrl}
           fallback={PLACEHOLDER}
@@ -73,58 +73,52 @@ export function MenuItemCard({ item, onAdd }: MenuItemCardProps) {
       </div>
 
       {/* ── Info ── */}
-      <div className="flex flex-col flex-1 p-2.5 gap-1">
+      <div className="flex flex-col flex-1 p-2 gap-0.5">
 
         {/* Meta chips row: station · featured · category */}
-        {(station || item.isFeatured || item.categoryName) && (
-          <div className="flex items-center gap-1.5 flex-wrap min-h-[14px]">
-            {station && StIcon && (
-              <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${station.color}`}>
-                <StIcon className="size-3" />
-                {station.label}
-              </span>
-            )}
-            {item.isFeatured && (
-              <span className="flex items-center gap-0.5 text-[10px] font-semibold text-tertiary">
-                <Star className="size-3 fill-tertiary stroke-tertiary" />
-                {t('pos.menu.item.featured', 'Nổi bật')}
-              </span>
-            )}
-            {item.categoryName && (station || item.isFeatured) && (
-              <span className="text-[10px] text-outline-variant">·</span>
-            )}
-            {item.categoryName && (
-              <span className="text-[10px] text-outline truncate">{item.categoryName}</span>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 flex-wrap min-h-[14px]">
+          {station && StIcon && (
+            <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${station.color}`}>
+              <StIcon className="size-3" />
+              {station.label}
+            </span>
+          )}
+          {item.isFeatured && (
+            <span className="flex items-center gap-0.5 text-[10px] font-semibold text-tertiary">
+              <Star className="size-3 fill-tertiary stroke-tertiary" />
+              {t('pos.menu.item.featured', 'Nổi bật')}
+            </span>
+          )}
+        </div>
 
         {/* Name */}
-        <h3 className="text-[12px] font-bold text-on-surface leading-tight line-clamp-2 flex-1">
+        <h3 className="text-[13px] font-bold text-on-surface leading-tight line-clamp-2 h-[32px]">
           {item.name}
         </h3>
 
         {/* Option hint */}
-        {item.optionGroups && item.optionGroups.length > 0 && (
-          <p className="text-[10px] text-on-surface-variant font-medium">
-            {t('pos.menu.item.optionsCount', { count: item.optionGroups.length })}
-          </p>
-        )}
+        <div className="min-h-[14px] flex items-center">
+          {item.optionGroups && item.optionGroups.length > 0 && (
+            <p className="text-[10px] text-on-surface-variant font-medium">
+              {t('pos.menu.item.optionsCount', { count: item.optionGroups.length })}
+            </p>
+          )}
+        </div>
 
         {/* Price + Add button */}
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex flex-col leading-tight">
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex flex-col leading-tight min-h-[30px] justify-center">
             {hasSale ? (
               <>
                 <span className="text-[10px] text-outline line-through">
                   {formatPrice(item.basePrice)}
                 </span>
-                <span className="text-sm font-black text-error">
+                <span className="text-[15px] font-black text-error">
                   {formatPrice(item.salePrice!)}
                 </span>
               </>
             ) : (
-              <span className="text-sm font-black text-primary">
+              <span className="text-[15px] font-black text-primary">
                 {formatPrice(item.basePrice)}
               </span>
             )}
@@ -133,11 +127,9 @@ export function MenuItemCard({ item, onAdd }: MenuItemCardProps) {
           {item.isAvailable && (
             <button
               onClick={(e) => { e.stopPropagation(); onAdd(item) }}
-              className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center
-                         shadow-md shadow-primary/30 active:scale-90 hover:bg-primary/90
-                         transition-all duration-150 shrink-0"
+              className="p-1 text-primary hover:text-primary/80 active:scale-90 transition-all duration-150 shrink-0"
             >
-              <Plus className="size-4" />
+              <Plus className="size-5" />
             </button>
           )}
         </div>

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, Flame, BadgePercent, Edit3, Minus, Plus, ShoppingCart, Tag
+  X, Flame, BadgePercent, Edit3, ShoppingCart, Tag
 } from 'lucide-react'
 import { IMenuItem, IMenuItemOption } from '../types'
 import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
 import { useTranslation } from 'react-i18next'
 import { ItemOptionGroup } from './ItemOptionGroup'
 import { useServerTime } from '@/shared/hooks/useServerTime'
+import { StepperInput } from '@/shared/components/ui/StepperInput'
 
 interface ItemDetailModalProps {
   isOpen: boolean
@@ -87,162 +88,162 @@ export function ItemDetailModal({ isOpen, onClose, item, onAddToCart, isAdding }
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-[2px]"
           />
 
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 260 }}
-            className="fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[92vh] rounded-t-[32px] overflow-hidden bg-[#f8fafc]"
-          >
-            <div className="flex justify-center pt-3 pb-1 bg-[#f8fafc] shrink-0">
-              <div className="w-10 h-1 rounded-full bg-slate-300" />
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {/* Image card */}
-              <div className="mx-4 mt-2 rounded-3xl overflow-hidden relative bg-slate-200 shadow-xl" style={{ height: '220px' }}>
-                {item.imageUrl ? (
-                  <ImageWithFallback
-                    src={item.imageUrl} alt={item.name}
-                    className="w-full h-full object-cover"
-                    fallback="/placeholder.png"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-amber-50">
-                    <ShoppingCart size={64} className="text-orange-200" />
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-                <button
-                  onClick={onClose}
-                  className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-md rounded-full text-white active:scale-90 transition-all shadow-md"
-                >
-                  <X size={16} strokeWidth={2.5} />
-                </button>
-
-                <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                  {item.isFeatured && (
-                    <span className="flex items-center gap-1 bg-amber-500/90 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow">
-                      <Flame size={11} fill="currentColor" />
-                      Bán chạy
-                    </span>
-                  )}
-                  {hasDiscount && (
-                    <span className="flex items-center gap-1 bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow">
-                      <BadgePercent size={11} />
-                      -{discountPct}%
-                    </span>
-                  )}
-                </div>
-
-                {!item.isAvailable && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="bg-slate-900/80 text-white font-black text-sm px-4 py-1.5 rounded-full">Tạm hết hàng</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Info card */}
-              <div className="mx-4 mt-3 bg-white rounded-3xl shadow-sm border border-slate-100 px-5 pt-5 pb-4">
-                <h2 className="text-xl font-black text-slate-900 leading-snug mb-3">{item.name}</h2>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[26px] font-black text-guest-primary leading-none">{fmt(displayPrice)}đ</span>
-                  {hasDiscount && (
-                    <>
-                      <span className="text-sm text-slate-400 line-through font-medium">{fmt(item.basePrice)}đ</span>
-                      <span className="ml-auto flex items-center gap-1 bg-gradient-to-r from-red-50 to-orange-50 text-red-500 text-[11px] font-black px-3 py-1 rounded-full border border-red-100">
-                        <Tag size={11} strokeWidth={2.5} />
-                        -{fmt(savings)}đ
-                      </span>
-                    </>
-                  )}
-                </div>
-                {item.description && (
-                  <p className="text-sm text-slate-500 leading-relaxed mt-3 pt-3 border-t border-slate-100">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Options card */}
-              {(item.optionGroups?.length ?? 0) > 0 && (
-                <div className="mx-4 mt-3 bg-white rounded-3xl shadow-sm border border-slate-100 px-5 py-4 space-y-5">
-                  {item.optionGroups!.map(group => (
-                    <ItemOptionGroup
-                      key={group.id}
-                      group={group}
-                      selectedOptions={selectedOptions[group.id] || []}
-                      onToggleOption={(opt, isSingle) => handleToggleOption(group.id, opt, isSingle)}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="flex flex-col w-full max-w-md max-h-[90vh] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-white pointer-events-auto relative shadow-2xl"
+            >
+              <div className="flex-1 overflow-y-auto relative scrollbar-none">
+                {/* Image Header */}
+                <div className="w-full h-[240px] relative shrink-0 bg-slate-100">
+                  {item.imageUrl ? (
+                    <ImageWithFallback
+                      src={item.imageUrl} alt={item.name}
+                      className="w-full h-full object-cover"
+                      fallback="/placeholder.png"
                     />
-                  ))}
-                </div>
-              )}
-
-              {/* Note card */}
-              <div className="mx-4 mt-3 mb-4 bg-white rounded-3xl shadow-sm border border-slate-100 px-5 py-4">
-                <label className="flex items-center gap-2 text-sm font-bold text-slate-600 mb-2.5">
-                  <Edit3 size={15} className="text-slate-400" />
-                  {t('customer.itemDetail.additionalNote')}
-                </label>
-                <textarea
-                  placeholder={t('customer.itemDetail.noteExample')}
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  rows={2}
-                  className="w-full text-sm text-slate-700 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200 focus:border-guest-primary focus:ring-2 focus:ring-guest-primary/20 outline-none transition-all placeholder:text-slate-400 resize-none"
-                />
-              </div>
-
-              <div className="h-28" />
-            </div>
-
-            {/* Pinned footer */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 pt-3 pb-6 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.1)]">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center rounded-2xl border-2 border-slate-200 overflow-hidden shrink-0">
-                  <button
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all"
-                  >
-                    <Minus size={18} strokeWidth={2.5} />
-                  </button>
-                  <span className="w-9 text-center font-black text-[17px] text-slate-900 select-none">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(q => q + 1)}
-                    className="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-90 transition-all"
-                  >
-                    <Plus size={18} strokeWidth={2.5} />
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => { if (isValid && item.isAvailable && !isAdding) { onAddToCart(item, quantity, selectedOptions, note); onClose() } }}
-                  disabled={!isValid || !item.isAvailable || isAdding}
-                  className={`
-                    flex-1 h-12 flex items-center justify-between px-5 rounded-2xl
-                    font-bold text-[14px] text-white transition-all active:scale-[0.97] duration-150
-                    ${isValid && item.isAvailable && !isAdding
-                      ? 'bg-gradient-to-r from-[#ff7a00] to-[#ff4d00] shadow-[0_4px_20px_-4px_rgba(255,100,0,0.55)]'
-                      : 'bg-slate-300 cursor-not-allowed'}
-                    ${isAdding ? 'opacity-80' : ''}
-                  `}
-                >
-                  <div className="flex items-center gap-2">
-                    {isAdding && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                    <span>{isAdding ? t('customer.itemDetail.adding', 'Đang thêm...') : (item.isAvailable ? t('customer.itemDetail.addToCart') : 'Tạm hết hàng')}</span>
-                  </div>
-                  {item.isAvailable && !isAdding && (
-                    <span className="font-black text-[15px]">{fmt(calculateTotal())}đ</span>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-amber-50">
+                      <ShoppingCart size={64} className="text-orange-200" />
+                    </div>
                   )}
-                </button>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+
+                  <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white active:scale-90 transition-all shadow-md z-10"
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+
+                  <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                    {item.isFeatured && (
+                      <span className="inline-flex w-fit items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black uppercase px-3 py-1.5 rounded-full shadow-lg">
+                        <Flame size={12} fill="currentColor" />
+                        {t('customer.menu.bestSeller', 'Bán chạy nhất')}
+                      </span>
+                    )}
+                    {hasDiscount && (
+                      <span className="inline-flex w-fit items-center gap-1.5 bg-red-500 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg">
+                        <BadgePercent size={12} />
+                        -{discountPct}%
+                      </span>
+                    )}
+                  </div>
+
+                  {!item.isAvailable && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
+                      <span className="bg-slate-900/90 text-white font-black text-sm px-5 py-2 rounded-full shadow-xl">{t('customer.itemDetail.outOfStock', 'Tạm hết hàng')}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content Body */}
+                <div className="relative -mt-6 bg-white rounded-t-[24px] px-5 sm:px-6 pt-6 pb-6 flex flex-col min-h-full">
+                  
+                  {/* Title & Price */}
+                  <div className="mb-6">
+                    <h2 className="text-[22px] font-black text-slate-900 leading-snug mb-3">{item.name}</h2>
+                    <div className="flex items-end gap-3 flex-wrap">
+                      <span className="text-[28px] font-black text-[#ff6400] leading-none">{fmt(displayPrice)}đ</span>
+                      {hasDiscount && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-slate-400 line-through font-semibold">{fmt(item.basePrice)}đ</span>
+                          <span className="flex items-center gap-1 bg-red-50 text-red-500 text-[11px] font-black px-2 py-0.5 rounded border border-red-100">
+                            <Tag size={10} strokeWidth={3} />
+                            -{fmt(savings)}đ
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {item.description && (
+                      <p className="text-[15px] text-slate-500 leading-relaxed mt-4">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {((item.optionGroups?.length ?? 0) > 0) && (
+                    <div className="h-px bg-slate-100 mb-6 w-full" />
+                  )}
+
+                  {/* Options */}
+                  {(item.optionGroups?.length ?? 0) > 0 && (
+                    <div className="space-y-6 mb-6">
+                      {item.optionGroups!.map(group => (
+                        <ItemOptionGroup
+                          key={group.id}
+                          group={group}
+                          selectedOptions={selectedOptions[group.id] || []}
+                          onToggleOption={(opt, isSingle) => handleToggleOption(group.id, opt, isSingle)}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {((item.optionGroups?.length ?? 0) > 0) && (
+                    <div className="h-px bg-slate-100 mb-6 w-full" />
+                  )}
+
+                  {/* Note */}
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 text-[15px] font-bold text-slate-800">
+                      <Edit3 size={18} className="text-slate-400" />
+                      {t('customer.itemDetail.additionalNote')}
+                    </label>
+                    <textarea
+                      placeholder={t('customer.itemDetail.noteExample')}
+                      value={note}
+                      onChange={e => setNote(e.target.value)}
+                      rows={2}
+                      className="w-full text-[15px] text-slate-700 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-200 focus:border-[#ff6400] focus:ring-2 focus:ring-[#ff6400]/20 outline-none transition-all placeholder:text-slate-400 resize-none"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              {/* Sticky Footer */}
+              <div className="bg-white border-t border-slate-100 px-4 sm:px-5 py-4 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.08)] z-10 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <StepperInput
+                    value={quantity}
+                    onChange={setQuantity}
+                    min={1}
+                    max={99}
+                    className="h-12 sm:h-[52px] !p-1.5 !rounded-2xl"
+                  />
+
+                  <button
+                    onClick={() => { if (isValid && item.isAvailable && !isAdding) { onAddToCart(item, quantity, selectedOptions, note); onClose() } }}
+                    disabled={!isValid || !item.isAvailable || isAdding}
+                    className={`
+                      flex-1 h-12 sm:h-[52px] flex items-center justify-between px-3 sm:px-5 rounded-2xl
+                      font-bold text-[14px] sm:text-[15px] text-white transition-all active:scale-[0.98] duration-150 min-w-0
+                      ${isValid && item.isAvailable && !isAdding
+                        ? 'bg-gradient-to-r from-[#ff7a00] to-[#ff4d00] shadow-[0_4px_20px_-4px_rgba(255,100,0,0.4)]'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'}
+                      ${isAdding ? 'opacity-80' : ''}
+                    `}
+                  >
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                      {isAdding && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />}
+                      <span className="truncate">{isAdding ? t('customer.itemDetail.adding', 'Đang thêm...') : (item.isAvailable ? t('customer.itemDetail.addToCart') : t('customer.itemDetail.outOfStock', 'Tạm hết hàng'))}</span>
+                    </div>
+                    {item.isAvailable && !isAdding && (
+                      <span className="font-black text-[14px] sm:text-[16px] bg-white/20 px-1.5 sm:px-2 py-0.5 rounded-lg shrink-0">{fmt(calculateTotal())}đ</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

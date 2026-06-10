@@ -40,4 +40,5 @@ export interface ServerKpiResponse {
   totalServed: number;
   totalResolved: number;
   avgResponseSeconds: number;
+  avgDeliverySeconds: number;
 }

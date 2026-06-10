@@ -14,6 +14,11 @@ interface Props {
 export function RevenueChart({ data, isLoading, totalRevenue }: Props) {
   const { t } = useTranslation()
 
+  const { totalNetRevenue, totalTax } = data.reduce((acc, curr) => ({
+    totalNetRevenue: acc.totalNetRevenue + (curr.netRevenue || 0),
+    totalTax: acc.totalTax + (curr.taxAmount || 0)
+  }), { totalNetRevenue: 0, totalTax: 0 })
+
   return (
     <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col min-w-0 h-full">
       <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3 gap-2">
@@ -30,11 +35,11 @@ export function RevenueChart({ data, isLoading, totalRevenue }: Props) {
       <div className="grid grid-cols-2 gap-4 mb-4 mt-2">
         <div className="p-3 bg-surface-variant/30 rounded-xl border border-outline-variant/50">
           <p className="text-xs text-on-surface-variant font-medium mb-1 line-clamp-1 truncate">{t('admin.analytics.net_revenue', 'Doanh thu thuần (Net)')}</p>
-          <p className="text-lg font-bold text-on-surface">{Math.round(totalRevenue / 1.08).toLocaleString()} ₫</p>
+          <p className="text-lg font-bold text-on-surface">{Math.round(totalNetRevenue).toLocaleString()} ₫</p>
         </div>
         <div className="p-3 bg-error/5 rounded-xl border border-error/10">
-          <p className="text-xs text-error/80 font-medium mb-1 line-clamp-1 truncate">{t('admin.analytics.estimated_vat', 'Thuế giá trị gia tăng (8%)')}</p>
-          <p className="text-lg font-bold text-error">{Math.round(totalRevenue - (totalRevenue / 1.08)).toLocaleString()} ₫</p>
+          <p className="text-xs text-error/80 font-medium mb-1 line-clamp-1 truncate">{t('admin.analytics.actual_vat', 'Thuế giá trị gia tăng (VAT)')}</p>
+          <p className="text-lg font-bold text-error">{Math.round(totalTax).toLocaleString()} ₫</p>
         </div>
       </div>
 

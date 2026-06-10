@@ -8,7 +8,8 @@ import { useCreateCategory, useUpdateCategory } from './useMenuMutations'
 
 export const categorySchema = z.object({
   name: z.string().min(1, 'admin.categories.validation.requiredName'),
-  displayOrder: z.number().optional(),
+  displayOrder: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().optional()),
+  taxRate: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.categories.validation.minTax').max(100, 'admin.categories.validation.maxTax')),
   imageUrl: z.string().optional()
 })
 
@@ -30,8 +31,8 @@ export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryForm
   const updateMutation = useUpdateCategory()
 
   const form = useForm<CategoryFormValues>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', displayOrder: 0, imageUrl: '' }
+    resolver: zodResolver(categorySchema as any),
+    defaultValues: { name: '', displayOrder: 0, taxRate: 0, imageUrl: '' }
   })
 
   useEffect(() => {
@@ -41,10 +42,11 @@ export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryForm
       form.reset({
         name: existingCategory.name,
         displayOrder: existingCategory.displayOrder || 0,
+        taxRate: existingCategory.taxRate ?? 0,
         imageUrl: existingCategory.imageUrl || ''
       })
     } else {
-      form.reset({ name: '', displayOrder: 0, imageUrl: '' })
+      form.reset({ name: '', displayOrder: 0, taxRate: 0, imageUrl: '' })
     }
   }, [isOpen, isEdit, existingCategory, form])
 
@@ -52,6 +54,7 @@ export function useCategoryForm({ categoryId, isOpen, onClose }: UseCategoryForm
     const payload: ICategoryRequest = {
       name: data.name,
       displayOrder: data.displayOrder,
+      taxRate: data.taxRate ?? 0,
       imageUrl: data.imageUrl || undefined
     }
 

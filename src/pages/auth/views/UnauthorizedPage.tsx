@@ -1,12 +1,26 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ShieldX } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
 import { ROUTES } from '@/shared/constants/ROUTES'
 
+import { useAppDispatch } from '@/store/hooks'
+import { logoutUser } from '@/store/slices/auth.slice'
+import { queryClient } from '@/providers/AppProviders'
+
 export default function UnauthorizedPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const location = useLocation()
+  const customMessage = location.state?.message as string | undefined
+
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
+    queryClient.clear()
+    navigate(ROUTES.login)
+  }
+
 
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center px-6">
@@ -21,7 +35,7 @@ export default function UnauthorizedPage() {
             {t('auth.unauthorized.title')}
           </h1>
           <p className="text-on-surface-variant text-sm">
-            {t('auth.unauthorized.description')}
+            {customMessage || t('auth.unauthorized.description')}
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -29,8 +43,8 @@ export default function UnauthorizedPage() {
             {t('auth.unauthorized.goBack')}
           </Button>
           <button
-            onClick={() => navigate(ROUTES.login)}
-            className="text-sm text-on-surface-variant hover:text-primary transition-colors"
+            onClick={handleLogout}
+            className="text-sm text-on-surface-variant hover:text-primary transition-colors font-medium"
           >
             {t('auth.unauthorized.changeAccount')}
           </button>

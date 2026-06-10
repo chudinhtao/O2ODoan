@@ -1,0 +1,14 @@
+export const SCHEDULE_STATUS = {
+  PLANNED: 'PLANNED',
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW'
+} as const;
+
+export const STAFF_ROLES = {
+  ADMIN: 'ADMIN',
+  CASHIER: 'CASHIER',
+  KITCHEN: 'KITCHEN',
+  SERVER: 'SERVER'
+} as const;

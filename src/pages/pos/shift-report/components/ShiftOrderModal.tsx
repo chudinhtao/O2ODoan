@@ -133,10 +133,12 @@ export function ShiftOrderModal({ order, isOpen, onClose }: Props) {
               <span>-{formatPrice(order.subtotal - order.total)}</span>
             </div>
           )}
-          <div className="flex justify-between text-xs font-semibold text-on-surface-variant italic mt-1">
-             <span>{t('report.orderModal.vatLabel', 'Bao gồm VAT (8%)')}</span>
-             <span>{formatPrice(Math.round(order.total - (order.total / 1.08)))}</span>
-          </div>
+          {(order.tax || 0) > 0 && (
+            <div className="flex justify-between text-xs font-semibold text-on-surface-variant italic mt-1">
+               <span>{t('report.orderModal.vatLabel', 'Bao gồm Thuế GTGT (VAT)')}</span>
+               <span>{formatPrice(order.tax || 0)}</span>
+            </div>
+          )}
           <div className="pt-4 mt-2 border-t border-outline-variant/50 flex justify-between items-center">
              <span className="text-base font-bold text-on-surface uppercase tracking-wider">
                {t('pos.payment.grandTotal', 'Tổng cộng')}

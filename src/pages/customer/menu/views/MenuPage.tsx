@@ -142,7 +142,7 @@ export default function CustomerMenuPage() {
         <div className="bg-red-50 p-6 rounded-2xl border border-red-100 max-w-sm w-full">
           <span className="material-symbols-outlined text-red-400 text-4xl block mb-3">qr_code_scanner</span>
           <h1 className="text-base font-black text-red-700 mb-2">{sessionError || t('customer.home.invalidTable')}</h1>
-          <p className="text-sm text-red-400 mb-4">Vui lòng quét mã QR mới tại bàn để tiếp tục gọi món.</p>
+          <p className="text-sm text-red-400 mb-4">{t('customer.menu.error.pleaseRescan', 'Vui lòng quét mã QR mới tại bàn để tiếp tục gọi món.')}</p>
           <Button variant="outline" onClick={() => navigate('/')} className="w-full border-red-200 text-red-600 hover:bg-red-50 shadow-none rounded-xl">
             {t('customer.tracking.backToHome', 'Về trang chủ')}
           </Button>
@@ -293,6 +293,7 @@ export default function CustomerMenuPage() {
         isOpen={isDealsDrawerOpen}
         onClose={() => setIsDealsDrawerOpen(false)}
         onSelectBundle={(bundle) => setSelectedBundle(bundle)}
+        cart={cart}
       />
 
       <BundleMissionDrawer

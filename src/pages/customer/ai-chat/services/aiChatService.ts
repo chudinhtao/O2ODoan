@@ -7,7 +7,7 @@ export const aiChatService = {
     http.post<IAiChatResponse>(API_ROUTES.ai.customerChat, message, {
       headers: {
         'X-Session-Token': sessionToken,
-        'Content-Type': 'text/plain',
+        'Content-Type': 'text/plain; charset=utf-8',
       },
     }),
 }
