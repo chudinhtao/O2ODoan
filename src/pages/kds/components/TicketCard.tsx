@@ -4,7 +4,7 @@ import { TicketItemRow } from './TicketItemRow';
 import { Button } from '@/shared/components/ui/Button';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Play, AlertOctagon } from 'lucide-react';
+import { CheckCircle2, Play, AlertOctagon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 
@@ -14,7 +14,8 @@ interface Props {
   onTicketStatusChange: (id: string, newStatus: string) => void;
   onHideTicket: (id: string) => void;
   onItemCancelRequest?: (orderId: string, itemId: string, reason: string) => void;
-  isLoading: boolean;
+  processingTicketId?: string;
+  processingItemId?: string;
 }
 
 export const TicketCard = ({ 
@@ -23,10 +24,16 @@ export const TicketCard = ({
   onTicketStatusChange, 
   onHideTicket, 
   onItemCancelRequest,
-  isLoading 
+  processingTicketId,
+  processingItemId
 }: Props) => {
   const { t } = useTranslation();
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
+
+  const isTicketProcessing = processingTicketId === ticket.id;
+  // A card is somewhat busy if its ticket is processing, or one of its items is processing
+  const isAnyItemProcessing = ticket.items.some(i => i.id === processingItemId);
+  const isLoading = isTicketProcessing || isAnyItemProcessing;
 
   const handleAction = () => {
     if (isLoading) return;
@@ -45,27 +52,34 @@ export const TicketCard = ({
   const confirmReject = () => {
     if (!onItemCancelRequest || !ticket.orderId) return;
     ticket.items.forEach(item => {
-      if (item.status !== 'CANCELLED' && item.status !== 'RETURNED' && item.status !== 'DONE' && item.status !== 'SERVED') {
+      if (item.status !== 'CANCELLED' && item.status !== 'RETURNED' && item.status !== 'DONE' && item.status !== 'SERVED' && item.status !== 'COMPLETED') {
         onItemCancelRequest(ticket.orderId!, item.id, t('kds.actions.rejectReason', 'Hết nguyên liệu (Bếp báo)'));
       }
     });
     setIsRejectConfirmOpen(false);
   };
 
-  const isAllDone = ticket.items.every(i => i.status === 'DONE' || i.status === 'CANCELLED');
+  const isAllDone = ticket.items.every(i => i.status === 'DONE' || i.status === 'CANCELLED' || i.status === 'RETURNED' || i.status === 'SERVED' || i.status === 'COMPLETED');
   const ticketTitle = ticket.tableNumber 
     ? t('kds.ticket.table', { number: ticket.tableNumber, defaultValue: `Bàn ${ticket.tableNumber}` })
     : t('kds.ticket.takeaway', { defaultValue: 'Mang đi' });
 
   const isPending = ticket.status === 'PENDING';
-  const isCancelled = ticket.status === 'CANCELLED';
+  const isCancelled = ticket.status === 'CANCELLED' || ticket.status === 'RETURNED';
+  const isHistory = ticket.status === 'DONE' || ticket.status === 'SERVED';
   
-  let headerBg = isPending ? 'bg-[#ff9f43]' : 'bg-[#2ed573]';
-  let badgeText = isPending ? t('kds.ticket.status.pending') : t('kds.ticket.status.preparing');
-  
-  if (isCancelled) {
+  let headerBg = 'bg-[#2ed573]'; // default green (preparing)
+  let badgeText = t('kds.ticket.status.preparing');
+
+  if (isPending) {
+    headerBg = 'bg-[#ff9f43]';
+    badgeText = t('kds.ticket.status.pending');
+  } else if (isCancelled) {
     headerBg = 'bg-[#ff4757]';
     badgeText = t('kds.ticket.status.cancelled');
+  } else if (isHistory) {
+    headerBg = 'bg-[#64748b]'; // slate gray for history
+    badgeText = t('kds.ticket.status.done', 'ĐÃ XONG');
   }
   
   const timeFormatted = format(new Date(ticket.createdAt), 'HH:mm');
@@ -115,7 +129,7 @@ export const TicketCard = ({
               orderId={ticket.orderId}
               onStatusChange={onItemStatusChange}
               onItemCancelRequest={onItemCancelRequest}
-              isLoading={isLoading}
+              processingItemId={processingItemId}
               isTicketPending={isPending}
             />
             {index < ticket.items.length - 1 && <div className="h-px bg-slate-700/50 mt-2 mx-3" />}
@@ -128,7 +142,15 @@ export const TicketCard = ({
         <div className="flex justify-between items-center px-1">
           <div className="text-slate-400 text-xs font-mono font-medium">{ticket.id.substring(0,8)}</div>
           <div className="bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 shadow-inner">
-            <TicketTimer createdAt={ticket.createdAt} />
+            {isHistory || isCancelled ? (
+              <div className="px-2.5 py-1 rounded-md text-sm border flex items-center gap-1.5 text-slate-500 bg-slate-800 border-slate-700">
+                <span className="font-bold text-[11px] uppercase tracking-wider">
+                  {isHistory ? t('kds.ticket.status.done', 'ĐÃ XONG') : t('kds.ticket.status.cancelled', 'ĐÃ HỦY')}
+                </span>
+              </div>
+            ) : (
+              <TicketTimer createdAt={ticket.createdAt} />
+            )}
           </div>
         </div>
         
@@ -161,7 +183,9 @@ export const TicketCard = ({
               onClick={handleAction}
               disabled={isLoading}
             >
-              {isPending ? (
+              {isTicketProcessing ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : isPending ? (
                 <>
                   <Play className="w-6 h-6 mr-2 fill-current" />
                   {t('kds.ticket.startPrep')}

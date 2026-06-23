@@ -24,7 +24,7 @@ export default function LocationTab() {
   const [deleteTarget, setDeleteTarget] = useState<ILocation | null>(null)
   const [keyword, setKeyword] = useState('')
   const [currentPage, setCurrentPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const handleSave = () => {
     if (!name.trim()) return

@@ -1,14 +1,16 @@
 import { useTranslation } from 'react-i18next'
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useOrders } from '../hooks/useOrders'
-import { OrderFiltersParams } from '../types/order.type'
+import { OrderFiltersParams, IOrder } from '../types/order.type'
 import { OrdersTable } from '../components/OrdersTable'
 import { Filter, FilterX } from 'lucide-react'
 import { AdminPageHeader } from '@/shared/components/ui/AdminPageHeader'
 import { Button } from '@/shared/components/ui/Button'
 import { Select } from '@/shared/components/ui/Select'
 import { ExportButton } from '@/shared/components/ExportButton'
+import { useReactToPrint } from 'react-to-print'
+import { ReceiptPrint } from '@/pages/pos/payment/components/ReceiptPrint'
 
 export default function OrdersManagementPage() {
   const { t } = useTranslation()
@@ -22,6 +24,70 @@ export default function OrdersManagementPage() {
   })
 
   const { data, isLoading  } = useOrders(filters)
+
+  // Print receipt logic
+  const [printOrder, setPrintOrder] = useState<IOrder | null>(null)
+  const printRef = useRef<HTMLDivElement>(null)
+  const triggerPrint = useReactToPrint({
+    contentRef: printRef,
+    onAfterPrint: () => setPrintOrder(null)
+  })
+
+  useEffect(() => {
+    if (printOrder) {
+      triggerPrint()
+    }
+  }, [printOrder, triggerPrint])
+
+  const getAggregatedItems = (order: IOrder) => {
+    const map = new Map<string, { name: string; qty: number; unitPrice: number; total: number }>()
+    order.tickets.forEach((ticket) => {
+      if (ticket.status === 'CANCELLED') return
+      ticket.items.forEach((item) => {
+        if (item.status === 'CANCELLED' || item.status === 'RETURNED') return
+        const extra = item.options?.reduce((acc, o) => acc + (o.extraPrice || 0), 0) || 0
+        const price = (item.unitPrice || 0) + extra
+        const key = `${item.itemName}-${item.options?.map((o) => o.id).join('-')}`
+        const existing = map.get(key)
+
+        if (existing) {
+          existing.qty += item.quantity || 0
+          existing.total += price * (item.quantity || 0)
+        } else {
+          map.set(key, {
+            name:
+              item.itemName +
+              (item.options?.length > 0
+                ? ` (${item.options.map((o) => o.optionName).join(', ')})`
+                : ''),
+            qty: item.quantity || 0,
+            unitPrice: price,
+            total: price * (item.quantity || 0),
+          })
+        }
+      })
+    })
+    return Array.from(map.values())
+  }
+
+  const getPaymentDetail = (order: IOrder) => {
+    if (!order.paymentDetail) return null
+    try {
+      if (typeof order.paymentDetail === 'string') {
+        return JSON.parse(order.paymentDetail)
+      }
+      return order.paymentDetail
+    } catch (e) {
+      return null
+    }
+  }
+
+  const getCashGiven = (order: IOrder, parsedDetail: any) => {
+    if (parsedDetail && typeof parsedDetail.CASH === 'number') {
+      return parsedDetail.CASH
+    }
+    return order.total
+  }
 
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false)
 
@@ -54,6 +120,7 @@ export default function OrdersManagementPage() {
             { value: 'OPEN', label: t('admin.orders.status.open') as string },
             { value: 'PAID', label: t('admin.orders.status.paid') as string },
             { value: 'CANCELLED', label: t('admin.orders.status.cancelled') as string },
+            { value: 'RETURNED', label: t('admin.orders.status.returned') as string },
           ]}
           className="!py-2"
           icon={<Filter className="w-4 h-4 text-slate-400" />}
@@ -209,6 +276,7 @@ export default function OrdersManagementPage() {
             orders={data?.content || []}
             isLoading={isLoading}
             onViewDetail={(id) => navigate(`/admin/orders/${id}`)}
+            onPrint={setPrintOrder}
             keyword={filters.search || ''}
             onSearchChange={(value) => handleFilterChange('search', value)}
             page={filters.page}
@@ -222,6 +290,19 @@ export default function OrdersManagementPage() {
           />
         </div>
       </div>
+
+      {printOrder && (
+        <div className="hidden">
+          <ReceiptPrint
+            ref={printRef}
+            order={printOrder}
+            items={getAggregatedItems(printOrder)}
+            cashGiven={getCashGiven(printOrder, getPaymentDetail(printOrder))}
+            paymentMethod={printOrder.paymentMethod}
+            paymentDetail={getPaymentDetail(printOrder)}
+          />
+        </div>
+      )}
     </>
   )
 }

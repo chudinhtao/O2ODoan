@@ -26,7 +26,8 @@
         "confirmed": "Đã xác nhận (Có cọc)",
         "completed": "Đã đến",
         "cancelled": "Đã hủy",
-        "noShow": "Không đến"
+        "noShow": "Không đến",
+        "no_show": "Không đến"
       },
       "filter": {
         "startDate": "Từ ngày",
@@ -778,7 +779,8 @@
         "payment_requested": "Chờ thanh toán",
         "paid": "Đã thanh toán",
         "cancelled": "Đã hủy",
-        "returned": "Đã trả"
+        "returned": "Đã hoàn tiền",
+        "completed": "Hoàn thành"
       },
       "source": {
         "all": "Mọi hình thức",
@@ -977,8 +979,8 @@
         "transactions": "Giao dịch kho",
         "expiring": "Cảnh báo hết hạn",
         "lowStock": "Tồn kho thấp",
-        "tva": "Đối soát Chênh lệch (TvA)",
-        "variance": "Hao hụt vận hành"
+        "tva": "Kiểm soát Định lượng",
+        "variance": "Báo cáo Vứt bỏ & Hư hỏng"
       },
       "uom": {
         "title": "Đơn vị tính",
@@ -1092,6 +1094,26 @@
         "confirmActivateTitle": "Kích hoạt lại nhà cung cấp",
         "confirmActivateDescription": "Bạn có chắc chắn muốn kích hoạt lại nhà cung cấp này để có thể chọn trong các phiếu nhập hàng?"
       },
+      "notifications": {
+        "updateSuccess": "Cập nhật thành công!"
+      },
+      "killSwitch": {
+        "defaultLockReason": "Báo hết khẩn cấp",
+        "defaultUnlockReason": "Có hàng trở lại",
+        "errorMsg": "Có lỗi xảy ra",
+        "lockTitle": "Báo Hết Khẩn Cấp",
+        "unlockTitle": "Mở Lại Nguyên Liệu",
+        "itemName": "Nguyên liệu:",
+        "lockWarning": "Cảnh báo: Hành động này sẽ đưa tồn kho về 0 và TẨY ẨN tất cả món ăn sử dụng nguyên liệu này trên Menu.",
+        "unlockWarning": "Mở lại nguyên liệu sẽ tự động cho phép hiển thị lại các món ăn trên Menu.",
+        "quantity": "Số lượng hiện có",
+        "reason": "Lý do",
+        "reasonPlaceholder": "Nhập lý do thao tác...",
+        "confirmLock": "Xác Nhận Báo Hết",
+        "confirmUnlock": "Xác Nhận Mở Lại",
+        "lockAction": "Báo Hết Khẩn Cấp",
+        "unlockAction": "Mở Lại Nguyên Liệu"
+      },
       "item": {
         "title": "Danh mục Nguyên liệu",
         "addNew": "Thêm nguyên liệu",
@@ -1110,6 +1132,8 @@
         "colStatus": "Trạng thái",
         "showInactive": "Hiện mục ngưng",
         "hideInactive": "Ẩn mục ngưng",
+        "backToActive": "Xem đang hoạt động",
+        "viewInactive": "Xem mục ngưng hoạt động",
         "allCategories": "Tất cả danh mục",
         "selectCategoryPlaceholder": "-- Chọn danh mục --",
         "uomLabel": "Đơn vị tính (UoM) *",
@@ -1242,14 +1266,14 @@
         "margin": "Biên lợi nhuận"
       },
       "report": {
-        "tva_title": "Phân tích Sai lệch & Hao hụt (TvA)",
-        "tva_subtitle": "Đối chiếu và phân tích lượng nguyên liệu chênh lệch giữa hao hụt thực tế và công thức lý thuyết.",
+        "tva_title": "Kiểm soát Định lượng & Thất thoát ngầm",
+        "tva_subtitle": "So sánh đối chiếu lượng tiêu hao nguyên liệu thực tế so với tiêu hao lý thuyết (theo công thức bán hàng) để phát hiện thất thoát.",
         "calculate_btn": "Tính toán",
         "export_btn": "Xuất file",
         "col_material": "Nguyên liệu",
-        "col_theoretical": "Lý thuyết",
-        "col_actual": "Thực tế",
-        "col_variance": "Sai lệch",
+        "col_theoretical": "Tiêu hao lý thuyết",
+        "col_actual": "Tiêu hao thực tế",
+        "col_variance": "Chênh lệch tiêu hao",
         "col_loss_value": "Giá trị lệch",
         "loss_valuation": "Giá trị Thất thoát",
         "variance_count": "Số mặt hàng chênh lệch",
@@ -1472,14 +1496,14 @@
         "emptyTitle": "Tuyệt vời! Tất cả nguyên liệu đủ hàng."
       },
       "variance": {
-        "title": "Báo cáo Sai lệch & Hao hụt",
-        "desc": "Tổng hợp các giao dịch xuất hủy và điều chỉnh theo kỳ.",
+        "title": "Báo cáo Vứt bỏ & Hư hỏng",
+        "desc": "Theo dõi số lượng hàng hóa bị hỏng hóc, quá hạn, làm rơi vãi... gây thiệt hại tài chính.",
         "colItem": "Nguyên liệu",
         "colWaste": "SL Hủy",
         "colAdjustment": "SL Điều chỉnh",
         "colTotal": "Tổng lệch",
         "colLoss": "Thiệt hại ước tính",
-        "operationalLoss": "Tổn thất vận hành",
+        "operationalLoss": "Tổn thất vứt bỏ",
         "materialsCount": "{{count}} nguyên liệu",
         "totalVariedItems": "Tổng mặt hàng bị lệch",
         "lossBadge": "Thiệt hại",
@@ -1556,7 +1580,7 @@
   },
   "auth": {
     "login": {
-      "welcome": "Chào mừng trở lại ☕",
+      "welcome": "Chào mừng trở lại ",
       "instruction": "Vui lòng đăng nhập để tiếp tục quản lý cửa hàng.",
       "username": "Tên đăng nhập",
       "password": "Mật khẩu",
@@ -1566,7 +1590,7 @@
       "internalAccess": "Chỉ dành cho nội bộ",
       "showPassword": "Hiện mật khẩu",
       "hidePassword": "Ẩn mật khẩu",
-      "copyright": "v1.0.0 © 2024 Cà Phê Suntime. All rights reserved.",
+      "copyright": "v1.0.0 © 2026 F&B. All rights reserved.",
       "usernameRequired": "Vui lòng nhập tên đăng nhập",
       "passwordMinLength": "Mật khẩu tối thiểu 6 ký tự"
     },
@@ -1733,6 +1757,7 @@
       "ticket": "Phiếu #{{index}}",
       "total": "Tổng cộng",
       "checkout": "Thanh toán",
+      "extendSession": "Gia hạn thêm 4 tiếng",
       "cancelOrder": "Huỷ toàn bộ đơn hàng",
       "cancelItemSuccess": "Đã huỷ món thành công",
       "status": {
@@ -1767,7 +1792,32 @@
       "items_unit": "món",
       "summary_label": "Tạm tính",
       "discount_label": "Giảm giá",
-      "noOrder": "Chưa có đơn hàng"
+      "noOrder": "Chưa có đơn hàng",
+      "cancelItem": {
+        "title": "Huỷ món",
+        "desc1": "Bạn đang huỷ món ",
+        "desc2": "Món này đã được bếp xử lý, VUI LÒNG NHẬP LÝ DO:",
+        "placeholder": "Nhập lý do huỷ (Tùy chọn nếu chưa làm)...",
+        "confirm": "Xác nhận Huỷ",
+        "kitchenStatusLabel": "Trạng thái thực tế tại Bếp (Quan trọng cho Kho)",
+        "statusPending": "Bếp chưa làm",
+        "statusPendingDesc": "Hệ thống sẽ hoàn trả nguyên liệu vào kho.",
+        "statusDone": "Bếp đang làm / Đã làm xong",
+        "statusDoneDesc": "Không hoàn kho. Ghi nhận là chi phí hao hụt!"
+      },
+      "returnItem": {
+        "title": "Hoàn Trả món đã lên / nấu xong",
+        "desc1": "Thao tác sẽ trừ tiền món ",
+        "placeholder": "Nhập lý do trả hàng bắt buộc...",
+        "confirm": "Xác nhận Hoàn Trả"
+      },
+      "cancelTicket": {
+        "title": "Huỷ phiếu yêu cầu",
+        "desc1": "Bạn đang huỷ toàn bộ phiếu #",
+        "desc2": " Thao tác này sẽ huỷ TẤT CẢ các món chưa làm trong phiếu này.",
+        "placeholder": "Nhập lý do huỷ phiếu (Tùy chọn)...",
+        "confirm": "Xác nhận Huỷ Phiếu"
+      }
     },
     "staffCalls": {
       "popoverTitle": "Khách gọi phục vụ",
@@ -1782,8 +1832,17 @@
       "processing": "Đang xử lý...",
       "type": {
         "payment": "Xin thanh toán",
+        "BILL": "Xin thanh toán",
         "water": "Gọi nước lọc",
+        "WATER": "Gọi nước lọc",
+        "ICE": "Xin thêm đá",
         "support": "Cần hỗ trợ",
+        "SUPPORT": "Cần hỗ trợ",
+        "CALL": "Gọi phục vụ",
+        "CLEAN": "Dọn bàn",
+        "TISSUE": "Xin khăn giấy",
+        "UTENSIL": "Xin chén/đũa",
+        "OTHER": "Yêu cầu khác",
         "TAKEAWAY_TIMEOUT": "Đơn Takeaway trễ thanh toán (15p)",
         "DINE_IN_PAYMENT_ALERT": "Bàn chờ thanh toán quá lâu (30p)",
         "PAYMENT_QR_EXPIRED": "Mã QR chuyển khoản đã hết hạn",
@@ -1793,6 +1852,29 @@
         "KITCHEN_DELAY_ALERT": "Cảnh báo bếp làm món quá chậm",
         "DELIVERY_DELAY_ALERT": "Cảnh báo ngâm món tại quầy quá lâu",
         "TAKEAWAY_READY": "Đơn Mang Đi đã xong (Mời trả khách)"
+      },
+      "defaultMessage": {
+        "payment": "Khách yêu cầu thanh toán. Vui lòng in hóa đơn.",
+        "BILL": "Khách yêu cầu thanh toán. Vui lòng in hóa đơn.",
+        "water": "Khách cần thêm nước lọc/đá. Vui lòng hỗ trợ.",
+        "WATER": "Khách cần thêm nước lọc/đá. Vui lòng hỗ trợ.",
+        "ICE": "Khách cần thêm đá lạnh. Vui lòng mang đá ra bàn.",
+        "support": "Khách cần hỗ trợ trực tiếp tại bàn.",
+        "SUPPORT": "Khách cần hỗ trợ trực tiếp tại bàn.",
+        "CALL": "Khách gọi nhân viên phục vụ.",
+        "CLEAN": "Khách yêu cầu dọn bàn.",
+        "TISSUE": "Khách cần thêm khăn giấy.",
+        "UTENSIL": "Khách cần thêm chén/đũa/muỗng.",
+        "OTHER": "Khách có yêu cầu khác, vui lòng ra bàn kiểm tra.",
+        "TAKEAWAY_TIMEOUT": "Đơn mang về đã quá hạn chờ thanh toán 15 phút.",
+        "DINE_IN_PAYMENT_ALERT": "Bàn đang chờ thanh toán quá lâu.",
+        "PAYMENT_QR_EXPIRED": "Khách chưa thanh toán kịp, mã QR đã hết hạn.",
+        "TABLE_CLEANUP_REMINDER": "Bàn đã trống một thời gian dài, cần dọn dẹp.",
+        "EMPTY_SESSION_ALERT": "Bàn được mở nhưng chưa gọi món quá 1 tiếng.",
+        "LONG_SESSION_ALERT": "Khách đã ngồi quá 4 tiếng, cần kiểm tra.",
+        "KITCHEN_DELAY_ALERT": "Bếp đang bị trễ món, vui lòng hối thúc.",
+        "DELIVERY_DELAY_ALERT": "Món đã làm xong đang chờ ở quầy quá lâu.",
+        "TAKEAWAY_READY": "Đơn mang đi đã chuẩn bị xong, mời khách nhận."
       }
     },
     "inventory": {
@@ -1841,7 +1923,7 @@
       "change": "Tiền thừa trả khách",
       "insufficient": "Chưa đủ tiền",
       "sufficient": "Đã nhập đủ tiền",
-      "confirm": "Xác nhận Thanh toán & In Bill",
+      "confirm": "Xác nhận Thanh toán",
       "printBefore": "In Bill",
       "excessDeposit": "Tiền cọc thừa cần hoàn",
       "hold": "Tạm giữ đơn",
@@ -1852,8 +1934,27 @@
       "promoSuccess": "Áp dụng mã thành công",
       "promoError": "Mã không hợp lệ hoặc đã hết hạn",
       "btnQRDone": "Đã nhận được tiền & Đóng hóa đơn",
+      "btnMixedDone": "Xác nhận đã nhận đủ tiền",
+      "zeroOrderTitle": "Đơn hàng 0đ",
+      "zeroOrderDesc": "Không cần thanh toán thêm. Vui lòng bấm Xác nhận để hoàn tất.",
+      "mixedFullCash": "Tiền mặt đã đủ — Không cần tạo QR, hãy chuyển sang phương thức Tiền mặt",
+      "qrTotalDue": "Tổng cần thanh toán",
+      "mixedCashSummary": "Tiền mặt",
+      "mixedQrRemaining": "Còn cần quét QR",
       "qrPrompt": "Mời khách quét mã QR Pay",
       "qrNotice": "(Tự động nhận diện thanh toán, không cần xác nhận thủ công)",
+      "qrFallbackHint": "Nếu webhook chậm, dùng nút bên dưới để xác nhận thủ công.",
+      "mixedCash": "Bước 1 — Tiền mặt khách đưa",
+      "mixedQrStep": "Bước 2 — Tạo mã QR cho phần còn thiếu",
+      "mixedCreating": "Đang tạo mã QR...",
+      "mixedCreateQr": "Tạo QR {{amount}}",
+      "mixedQrReady": "Mã QR phần chuyển khoản",
+      "mixedWaiting": "Đang chờ khách quét — Hệ thống tự đóng bill khi nhận tiền",
+      "qrCreating": "Đang tạo mã QR PayOS...",
+      "qrCreate": "Tạo mã QR – {{amount}}",
+      "qrHint": "Hệ thống sẽ tự đóng bill khi nhận được biến động số dư từ ngân hàng.",
+      "qrScanTitle": "Mã QR PayOS",
+      "qrWaiting": "Đang chờ khách quét — Hệ thống tự đóng bill khi nhận tiền",
       "closeAndClearTable": "Giải phóng bàn sau khi đóng hóa đơn",
       "total": "Tổng tiền",
       "tableStr": "Bàn {{num}}"
@@ -1905,11 +2006,11 @@
       "allZones": "Tất cả khu vực",
       "confirmAssign": "Xác nhận gán bàn",
       "status": {
-        "PENDING": "Chờ nhận bàn",
-        "CONFIRMED": "Đã xếp bàn",
-        "COMPLETED": "Đã hoàn thành",
+        "PENDING": "Chờ xác nhận",
+        "CONFIRMED": "Đã xác nhận",
+        "COMPLETED": "Đã đến",
         "CANCELLED": "Đã hủy",
-        "NO_SHOW": "Khách không đến",
+        "NO_SHOW": "Không đến",
         "ALL": "Tất cả trạng thái"
       },
       "badge": {
@@ -2019,7 +2120,7 @@
   "customer": {
     "home": {
       "invalidTable": "Mã bàn không hợp lệ. Vui lòng quét lại mã QR tại bàn.",
-      "brand": "Cà Phê Suntime",
+      "brand": "F&B",
       "tableServing": "Bàn {{number}} — Đang phục vụ",
       "slogan": "Hương vị nắng mai trong từng tách cà phê",
       "waitingPayment": "⏳ Đang chờ thanh toán",
@@ -2276,7 +2377,7 @@
       "btnApplyVoucher": "Áp dụng"
     },
     "invoice": {
-      "brand": "Cà Phê Suntime",
+      "brand": "F&B",
       "idPrefix": "Mã HD: #",
       "subtotal": "Tạm tính",
       "discount": "Giảm giá",

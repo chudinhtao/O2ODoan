@@ -9,6 +9,7 @@ import { formatCurrency } from '@/shared/utils/formatCurrency'
 import { DataTable } from '@/shared/components/DataTable/DataTable'
 import { ColumnDef } from '@/shared/components/DataTable/types'
 import { IInventoryVarianceReport } from '@/pages/admin/reports/types/report.type'
+import { useFormatUom } from '../hooks/useInventoryQueries'
 
 function getDefaultDateRange() {
   const now = new Date()
@@ -28,9 +29,11 @@ export default function VarianceAnalysisTab() {
   const [queryDates, setQueryDates] = useState({ startDate: defaultRange.startDate, endDate: defaultRange.endDate })
   const [keyword, setKeyword] = useState('')
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
-  const { data: reportPage, isLoading, isFetching } = useInventoryVarianceReport(queryDates.startDate, queryDates.endDate, page, pageSize)
+  const { formatQty } = useFormatUom()
+
+  const { data: reportPage, isLoading, isFetching } = useInventoryVarianceReport(queryDates.startDate, queryDates.endDate, 0, 1000)
 
   const handleSearch = () => {
     if (!startDate || !endDate) return
@@ -65,6 +68,8 @@ export default function VarianceAnalysisTab() {
     return item.ingredientName.toLowerCase().includes(k)
   })
 
+  const paginatedList = filteredList.slice(page * pageSize, (page + 1) * pageSize)
+
   const totalLoss = report.reduce((acc, curr) => acc + (curr.varianceValue > 0 ? curr.varianceValue : 0), 0)
 
   const columns: ColumnDef<IInventoryVarianceReport>[] = [
@@ -85,20 +90,20 @@ export default function VarianceAnalysisTab() {
     {
       header: t('admin.inventory.report.col_theoretical'),
       align: 'right',
+      className: 'hidden sm:table-cell',
       cell: (item) => (
         <div className="flex flex-col items-end">
-          <span className="font-bold text-slate-500 tabular-nums">{item.theoreticalUsage.toFixed(2)}</span>
-          <span className="text-[9px] text-slate-400 uppercase font-bold">{item.uomName}</span>
+          <span className="font-bold text-slate-500">{formatQty(item.ingredientId, item.theoreticalUsage, item.uomName || '')}</span>
         </div>
       )
     },
     {
       header: t('admin.inventory.report.col_actual'),
       align: 'right',
+      className: 'hidden sm:table-cell',
       cell: (item) => (
         <div className="flex flex-col items-end">
-          <span className="font-black text-slate-800 tabular-nums">{item.actualUsage.toFixed(2)}</span>
-          <span className="text-[9px] text-slate-400 uppercase font-bold">{item.uomName}</span>
+          <span className="font-black text-slate-800">{formatQty(item.ingredientId, item.actualUsage, item.uomName || '')}</span>
         </div>
       )
     },
@@ -110,11 +115,11 @@ export default function VarianceAnalysisTab() {
         const variancePercent = item.theoreticalUsage > 0 ? (item.variance / item.theoreticalUsage) * 100 : 0
         const isLoss = item.variance > 0.001
         const isGain = item.variance < -0.001
-        
+
         return (
           <div className="flex flex-col items-end gap-1">
             <span className={`font-black tabular-nums ${isLoss ? 'text-red-600' : isGain ? 'text-emerald-600' : 'text-slate-400'}`}>
-              {isLoss ? '+' : ''}{item.variance.toFixed(2)}
+              {isLoss ? '+' : ''}{formatQty(item.ingredientId, item.variance, item.uomName || '')}
             </span>
             {hasVariance && (
               <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${isLoss ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
@@ -129,8 +134,8 @@ export default function VarianceAnalysisTab() {
       header: t('admin.inventory.report.col_loss_value'),
       align: 'right',
       cell: (item) => {
-        const isLoss = item.varianceValue > 0.001;
-        const isGain = item.varianceValue < -0.001;
+        const isLoss = item.varianceValue > 0.001
+        const isGain = item.varianceValue < -0.001
         return (
           <div className="flex flex-col items-end">
             <span className={`font-black tabular-nums ${isLoss ? 'text-red-600' : isGain ? 'text-emerald-600' : 'text-slate-400'}`}>
@@ -144,9 +149,9 @@ export default function VarianceAnalysisTab() {
   ]
 
   return (
-    <div className="flex flex-col h-full space-y-6">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Action Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b border-slate-100 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Calculator className="w-5 h-5 text-primary" />
@@ -157,38 +162,38 @@ export default function VarianceAnalysisTab() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white">
-            <CalendarRange className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 rounded-xl px-2 sm:px-3 py-1.5 border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white">
+            <CalendarRange className="hidden sm:block w-4 h-4 text-slate-400" />
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-28 h-7 border-none bg-transparent p-0 text-xs font-bold focus:ring-0 outline-none"
+              className="w-[84px] sm:w-28 h-7 border-none bg-transparent p-0 text-[10px] sm:text-xs font-bold focus:ring-0 outline-none"
             />
-            <span className="text-slate-300">—</span>
+            <span className="text-slate-300 text-[10px] sm:text-xs">—</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-28 h-7 border-none bg-transparent p-0 text-xs font-bold focus:ring-0 outline-none"
+              className="w-[84px] sm:w-28 h-7 border-none bg-transparent p-0 text-[10px] sm:text-xs font-bold focus:ring-0 outline-none"
             />
           </div>
-          
+
           <Button onClick={handleSearch} disabled={isFetching} size="sm" className="!rounded-lg">
-            <RefreshCw className={`w-4 h-4 mr-1.5 ${isFetching ? 'animate-spin' : ''}`} />
-            {t('admin.inventory.report.calculate_btn')}
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''} sm:mr-1.5`} />
+            <span className="hidden sm:inline">{t('admin.inventory.report.calculate_btn')}</span>
           </Button>
 
           <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting || !reportPage} className="!rounded-lg">
-            <Download className="w-4 h-4 mr-1.5" />
-            {t('admin.inventory.report.export_btn')}
+            <Download className="w-4 h-4 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('admin.inventory.report.export_btn')}</span>
           </Button>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 shrink-0">
         <div className="bg-white px-4 py-3 rounded-xl border border-slate-100 flex items-center justify-between group transition-all duration-300 hover:shadow-md">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-50 text-red-600 group-hover:scale-105 transition-transform">
@@ -231,31 +236,34 @@ export default function VarianceAnalysisTab() {
         </div>
       </div>
 
-      <DataTable<IInventoryVarianceReport>
-        columns={columns}
-        data={filteredList.map(item => ({ ...item, id: item.ingredientId }))}
-        isLoading={isLoading}
-        searchPlaceholder={t('common.search')}
-        searchValue={keyword}
-        onSearchChange={(val) => { setKeyword(val); setPage(0) }}
-        pagination={{
-          currentPage: page,
-          totalPages: reportPage?.totalPages || Math.ceil(filteredList.length / pageSize),
-          onPageChange: setPage,
-          pageSize: pageSize,
-          totalElements: reportPage?.totalElements || filteredList.length,
-          onPageSizeChange: (size) => {
-            setPageSize(size)
-            setPage(0)
+      {/* Scrollable table */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-4">
+        <DataTable<IInventoryVarianceReport>
+          columns={columns}
+          data={paginatedList.map(item => ({ ...item, id: item.ingredientId }))}
+          isLoading={isLoading}
+          searchPlaceholder={t('common.search')}
+          searchValue={keyword}
+          onSearchChange={(val) => { setKeyword(val); setPage(0) }}
+          pagination={{
+            currentPage: page,
+            totalPages: Math.ceil(filteredList.length / pageSize),
+            onPageChange: setPage,
+            pageSize: pageSize,
+            totalElements: filteredList.length,
+            onPageSizeChange: (size) => {
+              setPageSize(size)
+              setPage(0)
+            }
+          }}
+          emptyState={
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <Calculator className="w-12 h-12 mb-3 opacity-20 mx-auto text-primary" />
+              <p className="text-lg font-bold">{t('admin.inventory.report.empty_data')}</p>
+            </div>
           }
-        }}
-        emptyState={
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-            <Calculator className="w-12 h-12 mb-3 opacity-20 mx-auto text-primary" />
-            <p className="text-lg font-bold">{t('admin.inventory.report.empty_data')}</p>
-          </div>
-        }
-      />
+        />
+      </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { Plus, Minus } from 'lucide-react'
 import { Button } from './Button'
+import { useState, useEffect } from 'react'
 
 interface StepperInputProps {
   value: number
@@ -11,30 +12,52 @@ interface StepperInputProps {
 }
 
 export function StepperInput({ value, onChange, min = 0, max = 99, className = '', variant = 'guest' }: StepperInputProps) {
+  const [localVal, setLocalVal] = useState<string | number>(value)
+
+  useEffect(() => {
+    setLocalVal(value)
+  }, [value])
+
   const handleDecrement = () => {
-    onChange(Math.max(min, value - 1))
+    const newVal = Math.max(min, value - 1)
+    setLocalVal(newVal)
+    onChange(newVal)
   }
 
   const handleIncrement = () => {
-    onChange(Math.min(max, value + 1))
+    const newVal = Math.min(max, value + 1)
+    setLocalVal(newVal)
+    onChange(newVal)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     if (val === '') {
-      // Temporary empty state handled by parent, or default to min
-      onChange(min)
+      setLocalVal('')
       return
     }
     const num = parseInt(val, 10)
     if (!isNaN(num)) {
+      if (num < 0) return
+      if (num === 0 && min > 0) return
+      
+      setLocalVal(num)
       onChange(num)
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
+      e.preventDefault()
+    }
+  }
+
   const handleBlur = () => {
-    if (value < min) onChange(min)
-    if (value > max) onChange(max)
+    let finalVal = (localVal === '' || localVal === '-' || isNaN(Number(localVal))) ? min : Number(localVal)
+    if (finalVal < min) finalVal = min
+    if (finalVal > max) finalVal = max
+    setLocalVal(finalVal)
+    onChange(finalVal)
   }
 
   return (
@@ -56,8 +79,9 @@ export function StepperInput({ value, onChange, min = 0, max = 99, className = '
         type="number"
         min={min}
         max={max}
-        value={value}
+        value={localVal}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         className="font-extrabold text-sm w-7 text-center bg-transparent outline-none border-none p-0 text-text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />

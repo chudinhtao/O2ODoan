@@ -147,17 +147,10 @@ export default function OrderEntryPage() {
     }
   }
 
-  const handleIncrease = (cartItemId: string) => {
+  const handleUpdateQuantity = (cartItemId: string, qty: number) => {
     if (sessionToken) {
-      const current = serverCart?.items.find(i => i.cartItemId === cartItemId)
-      if (current) updateItem({ cartItemId, payload: { quantity: current.quantity + 1 } })
-    }
-  }
-
-  const handleDecrease = (cartItemId: string, qty: number) => {
-    if (sessionToken) {
-       if (qty <= 1) handleRemove(cartItemId)
-       else updateItem({ cartItemId, payload: { quantity: qty - 1 } })
+       if (qty <= 0) handleRemove(cartItemId)
+       else updateItem({ cartItemId, payload: { quantity: qty } })
     }
   }
 
@@ -226,8 +219,7 @@ export default function OrderEntryPage() {
                cart={cart}
                isCartLoading={isCartLoading}
                isSubmitting={isSubmitting}
-               onIncreaseItem={handleIncrease}
-               onDecreaseItem={handleDecrease}
+               onUpdateQuantity={handleUpdateQuantity}
                onRemoveItem={handleRemove}
                onSubmitTicket={handleSubmit}
                onCheckout={handleCheckout}

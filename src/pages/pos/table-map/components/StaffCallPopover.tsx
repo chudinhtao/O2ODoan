@@ -55,6 +55,7 @@ export function StaffCallPopover() {
               <div className="divide-y divide-outline-variant/50">
                 {calls!.map((call) => {
                   const isTakeaway = call.callType === 'TAKEAWAY_READY' || call.callType === 'TAKEAWAY_TIMEOUT';
+                  const displayMessage = call.message || t(`pos.staffCalls.defaultMessage.${call.callType}`, { defaultValue: '' });
                   return (
                   <div key={call.id} className={`p-2.5 sm:p-3 transition-colors flex flex-col group gap-2 ${isTakeaway ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-surface-variant/30'}`}>
                     <div className="flex justify-between items-start">
@@ -73,9 +74,9 @@ export function StaffCallPopover() {
                             </span>
                           )}
                         </div>
-                        {call.message && (
+                        {displayMessage && (
                           <div className="text-xs text-on-surface font-medium mb-1">
-                            {call.message}
+                            {displayMessage}
                           </div>
                         )}
                         <div className="flex items-center gap-1 text-[10px] text-on-surface-variant">

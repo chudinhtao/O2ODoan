@@ -21,6 +21,11 @@ export const useServerWebSocket = () => {
         const isUrgent = payload.cancelledItems || payload.urgentItemIds || payload.pendingSeconds || payload.urgencyLevel === 'CRITICAL' || payload.urgencyLevel === 'WARNING';
         const isNewItem = payload.urgencyLevel === 'NEW_ITEM';
         
+        // Filter out "ngâm quầy" (DELIVERY_DELAY) alerts for Takeaway orders
+        if (payload.message && payload.message.toLowerCase().includes('mang về') && payload.message.toLowerCase().includes('ngâm quầy')) {
+          return; // Ignore this alert silently
+        }
+
         if (isUrgent || isNewItem) {
           if ('vibrate' in navigator) {
             navigator.vibrate([200, 100, 200, 100, 400]);

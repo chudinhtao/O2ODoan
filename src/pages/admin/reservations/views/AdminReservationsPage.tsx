@@ -28,8 +28,8 @@ export default function AdminReservationsPage() {
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // When activeTab is REFUNDS, we hardcode status to CANCELLED to fetch only cancelled reservations
-  const apiStatus = activeTab === 'REFUNDS' ? 'CANCELLED' : filters.status
+  // When activeTab is REFUNDS, we fetch both CANCELLED and NO_SHOW reservations
+  const apiStatus = activeTab === 'REFUNDS' ? 'CANCELLED,NO_SHOW' : filters.status
 
   const { data, isLoading } = useAdminReservationsList(
     filters.startDate,
@@ -37,27 +37,30 @@ export default function AdminReservationsPage() {
     apiStatus,
     filters.phone,
     filters.page,
-    filters.size
+    filters.size,
+    activeTab === 'REFUNDS' ? true : undefined,
+    activeTab === 'REFUNDS' ? refundStatusFilter : undefined
   )
 
-  // Fetch all cancelled reservations for the selected date range to calculate absolute totals for refund stats
-  const { data: allCancelledData, isLoading: isStatsLoading } = useAdminReservationsList(
+  // Fetch all cancelled/no-show reservations for the selected date range to calculate absolute totals for refund stats
+  const { data: allRefundReservationsData, isLoading: isStatsLoading } = useAdminReservationsList(
     filters.startDate,
     filters.endDate,
-    'CANCELLED',
+    'CANCELLED,NO_SHOW',
     undefined,
     0,
-    1000
+    1000,
+    true
   )
 
   const refundStats = useMemo(() => {
-    const cancelledReservations = allCancelledData?.content || []
+    const refundReservations = allRefundReservationsData?.content || []
     let totalDeposits = 0
     let pendingRefund = 0
     let refunded = 0
     let forfeited = 0
 
-    cancelledReservations.forEach((res) => {
+    refundReservations.forEach((res) => {
       const deposit = res.depositAmount ?? 0
       if (deposit > 0) {
         totalDeposits += deposit
@@ -77,7 +80,7 @@ export default function AdminReservationsPage() {
       refunded,
       forfeited
     }
-  }, [allCancelledData])
+  }, [allRefundReservationsData])
 
   const { mutate: updateStatus, isPending: isUpdating } = useAdminUpdateReservationStatus()
 
@@ -97,17 +100,7 @@ export default function AdminReservationsPage() {
     ? (filters.status !== '' || filters.phone !== '' || !!filters.startDate || !!filters.endDate)
     : (refundStatusFilter !== 'ALL' || filters.phone !== '' || !!filters.startDate || !!filters.endDate)
 
-  // Process data for Refunds Tab in-memory
-  const rawReservations = data?.content || []
-  const filteredReservations = activeTab === 'REFUNDS'
-    ? rawReservations.filter((res: IReservation) => {
-        const hasDeposit = (res.depositAmount ?? 0) > 0
-        if (!hasDeposit) return false
-        
-        if (refundStatusFilter === 'ALL') return true
-        return res.refundStatus === refundStatusFilter
-      })
-    : rawReservations
+  const filteredReservations = data?.content || []
 
   const filtersNode = (
     <Button
@@ -278,7 +271,10 @@ export default function AdminReservationsPage() {
               reservations={filteredReservations}
               isLoading={isLoading}
               isUpdating={isUpdating}
-              onUpdateRefundStatus={(id, refundStatus) => updateStatus({ id, status: 'CANCELLED', refundStatus })}
+              onUpdateRefundStatus={(id, refundStatus) => {
+                const res = filteredReservations.find(r => r.id === id)
+                updateStatus({ id, status: res ? res.status : 'CANCELLED', refundStatus })
+              }}
               onViewDetail={(res) => {
                 setSelectedReservation(res)
                 setIsModalOpen(true)

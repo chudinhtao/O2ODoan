@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, FileText, Sparkles } from 'lucide-react'
@@ -47,13 +47,14 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(0)
-  const pageSize = 25
+  const [pageSize, setPageSize] = useState(10)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'purchase-orders', { search, statusFilter, typeFilter, startDate, endDate, page }],
+    queryKey: ['inventory', 'purchase-orders', { search, statusFilter, typeFilter, startDate, endDate }, page, pageSize],
     queryFn: () => inventoryService.getPurchaseOrders({
       status: statusFilter || undefined,
       type: typeFilter || undefined,
+      poNumber: search || undefined,
       startDate: startDate ? `${startDate}T00:00:00` : undefined,
       endDate: endDate ? `${endDate}T23:59:59` : undefined,
       page,
@@ -62,11 +63,15 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
     }),
   })
 
+  const totalElements = data?.totalElements ?? 0
+  const totalPages = data?.totalPages ?? 0
+  const contentData = data?.content || []
+
   const confirmMutation = useMutation({
     mutationFn: (id: string) => inventoryService.confirmPurchaseOrder(id),
     onSuccess: (res) => {
       toast.success(getSuccessMessage(res?.message, t('admin.inventory.po.confirmSuccess', 'Đã chốt phiếu nhập kho')))
-      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders', page, pageSize] })
     },
   })
 
@@ -74,7 +79,7 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
     mutationFn: (id: string) => inventoryService.forceCompletePurchaseOrder(id),
     onSuccess: (res) => {
       toast.success(getSuccessMessage(res?.message, t('admin.inventory.po.forceCompleteSuccess', 'Đã đóng phiếu nhập kho')))
-      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders', page, pageSize] })
     },
   })
 
@@ -82,7 +87,7 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
     mutationFn: (id: string) => inventoryService.cancelPurchaseOrder(id),
     onSuccess: (res) => {
       toast.success(getSuccessMessage(res?.message, t('admin.inventory.po.cancelSuccess', 'Đã hủy phiếu nhập kho')))
-      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'purchase-orders', page, pageSize] })
     },
   })
 
@@ -186,7 +191,7 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
 
       <DataTable
         columns={columns}
-        data={data?.content ?? []}
+        data={contentData}
         isLoading={isLoading}
         searchPlaceholder={t('admin.inventory.po.searchPlaceholder', 'Tìm theo mã PO...')}
         searchValue={search}
@@ -206,7 +211,7 @@ export default function PurchaseOrderTab({ navParams }: PurchaseOrderTabProps) {
             setEndDate={v => { setEndDate(v); setPage(0) }}
           />
         }
-        pagination={{ currentPage: page, totalPages: data?.totalPages ?? 0, onPageChange: setPage, pageSize, totalElements: data?.totalElements ?? 0 }}
+        pagination={{ currentPage: page, totalPages: totalPages, onPageChange: setPage, pageSize, totalElements: totalElements, onPageSizeChange: (size) => { setPageSize(size); setPage(0); } }}
         actions={
           <Button variant="ghost" onClick={() => setIsShowingSuggestions(true)} className="gap-2 text-primary hover:bg-primary/5">
             <Sparkles className="w-4 h-4" /> {t('admin.inventory.po.suggestions', 'Gợi ý nhập hàng')}

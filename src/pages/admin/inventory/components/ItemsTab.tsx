@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {  useState , useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Pencil, RefreshCw, AlertTriangle, Power, Package } from 'lucide-react'
 import { Button } from '@/shared/components/ui/Button'
@@ -14,11 +14,12 @@ import {
   TableHeader, 
   TableRow 
 } from '@/shared/components/ui/Table'
-import { useInventoryItems } from '../hooks/useInventoryQueries'
+import { useInventoryItems, useFormatUom } from '../hooks/useInventoryQueries'
 import { useItemMutations } from '../hooks/useInventoryMutations'
 import { IInventoryItem, ITEM_TYPE } from '../types/inventory.type'
 import ItemFormModal from './ItemFormModal'
 import UomConversionModal from './UomConversionModal'
+import InventoryKillSwitchModal from './InventoryKillSwitchModal'
 import CategoryAsyncSelect from '@/shared/components/inventory/CategoryAsyncSelect'
 import ItemTypeSelect from '@/shared/components/inventory/ItemTypeSelect'
 import { ExportButton } from '@/shared/components/ExportButton'
@@ -28,24 +29,28 @@ export default function ItemsTab() {
   const [keyword, setKeyword] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
   
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editItem, setEditItem] = useState<IInventoryItem | null>(null)
   const [conversionItem, setConversionItem] = useState<IInventoryItem | null>(null)
+  
+  const [killSwitchItem, setKillSwitchItem] = useState<IInventoryItem | null>(null)
+  const [killSwitchMode, setKillSwitchMode] = useState<'lock' | 'unlock'>('lock')
 
   const [categoryId, setCategoryId] = useState<string>('')
   const [itemType, setItemType] = useState<string>('')
 
   const { data, isLoading } = useInventoryItems({ 
     keyword: keyword || undefined, 
-    isActive: showInactive ? undefined : true, 
+    isActive: showInactive ? false : true, 
     categoryId: categoryId || undefined,
     type: itemType || undefined,
     page, 
     size: pageSize 
   })
   const { toggle } = useItemMutations()
+  const { formatQty } = useFormatUom()
 
   const handleOpenAdd = () => {
     setEditItem(null)
@@ -101,7 +106,7 @@ export default function ItemsTab() {
         return (
           <div className="flex items-center gap-2">
             <span className={isLowStock ? 'font-bold text-red-600' : 'font-bold text-emerald-600'}>
-              {item.currentStock ?? 0} {item.baseUom?.shortName}
+              {formatQty(item.id, item.currentStock ?? 0, item.baseUom?.name || '')}
             </span>
             {hasExpiredBatch && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
           </div>
@@ -129,6 +134,21 @@ export default function ItemsTab() {
           items={[
             { label: t('admin.inventory.item.editInfo'), onClick: () => handleOpenEdit(item), icon: <Pencil className="w-4 h-4" /> },
             { label: t('admin.inventory.item.convertUnit'), onClick: () => setConversionItem(item), icon: <RefreshCw className="w-4 h-4" /> },
+            ...(item.currentStock > 0 ? [{ 
+              label: t('admin.inventory.killSwitch.lockAction', 'Báo Hết Khẩn Cấp'), 
+              onClick: () => {
+                setKillSwitchItem(item);
+                setKillSwitchMode('lock');
+              }, 
+              icon: <AlertTriangle className="w-4 h-4 text-orange-500" />,
+            }] : [{ 
+              label: t('admin.inventory.killSwitch.unlockAction', 'Mở Lại Nguyên Liệu'), 
+              onClick: () => {
+                setKillSwitchItem(item);
+                setKillSwitchMode('unlock');
+              }, 
+              icon: <RefreshCw className="w-4 h-4 text-emerald-500" />,
+            }]),
             { 
               label: item.active ? t('admin.inventory.item.deactivate') : t('admin.inventory.item.activate'), 
               onClick: () => toggle.mutate(item.id), 
@@ -151,10 +171,13 @@ export default function ItemsTab() {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => setShowInactive(!showInactive)}
-            className="!rounded-lg"
+            onClick={() => {
+              setShowInactive(!showInactive);
+              setPage(0);
+            }}
+            className={`!rounded-lg ${showInactive ? 'bg-slate-100 text-slate-700' : ''}`}
           >
-            {showInactive ? t('admin.inventory.item.hideInactive') : t('admin.inventory.item.showInactive')}
+            {showInactive ? t('admin.inventory.item.backToActive', 'Xem đang hoạt động') : t('admin.inventory.item.viewInactive', 'Xem mục ngưng hoạt động')}
           </Button>
           <ExportButton
             data={(data?.content || []).map(item => ({
@@ -226,7 +249,7 @@ export default function ItemsTab() {
                 {t('admin.inventory.item.batches.count', { count: item.batches?.length || 0 })}
               </Badge>
             </div>
-            {item.batches && item.batches.length > 0 ? (
+            {item.batches && item.batches.filter(b => b.currentStock !== 0).length > 0 ? (
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="!bg-transparent hover:!bg-transparent border-b border-slate-100">
@@ -238,23 +261,31 @@ export default function ItemsTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {item.batches.map((batch) => {
+                  {item.batches.filter(b => b.currentStock !== 0).map((batch) => {
                     const isExpired = batch.expiryDate && new Date(batch.expiryDate) < new Date()
+                    const isNegative = batch.currentStock < 0
                     return (
                       <TableRow key={batch.id} className="!bg-transparent hover:!bg-slate-50/50 border-b border-slate-50 last:border-0">
                         <TableCell className="py-2 text-[11px] text-slate-600 font-medium">
                           {batch.locationName || 'Kho Hệ Thống'}
                         </TableCell>
-                        <TableCell className="py-2 font-mono text-[11px] font-bold text-slate-700">{batch.lotNumber}</TableCell>
+                        <TableCell className="py-2 font-mono text-[11px] font-bold text-slate-700">
+                          {batch.lotNumber === 'N/A' ? <span className="text-orange-600 font-sans">{t('admin.inventory.item.batches.outOfSync', 'Lệch kho (Chờ xử lý)')}</span> : batch.lotNumber}
+                        </TableCell>
                         <TableCell className="py-2 text-[11px] text-slate-600">
                           {batch.expiryDate ? new Date(batch.expiryDate).toLocaleDateString('vi-VN') : '—'}
                         </TableCell>
                         <TableCell className="py-2 text-right">
-                          <span className="text-[11px] font-bold text-slate-900">{batch.currentStock.toLocaleString()}</span>
-                          <span className="ml-1 text-[9px] text-slate-400 uppercase">{item.baseUom?.shortName}</span>
+                          <span className={`text-[11px] font-bold ${isNegative ? 'text-red-600' : 'text-slate-900'}`}>
+                            {isNegative && '-'}{formatQty(item.id, Math.abs(batch.currentStock), item.baseUom?.name || '')}
+                          </span>
                         </TableCell>
                         <TableCell className="py-2 text-center">
-                          {isExpired ? (
+                          {isNegative ? (
+                             <Badge variant="danger" className="px-1.5 py-0 text-[9px]">
+                               {t('admin.inventory.item.batches.statusNegative', 'Âm kho')}
+                             </Badge>
+                          ) : isExpired ? (
                             <Badge variant="danger" className="px-1.5 py-0 text-[9px]">
                               {t('admin.inventory.item.batches.statusExpired')}
                             </Badge>
@@ -307,6 +338,15 @@ export default function ItemsTab() {
           isOpen={!!conversionItem}
           onClose={() => setConversionItem(null)}
           item={conversionItem}
+        />
+      )}
+
+      {killSwitchItem && (
+        <InventoryKillSwitchModal
+          isOpen={!!killSwitchItem}
+          onClose={() => setKillSwitchItem(null)}
+          item={killSwitchItem}
+          mode={killSwitchMode}
         />
       )}
     </div>

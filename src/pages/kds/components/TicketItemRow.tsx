@@ -1,6 +1,6 @@
 import { IKdsTicketItem } from '../types/kds.type';
 import { useState } from 'react';
-import { CheckSquare, Square, X } from 'lucide-react';
+import { CheckSquare, Square, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 
@@ -9,32 +9,33 @@ interface Props {
   orderId?: string;
   onStatusChange: (id: string, newStatus: string) => void;
   onItemCancelRequest?: (orderId: string, itemId: string, reason: string) => void;
-  isLoading: boolean;
+  processingItemId?: string;
   isTicketPending?: boolean;
 }
 
-export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelRequest, isLoading, isTicketPending }: Props) => {
+export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelRequest, processingItemId, isTicketPending }: Props) => {
   const { t } = useTranslation();
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
-  const isDone = item.status === 'DONE' || item.status === 'SERVED';
+  const isDone = item.status === 'DONE' || item.status === 'SERVED' || item.status === 'COMPLETED';
   const isCancelled = item.status === 'CANCELLED' || item.status === 'RETURNED';
 
   const isPreparing = item.status === 'PREPARING';
+  const isItemProcessing = processingItemId === item.id;
 
   const handleClick = () => {
-    if (isLoading || isCancelled || isTicketPending) return;
+    if (isItemProcessing || isCancelled || isTicketPending) return;
     if (item.status === 'PENDING') {
       onStatusChange(item.id, 'PREPARING');
     } else if (item.status === 'PREPARING') {
       onStatusChange(item.id, 'DONE');
-    } else if (item.status === 'DONE') {
+    } else if (item.status === 'DONE' || item.status === 'COMPLETED' || item.status === 'SERVED') {
       onStatusChange(item.id, 'PREPARING'); // Revert back to preparing
     }
   };
 
   const handleCancel = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isLoading || isCancelled || isDone || !onItemCancelRequest || !orderId || isTicketPending) return;
+    if (isItemProcessing || isCancelled || isDone || !onItemCancelRequest || !orderId || isTicketPending) return;
     setIsCancelConfirmOpen(true);
   };
 
@@ -51,14 +52,20 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
         onClick={handleClick}
         className={`
         flex items-start gap-4 py-2 px-1 transition-all duration-300 rounded-lg
-        ${(isLoading || isTicketPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-700/50'}
+        ${(isItemProcessing || isTicketPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-700/50'}
         ${isDone ? 'opacity-50 grayscale' : ''}
         ${isCancelled ? 'opacity-60' : ''}
       `}
     >
       {/* Square Checkbox */}
-      <div className={`mt-0.5 transition-all ${isDone ? 'text-emerald-500' : isPreparing ? 'text-blue-400' : isCancelled ? 'text-red-500' : 'text-slate-500'}`}>
-        {isDone ? <CheckSquare className="w-6 h-6 md:w-7 md:h-7 fill-emerald-500/20 text-emerald-500" /> : <Square className={`w-6 h-6 md:w-7 md:h-7 ${isPreparing ? "text-blue-400/50 fill-blue-500/20" : ""}`} strokeWidth={isCancelled ? 1 : 2} fill={isPreparing ? 'currentColor' : 'transparent'} />}
+      <div className={`mt-0.5 transition-all ${isItemProcessing ? 'text-slate-400' : isDone ? 'text-emerald-500' : isPreparing ? 'text-blue-400' : isCancelled ? 'text-red-500' : 'text-slate-500'}`}>
+        {isItemProcessing ? (
+          <Loader2 className="w-6 h-6 md:w-7 md:h-7 animate-spin" />
+        ) : isDone ? (
+          <CheckSquare className="w-6 h-6 md:w-7 md:h-7 fill-emerald-500/20 text-emerald-500" />
+        ) : (
+          <Square className={`w-6 h-6 md:w-7 md:h-7 ${isPreparing ? "text-blue-400/50 fill-blue-500/20" : ""}`} strokeWidth={isCancelled ? 1 : 2} fill={isPreparing ? 'currentColor' : 'transparent'} />
+        )}
       </div>
       
       {/* Content */}
@@ -141,7 +148,7 @@ export const TicketItemRow = ({ item, orderId, onStatusChange, onItemCancelReque
         confirmText={t('kds.actions.cancel', 'HỦY MÓN')}
         cancelText={t('common.cancel', 'Hủy')}
         variant="danger"
-        isLoading={isLoading}
+        isLoading={isItemProcessing}
       />
     </>
   );

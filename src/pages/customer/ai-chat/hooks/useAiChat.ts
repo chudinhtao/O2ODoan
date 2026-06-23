@@ -84,9 +84,9 @@ export function useAiChat(sessionToken: string | null) {
       scrollToBottom()
     },
     onError: () => {
-      // Network error / timeout → FE tự hiển thị lỗi
-      const errMsg = 'Không thể kết nối trợ lý lúc này, anh/chị vui lòng thử lại sau nhé! 📶'
-      setMessages(prev => [...prev, makeBotMsg(errMsg, true)])
+      // Network error / timeout → FE tự hiển thị lỗi thân thiện (không báo đỏ)
+      const errMsg = 'Dạ Ami xin lỗi ạ, hiện tại em đang xử lý hơi chậm một chút. Anh/chị đợi một lát rồi thử nhắn lại giúp em nhé! 🥺'
+      setMessages(prev => [...prev, makeBotMsg(errMsg)]) // không truyền isError=true nữa
       scrollToBottom()
     },
   })

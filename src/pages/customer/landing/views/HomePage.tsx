@@ -1,4 +1,4 @@
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useCustomerSessionOrder, useCustomerCart } from '../../menu/hooks/useCustomerQueries'
@@ -7,11 +7,12 @@ import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { StaffSupportModal } from '../components/StaffSupportModal'
 import { RecentOrderSummary } from '../components/RecentOrderSummary'
 import { useTranslation } from 'react-i18next'
-import { QrCode, AlertTriangle, Coffee, ChevronRight, Banknote, UtensilsCrossed, CheckCircle2, Ban } from 'lucide-react'
+import { AlertTriangle, Coffee, ChevronRight, Banknote, UtensilsCrossed, CheckCircle2, Ban } from 'lucide-react'
 import { LanguageToggle } from '@/shared/components/ui/LanguageToggle'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
 import http from '@/services/interceptor'
 import { IApiResponse } from '@/shared/types/IApiResponse'
+import { usePaymentLock } from '../../shared/hooks/usePaymentLock'
 
 const DEFAULT_HERO = 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=1200'
 
@@ -44,6 +45,8 @@ export default function CustomerLandingPage() {
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false)
 
+  usePaymentLock(sessionToken || '')
+
   useEffect(() => {
     if (qrToken) {
       openSessionMutation.mutate(qrToken, {
@@ -68,16 +71,9 @@ export default function CustomerLandingPage() {
     }
   }, [orderError, t])
 
-  /* ─── Error states ─── */
+  /* ─── Redirect or Error states ─── */
   if (!qrToken && !sessionToken) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-guest-bg p-6 text-center">
-        <div className="bg-red-50 p-6 rounded-2xl border border-red-100 max-w-sm w-full">
-          <QrCode size={40} className="text-red-400 mx-auto mb-3" />
-          <h1 className="text-base font-black text-red-700">{t('customer.home.invalidTable')}</h1>
-        </div>
-      </div>
-    )
+    return <Navigate to="/booking" replace />
   }
 
   if (sessionError) {
@@ -92,7 +88,7 @@ export default function CustomerLandingPage() {
     )
   }
 
-  if (!sessionToken) {
+  if (!sessionToken || isSessionLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-guest-bg">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-guest-primary border-t-transparent" />

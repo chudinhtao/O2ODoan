@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react'
 import { TableCard } from '../components/TableCard'
 import { TableFormModal } from '../components/TableFormModal'
 import { TableActionDialog } from '../components/TableActionDialog'
+import { AdminPageHeader } from '@/shared/components/ui/AdminPageHeader'
 import { useTables, useDeleteTable, useHardDeleteTable, useGenerateQr, useToggleActiveTable } from '../hooks/useTables'
 import type { ITable } from '../types/adminTable.type'
 
@@ -55,17 +56,15 @@ export default function TablesManagementPage() {
   return (
     <>
       <div className="flex flex-col h-full bg-slate-50/50">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-20 sticky top-0 shadow-sm w-full">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold font-display text-slate-800 leading-tight">
-              {t('admin.tables.title')}
-            </h2>
-          </div>
-          <Button onClick={openCreate} className="!px-4 !py-2 !text-sm">
-            <Plus className="w-[18px] h-[18px] mr-1" />
-            <span className="hidden sm:inline">{t('admin.tables.addNew')}</span>
-          </Button>
-        </header>
+        <AdminPageHeader
+          title={t('admin.tables.title')}
+          actions={
+            <Button onClick={openCreate} className="!px-3 sm:!px-4 !py-2 !text-sm gap-1">
+              <Plus className="w-[18px] h-[18px] shrink-0" />
+              <span className="hidden sm:inline">{t('admin.tables.addNew')}</span>
+            </Button>
+          }
+        />
 
         {/* Zone Navigation Tabs */}
         <div className="bg-white border-b border-slate-100 px-4 md:px-6 py-2 sticky top-16 z-10 overflow-x-auto no-scrollbar shadow-sm">

@@ -6,8 +6,8 @@ import { Button } from '@/shared/components/ui/Button'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog'
 import { ROUTES } from '@/shared/constants/ROUTES'
-import { Undo2, AlertCircle, ShoppingBag, CreditCard, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer, ShieldAlert } from 'lucide-react'
-import { usePosCancelItem, usePosReturnItem, usePosRequestPayment, usePosCancelTicket } from '../hooks/usePosOrder'
+import { Undo2, AlertCircle, ShoppingBag, CreditCard, ArrowLeft, ReceiptText, Smartphone, Keyboard, Printer, ShieldAlert, Clock } from 'lucide-react'
+import { usePosCancelItem, usePosReturnItem, usePosRequestPayment, usePosCancelTicket, usePosExtendSession } from '../hooks/usePosOrder'
 import { Input } from '@/shared/components/ui/Input'
 import http from '@/services/interceptor'
 import { API_ROUTES } from '@/shared/constants/API_ROUTES'
@@ -58,10 +58,19 @@ export default function OrderDetailPage() {
   const { mutate: returnItem, isPending: isReturningItem } = usePosReturnItem()
   const { mutate: requestPayment } = usePosRequestPayment()
   const { mutate: cancelTicket, isPending: isCancellingTicket } = usePosCancelTicket()
+  const { mutate: extendSession, isPending: isExtending } = usePosExtendSession()
   
   const allItems = order?.tickets?.flatMap(t => t.items) || []
-  const totalItems = allItems.length || 1
-  const itemsDone = allItems.filter(i => (i.status?.toUpperCase() || '') === 'DONE' || (i.status?.toUpperCase() || '') === 'SERVED').length
+  const activeItems = allItems.filter(i => {
+    const s = i.status?.toUpperCase() || ''
+    return s !== 'CANCELLED' && s !== 'RETURNED'
+  })
+  const totalActiveItemsCount = activeItems.length
+  const totalItemsForMath = totalActiveItemsCount || 1
+  const itemsDone = activeItems.filter(i => {
+    const s = i.status?.toUpperCase() || ''
+    return s === 'DONE' || s === 'SERVED' || s === 'COMPLETED'
+  }).length
 
   const handleCheckout = () => {
     if (!tableId || !sessionToken) return
@@ -220,11 +229,11 @@ export default function OrderDetailPage() {
                 <div className="pt-4 border-t border-outline-variant/30 space-y-3">
                   <div className="flex justify-between items-end px-1">
                     <span className="text-[10px] font-black text-outline uppercase tracking-widest">{t('pos.orderDetail.progress', 'Tiến độ phục vụ')}</span>
-                    <span className="text-[11px] font-black text-primary">{Math.round((itemsDone/totalItems)*100)}%</span>
+                    <span className="text-[11px] font-black text-primary">{Math.round((itemsDone/totalItemsForMath)*100)}%</span>
                   </div>
                   <div className="space-y-3">
                      <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{ width: `${(itemsDone/totalItems)*100}%` }}></div>
+                        <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{ width: `${(itemsDone/totalItemsForMath)*100}%` }}></div>
                      </div>
                      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-tighter px-1">
                         <div className="flex items-center gap-1.5 text-success">
@@ -233,7 +242,7 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-orange-500">
                            <div className="size-1.5 rounded-full bg-orange-500"></div>
-                           <span>{t('pos.orderDetail.items_pending', 'Chờ xử lý')}: {totalItems - itemsDone}</span>
+                           <span>{t('pos.orderDetail.items_pending', 'Chờ xử lý')}: {totalActiveItemsCount - itemsDone}</span>
                         </div>
                      </div>
                   </div>
@@ -301,6 +310,17 @@ export default function OrderDetailPage() {
                       {t('pos.payment.printBtn', 'In Bill')}
                     </Button>
                   </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => extendSession(sessionToken)}
+                    isLoading={isExtending}
+                    className="w-full h-11 border border-primary/30 text-primary text-[11px] font-black rounded-lg bg-primary/5 hover:bg-primary/10 active:scale-[0.98] transition-all"
+                  >
+                    <Clock className="size-3.5 mr-2" />
+                    {t('pos.orderDetail.extendSession', 'Gia hạn thêm 4 tiếng')}
+                  </Button>
                   
                   {order.status === 'OPEN' && (() => {
                     const allItems = order.tickets.flatMap(t => t.items)
@@ -367,7 +387,7 @@ export default function OrderDetailPage() {
             
             <div className="mb-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant/30">
               <label className="block text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">
-                Trạng thái thực tế tại Bếp (Quan trọng cho Kho)
+                {t('pos.orderDetail.cancelItem.kitchenStatusLabel', 'Trạng thái thực tế tại Bếp (Quan trọng cho Kho)')}
               </label>
               <div className="flex flex-col gap-3">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -380,8 +400,8 @@ export default function OrderDetailPage() {
                     onChange={(e) => setCancelItemState(prev => prev ? {...prev, status: e.target.value} : null)}
                   />
                   <div>
-                    <div className="text-sm font-medium">Bếp chưa làm</div>
-                    <div className="text-xs text-on-surface-variant">Hệ thống sẽ hoàn trả nguyên liệu vào kho.</div>
+                    <div className="text-sm font-medium">{t('pos.orderDetail.cancelItem.statusPending', 'Bếp chưa làm')}</div>
+                    <div className="text-xs text-on-surface-variant">{t('pos.orderDetail.cancelItem.statusPendingDesc', 'Hệ thống sẽ hoàn trả nguyên liệu vào kho.')}</div>
                   </div>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -394,8 +414,8 @@ export default function OrderDetailPage() {
                     onChange={(e) => setCancelItemState(prev => prev ? {...prev, status: e.target.value} : null)}
                   />
                   <div>
-                    <div className="text-sm font-bold text-error">Bếp đang làm / Đã làm xong</div>
-                    <div className="text-xs text-error/80">Không hoàn kho. Ghi nhận là chi phí hao hụt!</div>
+                    <div className="text-sm font-bold text-error">{t('pos.orderDetail.cancelItem.statusDone', 'Bếp đang làm / Đã làm xong')}</div>
+                    <div className="text-xs text-error/80">{t('pos.orderDetail.cancelItem.statusDoneDesc', 'Không hoàn kho. Ghi nhận là chi phí hao hụt!')}</div>
                   </div>
                 </label>
               </div>

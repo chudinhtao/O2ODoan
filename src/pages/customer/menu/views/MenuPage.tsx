@@ -23,6 +23,7 @@ import { IMenuItem, ITicketItemRequest, IMenuItemOption } from '../types'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { Button } from '@/shared/components/ui/Button'
 import { useTranslation } from 'react-i18next'
+import { usePaymentLock } from '../../shared/hooks/usePaymentLock'
 
 export default function CustomerMenuPage() {
   const [searchParams] = useSearchParams()
@@ -55,8 +56,10 @@ export default function CustomerMenuPage() {
 
   const { data: categories, isLoading: isCategoriesLoading } = useCustomerCategories()
   const { data: items, isLoading: isItemsLoading } = useCustomerItems(activeCategoryId || '')
-  const { data: cart, error: cartError } = useCustomerCart(token)
+  const { data: cart, error: cartError, isLoading: isCartLoading } = useCustomerCart(token)
   const [sessionError, setSessionError] = useState<string | null>(null)
+
+  usePaymentLock(token)
 
   useEffect(() => {
     if (cartError) {
@@ -147,6 +150,14 @@ export default function CustomerMenuPage() {
             {t('customer.tracking.backToHome', 'Về trang chủ')}
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  if (isCartLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-guest-primary border-t-transparent" />
       </div>
     )
   }

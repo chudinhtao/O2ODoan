@@ -97,16 +97,18 @@ export function ReservationTimelineView({
                           <span className="text-slate-500">/</span>
                           <span className="text-slate-500">({format(parseISO(res.bookingTime), 'hh:mm a')})</span>
                           
-                          {/* Trạng thái Label (nếu bị hủy hoặc hoàn thành) */}
-                          {isCompleted && (
-                            <Badge variant="success" className="ml-2">{t('pos.reservations.badge.completed', 'Đã xong')}</Badge>
-                          )}
-                          {res.status === 'CANCELLED' && (
+                          {/* Trạng thái Label */}
+                          {res.status === 'COMPLETED' ? (
+                            <Badge variant="success" className="ml-2">{t('pos.reservations.badge.completed', 'Đã đến')}</Badge>
+                          ) : res.status === 'CONFIRMED' ? (
+                            <Badge variant="info" className="ml-2">{t('pos.reservations.badge.confirmed', 'Đã xác nhận')}</Badge>
+                          ) : res.status === 'PENDING' ? (
+                            <Badge variant="warning" className="ml-2">{t('pos.reservations.badge.pending', 'Chờ xác nhận')}</Badge>
+                          ) : res.status === 'NO_SHOW' ? (
+                            <Badge variant="danger" className="ml-2">{t('pos.reservations.badge.noShow', 'Không đến')}</Badge>
+                          ) : res.status === 'CANCELLED' ? (
                             <Badge variant="danger" className="ml-2">{t('pos.reservations.badge.cancelled', 'Đã hủy')}</Badge>
-                          )}
-                          {res.status === 'NO_SHOW' && (
-                            <Badge variant="neutral" className="ml-2">{t('pos.reservations.badge.noShow', 'Không đến')}</Badge>
-                          )}
+                          ) : null}
                         </div>
                         {res.preOrderDraft && (
                           <Button 

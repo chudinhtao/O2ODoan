@@ -16,7 +16,7 @@ export default function UomTab() {
   const { t } = useTranslation()
   const [keyword, setKeyword] = useState('')
   const [currentPage, setCurrentPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const { data: searchData, isLoading } = useInventoryUomSearch({
     keyword: keyword || undefined,

@@ -1,4 +1,5 @@
-import { Trash2, Minus, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
+import { StepperInput } from '@/shared/components/ui/StepperInput'
 import { ICartItem } from '../types'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -84,20 +85,15 @@ export function CartItemRow({ item, isLast, onUpdateQuantity, onRemoveItem }: Ca
                 </span>
               )}
             </div>
-            <div className="flex items-center bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
-              <button
-                onClick={() => onUpdateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))}
-                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition-all"
-              >
-                <Minus size={13} strokeWidth={2.5} />
-              </button>
-              <span className="w-7 text-center font-black text-sm text-slate-800">{item.quantity}</span>
-              <button
-                onClick={() => onUpdateQuantity(item.cartItemId, item.quantity + 1)}
-                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition-all"
-              >
-                <Plus size={13} strokeWidth={2.5} />
-              </button>
+            <div className="shrink-0">
+              <StepperInput
+                value={item.quantity}
+                onChange={(newQty) => onUpdateQuantity(item.cartItemId, newQty)}
+                min={1}
+                max={999}
+                variant="guest"
+                className="bg-slate-50 border-slate-100"
+              />
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { IOrderTicket } from '../types/order.type'
 import { Badge } from '@/shared/components/ui/Badge'
 import { formatCurrency } from '@/shared/utils/formatCurrency'
+import { useStaff } from '../../staff/hooks/useStaff'
 
 interface Props {
   tickets: IOrderTicket[]
@@ -9,6 +10,13 @@ interface Props {
 
 export function OrderTicketList({ tickets }: Props) {
   const { t } = useTranslation()
+  const { staff } = useStaff()
+
+  const getStaffName = (id?: string) => {
+    if (!id) return ''
+    const s = staff?.find((x) => x.id === id)
+    return s ? s.fullName : `ID: ${id.slice(0, 6)}`
+  }
 
   return (
     <div className="space-y-4">
@@ -22,9 +30,16 @@ export function OrderTicketList({ tickets }: Props) {
         {tickets.map((ticket, idx) => (
           <div key={ticket.id} className="border border-slate-100 rounded-xl overflow-hidden">
             <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                {t('admin.orders.drawer.callNumber', { number: ticket.seqNumber || idx + 1 })}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  {t('admin.orders.drawer.callNumber', { number: ticket.seqNumber || idx + 1 })}
+                </span>
+                {ticket.createdBy && (
+                  <span className="text-[10px] font-medium text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    Người tạo: {getStaffName(ticket.createdBy)}
+                  </span>
+                )}
+              </div>
               <span className="text-xs font-medium text-slate-500">
                 {new Date(ticket.createdAt).toLocaleTimeString('vi-VN')}
               </span>
@@ -77,18 +92,46 @@ export function OrderTicketList({ tickets }: Props) {
                     </span>
                     <div className="mt-1 flex flex-col items-end gap-1">
                       {item.status === 'CANCELLED' && (
-                        <Badge variant="danger" className="text-[10px] px-1.5 py-0">
-                          {t('admin.orders.status.cancelled', 'Đã hủy')}
-                        </Badge>
+                        <div className="flex flex-col items-end">
+                          <Badge variant="danger" className="text-[10px] px-1.5 py-0">
+                            {t('admin.orders.status.cancelled', 'Đã hủy')}
+                          </Badge>
+                          {item.cancelledBy && (
+                            <span className="text-[9px] font-medium text-red-400 mt-0.5">
+                              {getStaffName(item.cancelledBy)}
+                            </span>
+                          )}
+                        </div>
                       )}
                       {item.status === 'RETURNED' && (
-                        <Badge variant="warning" className="text-[10px] px-1.5 py-0">
-                          {t('admin.orders.status.returned', 'Đã trả')}
-                        </Badge>
+                        <div className="flex flex-col items-end">
+                          <Badge variant="warning" className="text-[10px] px-1.5 py-0">
+                            {t('admin.orders.status.returned', 'Đã trả')}
+                          </Badge>
+                          {item.cancelledBy && (
+                            <span className="text-[9px] font-medium text-amber-500 mt-0.5">
+                              {getStaffName(item.cancelledBy)}
+                            </span>
+                          )}
+                        </div>
                       )}
-                      {item.status === 'SERVED' && item.servedAt && (
-                        <span className="text-[9px] font-medium text-slate-400">
-                          {t('admin.orders.detail.servedAt', 'Đã bưng')}: {new Date(item.servedAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}
+                      {item.status === 'SERVED' && (
+                        <div className="flex flex-col items-end">
+                          {item.servedAt && (
+                            <span className="text-[9px] font-medium text-slate-400">
+                              {t('admin.orders.detail.servedAt', 'Đã bưng')}: {new Date(item.servedAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}
+                            </span>
+                          )}
+                          {item.servedBy && (
+                            <span className="text-[9px] font-medium text-blue-500">
+                              NV: {getStaffName(item.servedBy)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {item.status === 'COMPLETED' && item.preparedBy && (
+                        <span className="text-[9px] font-medium text-green-500 mt-0.5">
+                          Bếp: {getStaffName(item.preparedBy)}
                         </span>
                       )}
                     </div>

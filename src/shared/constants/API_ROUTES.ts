@@ -42,6 +42,7 @@ export const API_ROUTES = {
   posSession: {
     openManual: (tableId: string) => `${BASE}sessions/open/manual/${tableId}`,
     close:      (token: string) => `${BASE}sessions/${token}/close`,
+    extend:     (token: string) => `${BASE}sessions/${token}/extend`,
     byToken:    (token: string) => `${BASE}sessions/${token}`,
   },
   kds: {

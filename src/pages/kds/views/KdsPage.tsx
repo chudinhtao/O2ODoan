@@ -28,7 +28,7 @@ const loadStations = (): string[] => {
 
 export const KdsPage = () => {
   const { t } = useTranslation();
-  const { tickets, isLoading, updateItemStatus, updateTicketStatus, cancelOrderItem } = useKdsQuery();
+  const { tickets, isLoading, updateItemStatus, updateTicketStatus, cancelOrderItem, processingTicketId, processingItemId } = useKdsQuery();
   const { isConnected } = useKdsSocket();
 
   // Phase 3: Station filter — lưu vào localStorage để Tablet nhớ qua lần tắt/mở
@@ -93,9 +93,8 @@ export const KdsPage = () => {
             onItemStatusChange={handleItemStatus}
             onTicketStatusChange={handleTicketStatus}
             onItemCancelRequest={handleItemCancelRequest}
-            isLoading={
-              updateItemStatus.isPending || updateTicketStatus.isPending || cancelOrderItem.isPending
-            }
+            processingTicketId={processingTicketId}
+            processingItemId={processingItemId}
           />
         )}
       </main>

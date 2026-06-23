@@ -9,5 +9,6 @@ export const aiChatService = {
         'X-Session-Token': sessionToken,
         'Content-Type': 'text/plain; charset=utf-8',
       },
+      timeout: 120_000, // AI cần thời gian xử lý: gọi LLM / fallback
     }),
 }

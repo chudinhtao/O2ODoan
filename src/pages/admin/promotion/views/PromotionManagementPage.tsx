@@ -55,7 +55,7 @@ function Badge({ icon: Icon, label, cls }: { icon?: React.ElementType; label: st
 }
 
 export default function PromotionManagementPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const scopeBadge: Record<PromotionScope, { label: string; cls: string; icon: typeof Tag }> = {
     ORDER:   { label: t('admin.promotions.table.scopeOrder', 'Đơn hàng'), cls: 'bg-blue-50 text-blue-600 border-blue-100',    icon: ShoppingCart },
@@ -327,9 +327,14 @@ export default function PromotionManagementPage() {
                 'displayStatusLabel': t('admin.promotions.export.colStatus', 'Trạng thái')
               }}
             />
-            <Button onClick={handleCreate} className="!px-4 !py-2 !rounded-lg !text-sm gap-1.5">
-              <Plus className="w-4 h-4" />
-              {t('admin.promotions.createBtn', 'Tạo Khuyến mãi')}
+            <Button onClick={handleCreate} className="!px-3 sm:!px-4 !py-2 !rounded-lg !text-sm gap-1.5 shrink-0">
+              <Plus className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">
+                {t('admin.promotions.createBtn', 'Tạo Khuyến mãi')}
+              </span>
+              <span className="inline sm:hidden">
+                {t('admin.promotions.createBtnMobile', i18n.language === 'en' ? 'Create' : 'Tạo')}
+              </span>
             </Button>
           </div>
         }

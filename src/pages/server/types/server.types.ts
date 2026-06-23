@@ -33,6 +33,7 @@ export interface StaffCallResponse {
   resolvedAt: string | null;
   acceptedBy: string | null;
   acceptedAt: string | null;
+  message?: string;
   isSpilloverSent?: boolean;
 }
 

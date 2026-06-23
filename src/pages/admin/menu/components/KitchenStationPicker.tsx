@@ -23,6 +23,7 @@ export function KitchenStationPicker({ register, control }: Props) {
           { key: 'HOT', value: 'HOT', icon: 'local_fire_department', labelKey: 'admin.menu.form.kitchenHot', defaultText: 'Bếp Nóng' },
           { key: 'COLD', value: 'COLD', icon: 'ac_unit', labelKey: 'admin.menu.form.kitchenCold', defaultText: 'Bếp Lạnh' },
           { key: 'DRINK', value: 'DRINK', icon: 'local_cafe', labelKey: 'admin.menu.form.kitchenDrink', defaultText: 'Quầy Pha Chế' },
+          { key: 'RETAIL', value: 'RETAIL', icon: 'inventory_2', labelKey: 'admin.menu.form.kitchenRetail', defaultText: 'Bán Lẻ' },
         ].map(k => {
           const isSelected = stationValue === k.value
           return (

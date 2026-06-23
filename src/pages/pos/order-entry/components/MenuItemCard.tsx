@@ -1,6 +1,6 @@
 import { IMenuItem } from '@/pages/admin/menu/types/adminMenu.type'
 import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
-import { Plus, Flame, Snowflake, Coffee, Star } from 'lucide-react'
+import { Plus, Flame, Snowflake, Coffee, Star, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 interface MenuItemCardProps {
@@ -21,6 +21,7 @@ export function MenuItemCard({ item, onAdd }: MenuItemCardProps) {
     HOT:   { icon: Flame,     color: 'text-orange-500', label: t('pos.menu.item.status.hot', 'Nóng') },
     COLD:  { icon: Snowflake, color: 'text-sky-500',    label: t('pos.menu.item.status.cold', 'Lạnh') },
     DRINK: { icon: Coffee,    color: 'text-emerald-500', label: t('pos.menu.item.status.drink', 'Nước') },
+    RETAIL:{ icon: Package,   color: 'text-slate-500',  label: t('pos.menu.item.status.retail', 'Bán lẻ') },
   } as const
 
   const hasSale  = !!item.salePrice && item.salePrice < item.basePrice

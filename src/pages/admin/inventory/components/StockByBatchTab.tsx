@@ -22,8 +22,8 @@ export default function StockByBatchTab() {
   const { data, isLoading } = useInventoryItems({ 
     keyword: keyword || undefined, 
     isActive: true, 
-    page, 
-    size: pageSize 
+    page: 0, 
+    size: 1000 
   })
 
   const flattenedBatches = useMemo(() => {
@@ -63,6 +63,10 @@ export default function StockByBatchTab() {
       return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
     })
   }, [data, sortOrder, t])
+
+  const paginatedBatches = useMemo(() => {
+    return flattenedBatches.slice(page * pageSize, (page + 1) * pageSize)
+  }, [flattenedBatches, page, pageSize])
 
   const columns: ColumnDef<IBatchFlattened>[] = [
     {
@@ -149,7 +153,7 @@ export default function StockByBatchTab() {
 
       <DataTable
         columns={columns}
-        data={flattenedBatches}
+        data={paginatedBatches}
         isLoading={isLoading}
         searchPlaceholder={t('admin.inventory.batch.searchPlaceholder')}
         searchValue={keyword}
@@ -159,10 +163,10 @@ export default function StockByBatchTab() {
         }}
         pagination={{
           currentPage: page,
-          totalPages: data?.totalPages ?? 0,
+          totalPages: Math.ceil(flattenedBatches.length / pageSize),
           onPageChange: setPage,
           pageSize: pageSize,
-          totalElements: data?.totalElements ?? 0,
+          totalElements: flattenedBatches.length,
         }}
         emptyState={
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, X, Save } from 'lucide-react'
+import { Check, X, Save, ChevronDown, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/Button'
 import { NumberInput } from '@/shared/components/ui/NumberInput'
@@ -23,6 +23,7 @@ export default function StocktakeCountForm({ stocktakeId, onBack }: StocktakeCou
   const [reasons, setReasons] = useState<Record<string, string>>({})
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [confirmFinalize, setConfirmFinalize] = useState(false)
+  const [showZeroItems, setShowZeroItems] = useState(false)
   
   const { updateItems, finalize, cancel } = useStocktakeMutations()
 
@@ -198,58 +199,81 @@ export default function StocktakeCountForm({ stocktakeId, onBack }: StocktakeCou
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-dim">
-              {sortedItems.map((item) => {
-                const sysQty = item.systemQuantity || 0
-                const countQty = counts[item.id] || 0
-                const diff = countQty - sysQty
-                const showDiff = isCompleted ? item.variance : diff
+              {(() => {
+                const activeItems = sortedItems.filter(i => (i.systemQuantity || 0) !== 0);
+                const zeroItems = sortedItems.filter(i => (i.systemQuantity || 0) === 0);
+                
+                const renderRow = (item: any) => {
+                  const sysQty = item.systemQuantity || 0
+                  const countQty = counts[item.id] || 0
+                  const diff = countQty - sysQty
+                  const showDiff = isCompleted ? item.variance : diff
+
+                  return (
+                    <tr key={item.id} className={`hover:bg-surface-container/20 ${sysQty === 0 ? 'bg-surface-container/5' : ''}`}>
+                      <td className="px-4 py-3 font-medium text-on-surface truncate max-w-[200px]">
+                        {item.itemName}
+                        {item.itemSku && <div className="text-xs text-on-surface-variant font-normal">{item.itemSku}</div>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-mono text-xs text-orange-600 font-sans font-bold">{item.lotNumber && item.lotNumber !== 'N/A' ? item.lotNumber : t('admin.inventory.item.batches.outOfSync', 'Lệch kho (Chờ xử lý)')}</div>
+                        <div className="text-xs text-on-surface-variant">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('vi-VN') : '---'}</div>
+                      </td>
+                      <td className="px-4 py-3 text-center text-on-surface-variant font-medium">
+                        {sysQty}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {isCompleted ? (
+                          <span className="font-bold">{item.countedQuantity}</span>
+                        ) : (
+                          <NumberInput
+                            value={counts[item.id]}
+                            onChange={(e) => setCounts(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
+                            min={0}
+                            step={0.01}
+                            className="text-center font-bold text-primary max-w-[120px] mx-auto"
+                          />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`font-bold ${showDiff > 0 ? 'text-green-600' : showDiff < 0 ? 'text-red-500' : 'text-on-surface-variant'}`}>
+                          {showDiff > 0 ? `+${showDiff}` : showDiff}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {isCompleted ? (
+                          <span className="text-on-surface-variant">{item.adjustmentReason || '-'}</span>
+                        ) : (
+                          <Input
+                            placeholder={t('admin.inventory.stocktake.reasonPh', 'VD: Cân sai...')}
+                            value={reasons[item.id] || ''}
+                            onChange={(e) => setReasons(prev => ({ ...prev, [item.id]: e.target.value }))}
+                            className="min-w-[150px]"
+                          />
+                        )}
+                      </td>
+                    </tr>
+                  )
+                }
 
                 return (
-                  <tr key={item.id} className="hover:bg-surface-container/20">
-                    <td className="px-4 py-3 font-medium text-on-surface truncate max-w-[200px]">
-                      {item.itemName}
-                      {item.itemSku && <div className="text-xs text-on-surface-variant font-normal">{item.itemSku}</div>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-mono text-xs">{item.lotNumber && item.lotNumber !== 'N/A' ? item.lotNumber : t('admin.inventory.stocktake.defaultLot', 'Lô Mặc Định')}</div>
-                      <div className="text-xs text-on-surface-variant">{item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('vi-VN') : '---'}</div>
-                    </td>
-                    <td className="px-4 py-3 text-center text-on-surface-variant font-medium">
-                      {sysQty}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {isCompleted ? (
-                        <span className="font-bold">{item.countedQuantity}</span>
-                      ) : (
-                        <NumberInput
-                          value={counts[item.id]}
-                          onChange={(e) => setCounts(prev => ({ ...prev, [item.id]: Number(e.target.value) }))}
-                          min={0}
-                          step={0.01}
-                          className="text-center font-bold text-primary max-w-[120px] mx-auto"
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`font-bold ${showDiff > 0 ? 'text-green-600' : showDiff < 0 ? 'text-red-500' : 'text-on-surface-variant'}`}>
-                        {showDiff > 0 ? `+${showDiff}` : showDiff}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isCompleted ? (
-                        <span className="text-on-surface-variant">{item.adjustmentReason || '-'}</span>
-                      ) : (
-                        <Input
-                          placeholder={t('admin.inventory.stocktake.reasonPh', 'VD: Cân sai...')}
-                          value={reasons[item.id] || ''}
-                          onChange={(e) => setReasons(prev => ({ ...prev, [item.id]: e.target.value }))}
-                          className="min-w-[150px]"
-                        />
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
+                  <>
+                    {activeItems.map(renderRow)}
+                    
+                    {zeroItems.length > 0 && (
+                      <>
+                        <tr className="bg-surface-container border-t-2 border-surface-dim hover:bg-surface-container cursor-pointer" onClick={() => setShowZeroItems(!showZeroItems)}>
+                          <td colSpan={6} className="px-4 py-3 text-sm font-bold text-on-surface-variant flex items-center gap-2">
+                            {showZeroItems ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            {t('admin.inventory.stocktake.zeroStockSection', 'Các lô đã hết (có biến động gần đây)')} ({zeroItems.length})
+                          </td>
+                        </tr>
+                        {showZeroItems && zeroItems.map(renderRow)}
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </tbody>
           </table>
         </div>

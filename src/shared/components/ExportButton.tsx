@@ -63,7 +63,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
       disabled={disabled || isExporting || data.length === 0}
     >
       <Download className={`w-4 h-4 ${isExporting ? 'animate-bounce' : ''}`} />
-      <span>{isExporting ? t('common.loading', 'Đang tải...') : displayLabel}</span>
+      <span className="hidden sm:inline">{isExporting ? t('common.loading', 'Đang tải...') : displayLabel}</span>
     </Button>
   );
 };

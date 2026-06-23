@@ -69,26 +69,28 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-full bg-slate-50/50 relative">
       {/* ── Header ── */}
-      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 shadow-sm gap-2">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => window.dispatchEvent(new Event('toggle-mobile-nav'))}
-            className="md:hidden p-2 -ml-2 rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
-            aria-label="Toggle Navigation"
-          >
-            <Menu size={24} />
-          </button>
-          <div>
-            <h2 className="text-xl font-bold font-display text-slate-800 leading-tight">
-              {t('admin.dashboard.title')}
-            </h2>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest hidden md:block">
-              {t('admin.dashboard.todayOverview', { date: todayStr })}
-            </p>
+      <header className="min-h-[4rem] py-3 md:py-0 bg-white border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 shadow-sm gap-3 md:gap-2">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => window.dispatchEvent(new Event('toggle-mobile-nav'))}
+              className="md:hidden p-2 -ml-2 rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
+              aria-label="Toggle Navigation"
+            >
+              <Menu size={24} />
+            </button>
+            <div>
+              <h2 className="text-xl font-bold font-display text-slate-800 leading-tight">
+                {t('admin.dashboard.title')}
+              </h2>
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest hidden md:block">
+                {t('admin.dashboard.todayOverview', { date: todayStr })}
+              </p>
+            </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 lg:gap-4">
+        <div className="flex items-center gap-2 lg:gap-4 w-full md:w-auto justify-between md:justify-end">
            {/* Shortcuts */}
            <div className="hidden lg:flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-100 h-10">
               <Button
@@ -116,20 +118,20 @@ export default function DashboardPage() {
            </div>
 
            {/* Custom Range Picker */}
-           <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 h-10 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-              <CalendarDays className="w-3.5 h-3.5 text-slate-400 ml-1" />
+           <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 h-10 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all flex-1 md:flex-initial justify-between md:justify-start min-w-0">
+              <CalendarDays className="w-3.5 h-3.5 text-slate-400 ml-1 shrink-0 hidden sm:block" />
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0 w-24"
+                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0 w-[84px] sm:w-24 shrink-0 text-center"
               />
-              <span className="text-slate-300 text-xs">→</span>
+              <span className="text-slate-300 text-xs shrink-0">→</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0 w-24"
+                className="bg-transparent border-none text-[11px] font-bold focus:ring-0 px-1 text-slate-700 cursor-pointer p-0 w-[84px] sm:w-24 shrink-0 text-center"
                 min={startDate}
               />
            </div>
@@ -223,7 +225,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Net Profit (Gross Profit in Card) */}
-            <div className="bg-white rounded-xl p-3.5 border-2 border-emerald-100 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] flex flex-col justify-between hover:shadow-lg transition-shadow relative overflow-hidden group">
+            <div className="bg-white rounded-xl p-3.5 border-2 border-emerald-100 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] flex flex-col justify-between hover:shadow-lg transition-shadow relative overflow-hidden group col-span-2 lg:col-span-1">
               <div className="absolute -top-4 -right-4 p-4 opacity-[0.05] group-hover:opacity-[0.08] transition-opacity transform group-hover:scale-110">
                 <TrendingUp className="w-24 h-24 text-emerald-500" />
               </div>

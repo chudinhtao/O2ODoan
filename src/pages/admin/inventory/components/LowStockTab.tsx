@@ -12,6 +12,7 @@ import { IPurchaseSuggestion } from '../types/inventory.type'
 import { useTranslation } from 'react-i18next'
 import CategoryAsyncSelect from '@/shared/components/inventory/CategoryAsyncSelect'
 import { ExportButton } from '@/shared/components/ExportButton'
+import { useFormatUom } from '../hooks/useInventoryQueries'
 
 interface LowStockTabProps {
   onNavigate?: (tab: string, params?: any) => void
@@ -22,15 +23,16 @@ export default function LowStockTab({ onNavigate }: LowStockTabProps) {
   const [keyword, setKeyword] = useState('')
   const [categoryId, setCategoryId] = useState<string>('')
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
+  const { formatQty } = useFormatUom()
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'inventory', 'reports', 'low-stock'],
-    queryFn: () => inventoryService.getLowStockItems(),
+    queryFn: () => inventoryService.getLowStockItems({ unpaged: true }),
     staleTime: 60_000,
   })
 
-  const items: ILowStockItemResponse[] = data || []
+  const items: ILowStockItemResponse[] = data?.content || []
   
   const filteredItems = items.filter(item => {
     if (categoryId && item.categoryId !== categoryId) return false
@@ -63,9 +65,8 @@ export default function LowStockTab({ onNavigate }: LowStockTabProps) {
         return (
           <div className="flex flex-col items-end">
             <span className={`font-bold text-lg ${isCritical ? 'text-red-600' : 'text-orange-500'}`}>
-              {item.currentStock.toLocaleString()}
+              {formatQty(item.itemId, item.currentStock, item.uomName)}
             </span>
-            <span className="text-[10px] text-slate-400 uppercase font-medium">{item.uomName}</span>
           </div>
         )
       }
@@ -75,8 +76,7 @@ export default function LowStockTab({ onNavigate }: LowStockTabProps) {
       align: 'right',
       cell: (item) => (
         <div className="flex flex-col items-end">
-          <span className="font-bold text-slate-600">{item.safetyStock.toLocaleString()}</span>
-          <span className="text-[10px] text-slate-400 uppercase font-medium">{item.uomName}</span>
+          <span className="font-bold text-slate-600">{formatQty(item.itemId, item.safetyStock, item.uomName)}</span>
         </div>
       )
     },
@@ -85,8 +85,7 @@ export default function LowStockTab({ onNavigate }: LowStockTabProps) {
       align: 'right',
       cell: (item) => (
         <div className="flex flex-col items-end">
-          <span className="font-bold text-primary">+{item.reorderAmount.toLocaleString()}</span>
-          <span className="text-[10px] text-slate-400 uppercase font-medium">{item.uomName}</span>
+          <span className="font-bold text-primary">+{formatQty(item.itemId, item.reorderAmount, item.uomName)}</span>
         </div>
       )
     },

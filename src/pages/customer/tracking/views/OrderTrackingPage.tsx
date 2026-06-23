@@ -10,6 +10,7 @@ import { IOrder } from '@/pages/admin/orders/types/order.type'
 import { CustomerBottomNav } from '../../components/CustomerBottomNav'
 import { TicketCard } from '../components/TicketCard'
 import { useTranslation } from 'react-i18next'
+import { usePaymentLock } from '../../shared/hooks/usePaymentLock'
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
 
@@ -80,6 +81,8 @@ export default function OrderTrackingPage() {
   const { data: sessionOrder, isLoading, error: orderError } = useCustomerSessionOrder(token)
   const cancelTicket = useCustomerCancelTicket(token)
   const cancelItem = useCustomerCancelItem(token)
+
+  usePaymentLock(token)
 
   /* ─── Loading ─── */
   if (isLoading) {

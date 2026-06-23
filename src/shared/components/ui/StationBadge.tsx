@@ -35,6 +35,15 @@ export const StationBadge: React.FC<StationBadgeProps> = ({ station, className =
     )
   }
 
+  if (station === 'RETAIL') {
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase rounded-md bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap w-fit ${className}`}>
+        <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+        Bán Lẻ
+      </span>
+    )
+  }
+
   return (
     <span className={`text-slate-400 ${className}`}>—</span>
   )

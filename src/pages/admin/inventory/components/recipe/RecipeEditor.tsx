@@ -186,7 +186,7 @@ export default function RecipeEditor({ selectedTarget }: RecipeEditorProps) {
 
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-on-surface-variant">{t('conversion.loading')}</span>
+          <span className="text-on-surface-variant">{t('admin.inventory.conversion.loading')}</span>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">

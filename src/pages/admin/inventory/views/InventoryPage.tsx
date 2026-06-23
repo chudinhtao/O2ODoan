@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { 
   Package, Ruler, FolderTree, Truck, ChefHat, 
   ClipboardList, ClipboardCheck, Activity, ShieldAlert, 
-  TrendingDown, AlertTriangle, BarChart3, Calculator, MapPin, ArrowRightLeft
+  AlertTriangle, BarChart3, MapPin, ArrowRightLeft
 } from 'lucide-react'
 import ItemsTab from '../components/ItemsTab'
 import AnalyticsTab from '../components/AnalyticsTab'
@@ -17,8 +17,6 @@ import StocktakeTab from '../components/StocktakeTab'
 import TransactionsTab from '../components/TransactionsTab'
 import ExpiringStockTab from '../components/ExpiringStockTab'
 import LowStockTab from '../components/LowStockTab'
-import VarianceReportTab from '../components/VarianceReportTab'
-import VarianceAnalysisTab from '../components/VarianceAnalysisTab'
 import TransferTab from '../components/TransferTab'
 import { AdminPageHeader } from '@/shared/components/ui/AdminPageHeader'
 import { Select } from '@/shared/components/ui/Select'
@@ -37,8 +35,6 @@ const TABS = [
   { key: 'transactions',  icon: <Activity className="w-4 h-4" />,      labelKey: 'admin.inventory.tabs.transactions', fallback: 'Lịch sử' },
   { key: 'expiring',      icon: <AlertTriangle className="w-4 h-4" />, labelKey: 'admin.inventory.tabs.expiring', fallback: 'Cận date' },
   { key: 'low-stock',     icon: <ShieldAlert className="w-4 h-4" />,   labelKey: 'admin.inventory.tabs.lowStock', fallback: 'Sắp hết' },
-  { key: 'tva',           icon: <Calculator className="w-4 h-4" />,    labelKey: 'admin.inventory.tabs.tva', fallback: 'Đối soát' },
-  { key: 'variance',      icon: <TrendingDown className="w-4 h-4" />,  labelKey: 'admin.inventory.tabs.variance', fallback: 'Hao hụt' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -93,8 +89,6 @@ export default function InventoryPage() {
             {activeTab === 'transactions' && <TransactionsTab navParams={navParams} />}
             {activeTab === 'expiring' && <ExpiringStockTab onNavigate={handleNavigate} />}
             {activeTab === 'low-stock' && <LowStockTab onNavigate={handleNavigate} />}
-            {activeTab === 'tva' && <VarianceAnalysisTab />}
-            {activeTab === 'variance' && <VarianceReportTab />}
           </div>
         </div>
       </div>

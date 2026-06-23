@@ -101,20 +101,20 @@ export function ReservationListView({
                       ))}
                     </div>
                   ) : (
-                    <span className="text-slate-400 text-xs italic">{t('pos.reservations.badge.pending', 'Chưa xếp')}</span>
+                    <span className="text-slate-400 text-xs italic">{t('pos.reservations.table.unassigned', 'Chưa xếp')}</span>
                   )}
                 </TableCell>
                 <TableCell className="px-6 text-center">
-                  {isCompleted ? (
-                    <Badge variant="success">{t('pos.reservations.badge.completed', 'Đã xong')}</Badge>
-                  ) : res.status === 'CANCELLED' ? (
-                    <Badge variant="danger">{t('pos.reservations.badge.cancelled', 'Đã hủy')}</Badge>
+                  {res.status === 'COMPLETED' ? (
+                    <Badge variant="success">{t('pos.reservations.badge.completed', 'Đã đến')}</Badge>
+                  ) : res.status === 'CONFIRMED' ? (
+                    <Badge variant="info">{t('pos.reservations.badge.confirmed', 'Đã xác nhận')}</Badge>
+                  ) : res.status === 'PENDING' ? (
+                    <Badge variant="warning">{t('pos.reservations.badge.pending', 'Chờ xác nhận')}</Badge>
                   ) : res.status === 'NO_SHOW' ? (
-                    <Badge variant="neutral">{t('pos.reservations.badge.noShow', 'Không đến')}</Badge>
-                  ) : isAssigned ? (
-                    <Badge variant="info">{t('pos.reservations.badge.waiting', 'Chờ khách')}</Badge>
+                    <Badge variant="danger">{t('pos.reservations.badge.noShow', 'Không đến')}</Badge>
                   ) : (
-                    <Badge variant="warning">{t('pos.reservations.badge.pending', 'Chờ gán bàn')}</Badge>
+                    <Badge variant="danger">{t('pos.reservations.badge.cancelled', 'Đã hủy')}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="px-6 text-center">

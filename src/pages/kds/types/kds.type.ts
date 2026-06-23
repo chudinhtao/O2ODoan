@@ -3,7 +3,7 @@ export interface IKdsTicketItem {
   itemId: string; // the original order ticket item id
   itemName: string;
   quantity: number;
-  status: 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED';
+  status: 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED' | 'COMPLETED';
   station: string;
   note?: string;
   options?: string[];
@@ -15,7 +15,7 @@ export interface IKdsTicket {
   ticketId: string; // UUID from order service ticket
   orderId: string;
   tableNumber: number | null;
-  status: 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED';
+  status: 'PENDING' | 'PREPARING' | 'DONE' | 'SERVED' | 'CANCELLED' | 'RETURNED' | 'COMPLETED';
   createdAt: string; // ISO String
   note?: string;
   items: IKdsTicketItem[];

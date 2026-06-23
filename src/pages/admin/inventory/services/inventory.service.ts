@@ -138,9 +138,11 @@ export const inventoryService = {
 
   // ── UoM Conversions ──
   getConversions: async (itemId?: string) => {
-    if (!itemId) return []
-    const res = await http.get<IApiResponse<IUomConversion[]>>(API_ROUTES.inventory.itemConversions(itemId))
-    return res.data.data
+    const url = itemId 
+      ? API_ROUTES.inventory.itemConversions(itemId) 
+      : API_ROUTES.inventory.conversions
+    const res = await http.get<IApiResponse<IUomConversion[]>>(url)
+    return res.data.data || []
   },
   createConversion: async (payload: IUomConversionRequest) => {
     const res = await http.post<IApiResponse<IUomConversion>>(API_ROUTES.inventory.conversions, payload)
@@ -187,7 +189,7 @@ export const inventoryService = {
   },
 
   // ── Purchase Orders ──
-  getPurchaseOrders: async (params?: { type?: string; status?: string; startDate?: string; endDate?: string; page?: number; size?: number; sort?: string }) => {
+  getPurchaseOrders: async (params?: { type?: string; status?: string; poNumber?: string; startDate?: string; endDate?: string; page?: number; size?: number; sort?: string }) => {
     const res = await http.get<IApiResponse<IPageResponse<IPurchaseOrder>>>(API_ROUTES.inventory.po, { params })
     return res.data.data
   },
@@ -247,12 +249,12 @@ export const inventoryService = {
   },
 
   // ── Reports ──
-  getExpiringStock: async (days: number = 7) => {
-    const res = await http.get<IApiResponse<any[]>>(API_ROUTES.inventory.reportExpiring, { params: { days } })
+  getExpiringStock: async (days: number = 7, params?: { page?: number; size?: number; unpaged?: boolean }) => {
+    const res = await http.get<IApiResponse<IPageResponse<any>>>(API_ROUTES.inventory.reportExpiring, { params: { days, ...params } })
     return res.data.data
   },
-  getLowStockItems: async () => {
-    const res = await http.get<IApiResponse<ILowStockItemResponse[]>>(API_ROUTES.inventory.reportLowStock)
+  getLowStockItems: async (params?: { page?: number; size?: number; unpaged?: boolean }) => {
+    const res = await http.get<IApiResponse<IPageResponse<ILowStockItemResponse>>>(API_ROUTES.inventory.reportLowStock, { params })
     return res.data.data
   },
   getVarianceReport: async (startDate: string, endDate: string) => {
@@ -286,7 +288,14 @@ export const inventoryService = {
     page?: number; 
     size?: number 
   }) => {
-    let formattedParams = { ...params }
+    let formattedParams: any = { ...params }
+    
+    // Đổi tên biến 'type' thành 'transactionType' để khớp với tham số Backend Spring Boot
+    if (formattedParams.type !== undefined) {
+      formattedParams.transactionType = formattedParams.type
+      delete formattedParams.type
+    }
+
     if (params?.startDate && params.startDate.length === 10) {
       formattedParams.startDate = `${params.startDate}T00:00:00`
     }

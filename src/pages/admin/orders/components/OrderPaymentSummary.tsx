@@ -131,6 +131,23 @@ export function OrderPaymentSummary({ order }: Props) {
             )}
           </div>
         )}
+
+        {order.status === 'RETURNED' && (
+          <div className="mt-4 pt-4 border-t border-slate-100 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+            <div className="flex items-center gap-2 text-amber-600 mb-2">
+              <Ban className="w-4 h-4" />
+              <span className="font-bold text-sm">{t('admin.orders.detail.returnedTitle', 'Đơn đã trả/hoàn tiền')}</span>
+            </div>
+            <p className="text-xs text-amber-700 font-medium leading-relaxed">
+              {t('admin.orders.detail.reason', 'Lý do')}: {order.cancelReason || t('admin.orders.detail.noReason', 'Không có lý do')}
+            </p>
+            {order.cancelledBy && (
+              <p className="text-[10px] text-amber-500 mt-2 font-bold uppercase tracking-wider">
+                {t('admin.orders.detail.returnedBy', 'Người hoàn: ')} {getCashierName(order.cancelledBy)}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -12,7 +12,7 @@ import { ColumnDef } from '@/shared/components/DataTable/types'
 import { DropdownMenu } from '@/shared/components/ui/DropdownMenu'
 import CategoryAsyncSelect from '@/shared/components/inventory/CategoryAsyncSelect'
 import { AsyncSelect } from '@/shared/components/ui/AsyncSelect'
-import { useLocations } from '../hooks/useInventoryQueries'
+import { useLocations, useFormatUom } from '../hooks/useInventoryQueries'
 import { ExportButton } from '@/shared/components/ExportButton'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/Button'
@@ -20,26 +20,28 @@ import { formatCurrency } from '@/shared/utils/formatCurrency'
 
 export default function ExpiringStockTab({ onNavigate: _onNavigate }: { onNavigate?: (tab: string, params?: any) => void }) {
   const { t } = useTranslation()
-  const [targetDate, setTargetDate] = useState(() => {
+  const [targetDate, setTargetDate] = useState<string>(() => {
     const d = new Date()
-    d.setDate(d.getDate() + 7)
-    return format(d, 'yyyy-MM-dd')
+    d.setDate(d.getDate() + 30) // Default: expiring in next 30 days
+    return d.toISOString().split('T')[0]
   })
-  const daysFilter = Math.max(1, Math.ceil((new Date(targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
   const [keyword, setKeyword] = useState('')
+
+  const daysFilter = Math.max(1, Math.ceil((new Date(targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
   const [categoryId, setCategoryId] = useState<string>('')
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
   const [wasteTarget, setWasteTarget] = useState<IExpiringStock | null>(null)
   const [selectedLotForDetails, setSelectedLotForDetails] = useState<IExpiringStock | null>(null)
   const queryClient = useQueryClient()
+  const { formatQty } = useFormatUom()
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'inventory', 'reports', 'expiring', daysFilter],
-    queryFn: () => inventoryService.getExpiringStock(daysFilter)
+    queryFn: () => inventoryService.getExpiringStock(daysFilter, { unpaged: true })
   })
 
-  const expiringList = data || []
+  const expiringList = data?.content || []
   
   const filteredList = expiringList.filter(i => {
     if (categoryId && i.categoryId !== categoryId) return false
@@ -102,8 +104,7 @@ export default function ExpiringStockTab({ onNavigate: _onNavigate }: { onNaviga
       align: 'right',
       cell: (item) => (
         <div className="flex flex-col items-end">
-          <span className="font-bold text-slate-900">{item.currentStock.toLocaleString()}</span>
-          <span className="text-[10px] text-slate-500 font-medium uppercase">{item.uomName}</span>
+          <span className="font-bold text-slate-900">{formatQty(item.itemId, item.currentStock, item.uomName)}</span>
         </div>
       )
     },

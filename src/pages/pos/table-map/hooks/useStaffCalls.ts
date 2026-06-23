@@ -40,7 +40,13 @@ export function useActiveStaffCalls() {
     queryKey: STAFF_CALL_KEY,
     queryFn: async () => {
       const { data } = await http.get<IApiResponse<IStaffCall[]>>('/staff-calls/active')
-      return data.data
+      // Filter out DELIVERY_DELAY_ALERT for takeaway orders because takeaway items shouldn't trigger "ngâm quầy" alerts
+      return data.data.filter(call => {
+        if (call.callType === 'DELIVERY_DELAY_ALERT' && (!call.tableNumber || call.message?.toLowerCase().includes('mang về'))) {
+          return false;
+        }
+        return true;
+      });
     },
   })
 }

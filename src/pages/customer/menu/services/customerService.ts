@@ -25,11 +25,11 @@ export const customerService = {
     http.post<IApiResponse<{ sessionToken: string }>>('/sessions/open', { qrToken }).then(unwrapApiResponse),
 
   getSessionOrder: () =>
-    http.get<IApiResponse<any>>(API_ROUTES.order.sessionOrder).then(unwrapApiData),
+    http.get<IApiResponse<any>>(API_ROUTES.order.sessionOrder, { headers: { 'X-Skip-Global-Toast': 'true' } }).then(unwrapApiData),
 
   // Cart
   getCart: () =>
-    http.get<IApiResponse<ICart>>(API_ROUTES.order.cart).then(unwrapApiData),
+    http.get<IApiResponse<ICart>>(API_ROUTES.order.cart, { headers: { 'X-Skip-Global-Toast': 'true' } }).then(unwrapApiData),
 
   addToCart: (payload: ITicketItemRequest) =>
     http.post<IApiResponse<ICart>>(API_ROUTES.order.cartItems, payload).then(unwrapApiResponse),

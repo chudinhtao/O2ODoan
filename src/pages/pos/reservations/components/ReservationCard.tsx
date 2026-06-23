@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Clock, Users, Phone, MapPin } from 'lucide-react'
+import { Clock, Users, Phone, MapPin, Banknote } from 'lucide-react'
 import { Badge } from '@/shared/components/ui/Badge'
 import { IReservation } from '@/shared/types/reservation'
 import { format, parseISO } from 'date-fns'
@@ -70,6 +70,14 @@ export function ReservationCard({ reservation, onClick, onDragStart }: Reservati
           </div>
         )}
       </div>
+
+      {/* Hiển thị tiền cọc nếu có */}
+      {(reservation.depositAmount || 0) > 0 && (
+        <div className="mt-2 flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded w-fit border border-green-100">
+          <Banknote className="w-3.5 h-3.5" />
+          <span className="text-xs font-semibold">{t('pos.reservations.deposited', 'Đã cọc:')} {new Intl.NumberFormat('vi-VN').format(reservation.depositAmount!)}đ</span>
+        </div>
+      )}
 
       {reservation.note && (
         <div className="mt-2 text-sm text-gray-500 italic bg-gray-50 p-1.5 rounded truncate">

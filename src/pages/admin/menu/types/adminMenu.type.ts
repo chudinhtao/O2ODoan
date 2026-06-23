@@ -41,7 +41,7 @@ export interface IMenuItem {
   saleStartAt?: string
   saleEndAt?: string
   description?: string
-  station?: 'HOT' | 'COLD' | 'DRINK'
+  station?: 'HOT' | 'COLD' | 'DRINK' | 'RETAIL'
   isAvailable: boolean
   isFeatured: boolean
   isActive: boolean
@@ -55,7 +55,7 @@ export interface IMenuItemRequest {
   basePrice: number
   taxRate?: number
   description?: string
-  station: 'HOT' | 'COLD' | 'DRINK'
+  station: 'HOT' | 'COLD' | 'DRINK' | 'RETAIL'
   isFeatured: boolean
   isAvailable: boolean
   imageUrl?: string | null

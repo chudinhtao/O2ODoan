@@ -5,6 +5,7 @@ import { IPurchaseOrder } from '../../types/inventory.type'
 import { PoStatusBadge } from './PoStatusBadge'
 import { useStaff } from '../../../staff/hooks/useStaff'
 import { IStaffProfile } from '../../../staff/types/staff.type'
+import { useFormatUom } from '../../hooks/useInventoryQueries'
 
 interface PoDetailDrawerProps {
   po: IPurchaseOrder
@@ -14,6 +15,7 @@ interface PoDetailDrawerProps {
 export default function PoDetailDrawer({ po, onClose }: PoDetailDrawerProps) {
   const { t, i18n } = useTranslation()
   const { staff } = useStaff()
+  const { formatQty } = useFormatUom()
 
   const getUserName = (id?: string | null) => {
     if (!id) return '—';
@@ -82,11 +84,11 @@ export default function PoDetailDrawer({ po, onClose }: PoDetailDrawerProps) {
                         <div className="font-medium text-slate-800">{item.itemName}</div>
                         <div className="text-xs text-slate-400">{item.uomName} {item.batchNumber ? `· ${item.batchNumber}` : ''}</div>
                       </td>
-                      <td className="px-4 py-3 text-right text-slate-700">{item.orderedQuantity.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-medium text-emerald-600">{item.receivedQuantity.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-slate-700">{formatQty(item.itemId, item.orderedQuantity, item.uomName)}</td>
+                      <td className="px-4 py-3 text-right font-medium text-emerald-600">{formatQty(item.itemId, item.receivedQuantity, item.uomName)}</td>
                       <td className="px-4 py-3 text-right">
                         <span className={isFullyReceived ? 'text-emerald-500 font-medium' : 'text-orange-500 font-medium'}>
-                          {item.remainingQuantity.toLocaleString()}
+                          {formatQty(item.itemId, item.remainingQuantity, item.uomName)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-slate-600">{item.unitPrice?.toLocaleString()}</td>

@@ -16,11 +16,13 @@ export function useAdminReservationsList(
   status?: string,
   phone?: string,
   page: number = 0,
-  size: number = 20
+  size: number = 20,
+  hasDeposit?: boolean,
+  refundStatus?: string
 ) {
   return useQuery({
-    queryKey: ADMIN_RESERVATION_KEYS.list({ startDate, endDate, status, phone, page, size }),
-    queryFn: () => adminReservationService.getReservations(startDate, endDate, status, phone, page, size),
+    queryKey: ADMIN_RESERVATION_KEYS.list({ startDate, endDate, status, phone, page, size, hasDeposit, refundStatus }),
+    queryFn: () => adminReservationService.getReservations(startDate, endDate, status, phone, page, size, hasDeposit, refundStatus),
     placeholderData: (previousData) => previousData,
   })
 }

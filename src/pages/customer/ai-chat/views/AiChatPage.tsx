@@ -3,12 +3,15 @@ import { useAiChat } from '../hooks/useAiChat'
 import { ChatMessage } from '../components/ChatMessage'
 import { ChatInput } from '../components/ChatInput'
 import { TypingIndicator } from '../components/TypingIndicator'
+import { usePaymentLock } from '../../shared/hooks/usePaymentLock'
 
 interface AiChatPageProps {
   sessionToken: string | null
 }
 
 export function AiChatPage({ sessionToken }: AiChatPageProps) {
+  usePaymentLock(sessionToken || '')
+
   const {
     messages,
     isOpen,

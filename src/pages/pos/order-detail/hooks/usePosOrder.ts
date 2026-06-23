@@ -162,3 +162,19 @@ export function usePosApplyPromotion() {
     },
   })
 }
+
+export function usePosExtendSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (sessionToken: string) => {
+      const { API_ROUTES } = await import('@/shared/constants/API_ROUTES')
+      return http.post<IApiResponse<void>>(API_ROUTES.posSession.extend(sessionToken))
+    },
+    onSuccess: (res) => {
+      toast.success(getSuccessMessage(res?.data?.message, 'Đã gia hạn bàn thêm 4 tiếng'))
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order.all })
+      queryClient.invalidateQueries({ queryKey: ['pos-tables'] })
+    },
+  })
+}

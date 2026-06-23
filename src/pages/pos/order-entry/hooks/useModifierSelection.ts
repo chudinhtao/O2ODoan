@@ -80,6 +80,7 @@ export function useModifierSelection(
 
   return {
     quantity,
+    setQuantity,
     handleDecreaseQuantity,
     handleIncreaseQuantity,
     note,

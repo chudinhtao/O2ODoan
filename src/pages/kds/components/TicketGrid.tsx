@@ -8,10 +8,11 @@ interface Props {
   onItemStatusChange: (id: string, newStatus: string) => void;
   onTicketStatusChange: (id: string, newStatus: string) => void;
   onItemCancelRequest: (orderId: string, itemId: string, reason: string) => void;
-  isLoading: boolean;
+  processingTicketId?: string;
+  processingItemId?: string;
 }
 
-export const TicketGrid = ({ tickets, onItemStatusChange, onTicketStatusChange, onItemCancelRequest, isLoading }: Props) => {
+export const TicketGrid = ({ tickets, onItemStatusChange, onTicketStatusChange, onItemCancelRequest, processingTicketId, processingItemId }: Props) => {
   const { t } = useTranslation();
   const [hiddenTickets, setHiddenTickets] = useState<string[]>([]);
   const [tab, setTab] = useState<'ACTIVE' | 'HISTORY' | 'CANCELLED'>('ACTIVE');
@@ -30,8 +31,12 @@ export const TicketGrid = ({ tickets, onItemStatusChange, onTicketStatusChange, 
   };
 
   const activeTickets = tickets.filter(t => ['PENDING', 'PREPARING'].includes(t.status) && !hiddenTickets.includes(t.id));
-  const historyTickets = tickets.filter(t => ['DONE', 'SERVED'].includes(t.status) && !hiddenTickets.includes(t.id));
-  const cancelledTickets = tickets.filter(t => ['CANCELLED', 'RETURNED'].includes(t.status) && !hiddenTickets.includes(t.id));
+  const historyTickets = tickets
+    .filter(t => ['DONE', 'SERVED'].includes(t.status) && !hiddenTickets.includes(t.id))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const cancelledTickets = tickets
+    .filter(t => ['CANCELLED', 'RETURNED'].includes(t.status) && !hiddenTickets.includes(t.id))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   
   const currentTickets = tab === 'ACTIVE' ? activeTickets : tab === 'HISTORY' ? historyTickets : cancelledTickets;
 
@@ -88,7 +93,8 @@ export const TicketGrid = ({ tickets, onItemStatusChange, onTicketStatusChange, 
               onTicketStatusChange={onTicketStatusChange}
               onHideTicket={handleHideTicket}
               onItemCancelRequest={onItemCancelRequest}
-              isLoading={isLoading}
+              processingTicketId={processingTicketId}
+              processingItemId={processingItemId}
             />
           ))}
         </div>

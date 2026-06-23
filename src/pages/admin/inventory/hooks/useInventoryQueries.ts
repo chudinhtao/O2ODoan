@@ -56,6 +56,14 @@ export function useUomConversions(itemId?: string) {
   })
 }
 
+export function useAllUomConversions() {
+  return useQuery({
+    queryKey: ['inventory', 'all-conversions'],
+    queryFn: () => inventoryService.getConversions(),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function useInventoryDashboardSummary(startDate?: string, endDate?: string) {
   return useQuery({
     queryKey: ['admin', 'inventory', 'dashboard-summary', startDate, endDate],
@@ -84,4 +92,27 @@ export function useInventoryUomSearch(params?: { keyword?: string; page?: number
     queryKey: ['inventory', 'uoms', 'search', params],
     queryFn: () => inventoryService.getUomsSearch(params),
   })
+}
+
+import { useCallback } from 'react'
+import { formatQuantityWithRemainder } from '@/shared/utils/formatUom'
+
+export function useFormatUom() {
+  const { data: allConversions } = useAllUomConversions()
+
+  const formatQty = useCallback(
+    (itemId: string | null | undefined, baseQty: number, baseUomName: string) => {
+      if (!itemId) return formatQuantityWithRemainder(baseQty, baseUomName, [])
+      
+      const itemConversions = allConversions?.filter(c => c.itemId === itemId) || []
+      const mappedConversions = itemConversions.map(c => ({
+        toUomName: c.fromUom.name, // The larger unit is typically 'fromUom' in our data model (e.g., 1 fromUom = X toUom) or vice versa. Wait, let's check `formatQuantity` in `TransactionsTab.tsx`. It used `c.fromUom.name` and divided by `c.conversionRate`.
+        conversionRate: c.conversionRate
+      }))
+      return formatQuantityWithRemainder(baseQty, baseUomName, mappedConversions)
+    },
+    [allConversions]
+  )
+
+  return { formatQty }
 }

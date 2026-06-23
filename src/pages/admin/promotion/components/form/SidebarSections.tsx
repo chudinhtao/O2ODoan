@@ -17,8 +17,6 @@ export function SidebarStatusSection(_: Props) {
 export function SidebarLimitsSection({ form }: Props) {
   const { t } = useTranslation()
   const { register, formState: { errors }, watch, setValue } = form
-  const currentScope   = watch('scope')
-  const currentTrigger = watch('triggerType')
   const isStackable    = watch('stackable')
 
   return (

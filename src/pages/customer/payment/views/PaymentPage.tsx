@@ -100,12 +100,14 @@ export default function CustomerPaymentPage() {
       {/* ── Header ── */}
       <header className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="flex items-center px-4 py-3 gap-3 max-w-md mx-auto">
-          <button
-            onClick={() => navigate(`/?t=${token}`)}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 active:scale-90 transition-all"
-          >
-            <ArrowLeft size={20} strokeWidth={2} />
-          </button>
+          {order.status === 'OPEN' && (
+            <button
+              onClick={() => navigate(`/?t=${token}`)}
+              className="w-9 h-9 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 active:scale-90 transition-all"
+            >
+              <ArrowLeft size={20} strokeWidth={2} />
+            </button>
+          )}
           <h1 className="font-black text-[16px] text-slate-900">
             {t('customer.payment.title', { number: order.tableNumber || '?' })}
           </h1>
@@ -305,7 +307,7 @@ export default function CustomerPaymentPage() {
         )}
       </main>
 
-      <CustomerBottomNav token={token || ''} activeTab="payment" />
+      {order.status === 'OPEN' && <CustomerBottomNav token={token || ''} activeTab="payment" />}
     </div>
   )
 }

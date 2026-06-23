@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {  useState, useMemo , useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, ClipboardCheck, Eye, PencilLine } from 'lucide-react'
@@ -33,10 +33,10 @@ export default function StocktakeTab() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(0)
-  const pageSize = 15
+  const [pageSize, setPageSize] = useState(10)
 
   const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.inventory.stocktakes({ page, keyword, startDate, endDate }),
+    queryKey: QUERY_KEYS.inventory.stocktakes({ keyword, startDate, endDate, page, pageSize }),
     queryFn: () => inventoryService.getStocktakes({ 
       page, 
       size: pageSize,
@@ -45,6 +45,12 @@ export default function StocktakeTab() {
       endDate: endDate ? `${endDate}T23:59:59` : undefined,
     })
   })
+
+  const allData = data?.content || []
+  const paginatedData = data?.content || []
+
+  const totalElements = data?.totalElements ?? 0
+  const totalPages = data?.totalPages ?? 0
 
   const createMutation = useMutation({
     mutationFn: () => inventoryService.createStocktake({ name: newName, notes: newNotes, locationId: locationId || undefined }),
@@ -59,7 +65,7 @@ export default function StocktakeTab() {
     }
   })
 
-  const filteredContent = data?.content || []
+  const filteredContent = paginatedData
 
   if (activeStocktakeId) {
     return <StocktakeCountForm stocktakeId={activeStocktakeId} onBack={() => setActiveStocktakeId(null)} />
@@ -192,10 +198,10 @@ export default function StocktakeTab() {
         }
         pagination={{
           currentPage: page,
-          totalPages: data?.totalPages || 0,
+          totalPages: totalPages,
           onPageChange: setPage,
           pageSize: pageSize,
-          totalElements: data?.totalElements || 0,
+          totalElements: totalElements, onPageSizeChange: (size) => { setPageSize(size); setPage(0); },
         }}
         emptyState={
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">

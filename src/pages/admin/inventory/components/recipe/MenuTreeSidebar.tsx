@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Search, ChevronDown, ChevronRight, Coffee, Layers, FolderTree } from 'lucide-react'
+import { ChevronDown, ChevronRight, Coffee, Layers, FolderTree } from 'lucide-react'
 import { adminMenuService } from '@/pages/admin/menu/services/adminMenu.service'
 import { ISelectedRecipeTarget } from '../RecipeTab'
-import { useDebounce } from '@/shared/hooks/useDebounce'
 
 interface MenuTreeSidebarProps {
   selectedTarget: ISelectedRecipeTarget | null
@@ -13,16 +12,13 @@ interface MenuTreeSidebarProps {
 
 export default function MenuTreeSidebar({ selectedTarget, onSelectTarget }: MenuTreeSidebarProps) {
   const { t } = useTranslation()
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 300)
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({})
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
 
   // Fetch categories
   const { data: categoriesData, isLoading: loadingCats } = useQuery({
-    queryKey: ['admin', 'menu', 'categories-tree', debouncedSearch],
+    queryKey: ['admin', 'menu', 'categories-tree'],
     queryFn: () => adminMenuService.getCategories({ 
-      keyword: debouncedSearch || undefined, 
       size: 50 
     })
   })
@@ -30,9 +26,8 @@ export default function MenuTreeSidebar({ selectedTarget, onSelectTarget }: Menu
 
   // Fetch items
   const { data: itemsData, isLoading: loadingItems } = useQuery({
-    queryKey: ['admin', 'menu', 'items-tree', debouncedSearch],
+    queryKey: ['admin', 'menu', 'items-tree'],
     queryFn: () => adminMenuService.getMenuItems({ 
-      keyword: debouncedSearch || undefined, 
       size: 100 
     })
   })
@@ -46,48 +41,20 @@ export default function MenuTreeSidebar({ selectedTarget, onSelectTarget }: Menu
     setExpandedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }))
   }
 
-  const filteredCategories = categories.filter(cat => 
-    !debouncedSearch || 
-    cat.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || 
-    items.some(item => item.categoryId === cat.id && item.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
-  )
-
-  // Auto-expand categories if searching
-  useEffect(() => {
-    if (debouncedSearch) {
-      const newExpanded: Record<string, boolean> = {}
-      categories.forEach(cat => {
-        newExpanded[cat.id] = true
-      })
-      setExpandedCats(newExpanded)
-    }
-  }, [debouncedSearch, categories])
-
   return (
     <div className="flex flex-col h-full bg-surface-container/30">
       <div className="p-4 border-b border-surface-dim bg-white shrink-0">
-        <h3 className="font-semibold text-on-surface mb-3">{t('admin.inventory.recipe.menuTitle')}</h3>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
-          <input
-            type="text"
-            placeholder={t('admin.inventory.recipe.searchMenuPlaceholder')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-surface-container rounded-lg border-none text-sm focus:ring-1 focus:ring-primary outline-none"
-          />
-        </div>
+        <h3 className="font-semibold text-on-surface">{t('admin.inventory.recipe.menuTitle')}</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
         {loadingCats || loadingItems ? (
           <div className="flex justify-center p-4">
-            <span className="text-sm text-on-surface-variant">{t('conversion.loading')}</span>
+            <span className="text-sm text-on-surface-variant">{t('admin.inventory.conversion.loading')}</span>
           </div>
         ) : (
-          filteredCategories.map(cat => {
+          categories.map(cat => {
             const catItems = items.filter(i => i.categoryId === cat.id)
-            if (search && catItems.length === 0 && !cat.name.toLowerCase().includes(search.toLowerCase())) return null
 
             return (
               <div key={cat.id} className="mb-1">

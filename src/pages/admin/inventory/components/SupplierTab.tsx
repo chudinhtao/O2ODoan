@@ -18,7 +18,7 @@ export default function SupplierTab() {
   const [keyword, setKeyword] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
   const [isAdding, setIsAdding] = useState(false)
   const [editItem, setEditItem] = useState<ISupplier | null>(null)
   const [isEditingCode, setIsEditingCode] = useState(false)

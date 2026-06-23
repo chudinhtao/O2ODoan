@@ -9,6 +9,7 @@ interface Props {
   orders: IOrder[]
   isLoading: boolean
   onViewDetail: (id: string) => void
+  onPrint?: (order: IOrder) => void
   keyword: string
   onSearchChange: (value: string) => void
   page: number
@@ -25,6 +26,7 @@ export function OrdersTable({
   orders, 
   isLoading, 
   onViewDetail,
+  onPrint,
   keyword,
   onSearchChange,
   page,
@@ -118,7 +120,7 @@ export function OrdersTable({
             {
               label: t('admin.orders.table.print'),
               icon: <Printer className="w-4 h-4" />,
-              onClick: () => console.log('Print order', order.id)
+              onClick: () => onPrint?.(order)
             }
           ]}
         />

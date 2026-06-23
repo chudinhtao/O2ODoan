@@ -1,6 +1,6 @@
 import { IPageResponse } from '@/shared/types/IApiResponse'
 
-export type OrderStatus = 'OPEN' | 'PAYMENT_REQUESTED' | 'PAID' | 'CANCELLED' | 'MERGED'
+export type OrderStatus = 'OPEN' | 'PAYMENT_REQUESTED' | 'PAID' | 'CANCELLED' | 'MERGED' | 'RETURNED'
 export type OrderSource = 'QR' | 'MANUAL'
 export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'
 
@@ -25,6 +25,9 @@ export interface IOrderTicketItem {
   imageUrl?: string
   createdAt: string
   servedAt?: string
+  servedBy?: string
+  preparedBy?: string
+  cancelledBy?: string
   options: IOrderItemOption[]
   isAlertSent?: boolean
   kitchenAlertSent?: boolean

@@ -93,7 +93,8 @@ http.interceptors.response.use(
     const skipGlobalToast = original?.headers?.['X-Skip-Global-Toast'] === 'true' || original?.headers?.['x-skip-global-toast'] === 'true'
 
     if (!original._retry && !skipGlobalToast) {
-      const apiMessage = (err.response?.data as any)?.message
+      const responseData = err.response?.data as any;
+      const apiMessage = responseData?.message || responseData?.error;
 
       if (status === 403) {
         toast.error(apiMessage || 'Bạn không có quyền thực hiện hành động này!')

@@ -28,6 +28,7 @@ export const useKdsQuery = () => {
   const updateItemStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await httpClient.put<{ message?: string }>(`kds/items/${id}/status`, { status });
+      await new Promise(r => setTimeout(r, 400)); // UX delay to show loading spinner
       return res.data;
     },
     onSuccess: () => {
@@ -38,6 +39,7 @@ export const useKdsQuery = () => {
   const updateTicketStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await httpClient.put<{ message?: string }>(`/kds/tickets/${id}/status`, { status });
+      await new Promise(r => setTimeout(r, 400)); // UX delay
       return res.data;
     },
     onSuccess: (res, variables) => {
@@ -51,6 +53,7 @@ export const useKdsQuery = () => {
   const cancelOrderItem = useMutation({
     mutationFn: async ({ orderId, itemId, reason }: { orderId: string, itemId: string, reason: string }) => {
       const res = await httpClient.patch<{ message?: string }>(`/orders/${orderId}/items/${itemId}/cancel`, { reason });
+      await new Promise(r => setTimeout(r, 400)); // UX delay
       return res.data;
     },
     onSuccess: (res) => {
@@ -65,6 +68,8 @@ export const useKdsQuery = () => {
     isError,
     updateItemStatus,
     updateTicketStatus,
-    cancelOrderItem
+    cancelOrderItem,
+    processingTicketId: updateTicketStatus.isPending ? updateTicketStatus.variables?.id : undefined,
+    processingItemId: updateItemStatus.isPending ? updateItemStatus.variables?.id : cancelOrderItem.isPending ? cancelOrderItem.variables?.itemId : undefined,
   };
 };

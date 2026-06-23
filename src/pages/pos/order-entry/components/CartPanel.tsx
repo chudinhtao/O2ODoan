@@ -12,8 +12,7 @@ interface CartPanelProps {
   cart: ICart | undefined
   isCartLoading: boolean
   isSubmitting: boolean
-  onIncreaseItem: (cartItemId: string) => void
-  onDecreaseItem: (cartItemId: string, qty: number) => void
+  onUpdateQuantity: (cartItemId: string, qty: number) => void
   onRemoveItem: (cartItemId: string) => void
   onSubmitTicket: () => void
   onCheckout?: () => void
@@ -24,7 +23,7 @@ interface CartPanelProps {
 export function CartPanel({
   tableId,
   tableNumber, cart, isCartLoading, isSubmitting,
-  onIncreaseItem, onDecreaseItem, onRemoveItem,
+  onUpdateQuantity, onRemoveItem,
   onSubmitTicket, onCheckout, onEditItem, onClearCart
 }: CartPanelProps) {
   const { t } = useTranslation()
@@ -107,8 +106,7 @@ export function CartPanel({
             <CartItemRow
               key={item.cartItemId}
               item={item}
-              onIncrease={onIncreaseItem}
-              onDecrease={onDecreaseItem}
+              onUpdateQuantity={onUpdateQuantity}
               onRemove={onRemoveItem}
               onEdit={onEditItem}
             />

@@ -26,7 +26,8 @@
         "confirmed": "Confirmed (Deposited)",
         "completed": "Checked In",
         "cancelled": "Cancelled",
-        "noShow": "No-show"
+        "noShow": "No-show",
+        "no_show": "No-show"
       },
       "filter": {
         "startDate": "Start date",
@@ -986,7 +987,8 @@
         "payment_requested": "Awaiting Payment",
         "paid": "Paid",
         "cancelled": "Cancelled",
-        "returned": "Returned"
+        "returned": "Returned",
+        "completed": "Completed"
       },
       "source": {
         "all": "All Sources",
@@ -1293,6 +1295,26 @@
         "confirmActivateTitle": "Reactivate Supplier",
         "confirmActivateDescription": "Are you sure you want to reactivate this supplier so they can be selected in purchase orders?"
       },
+      "notifications": {
+        "updateSuccess": "Updated successfully!"
+      },
+      "killSwitch": {
+        "defaultLockReason": "Emergency out of stock",
+        "defaultUnlockReason": "Restocked",
+        "errorMsg": "An error occurred",
+        "lockTitle": "Emergency Out of Stock",
+        "unlockTitle": "Restore Material",
+        "itemName": "Material:",
+        "lockWarning": "Warning: This action will set stock to 0 and HIDE all menu items using this material.",
+        "unlockWarning": "Restoring material will automatically unhide associated menu items.",
+        "quantity": "Current Quantity",
+        "reason": "Reason",
+        "reasonPlaceholder": "Enter reason...",
+        "confirmLock": "Confirm Out of Stock",
+        "confirmUnlock": "Confirm Restore",
+        "lockAction": "Emergency Out of Stock",
+        "unlockAction": "Restore Material"
+      },
       "item": {
         "title": "Ingredient Inventory",
         "addNew": "Add Ingredient",
@@ -1311,6 +1333,8 @@
         "colStatus": "Status",
         "showInactive": "Show Inactive",
         "hideInactive": "Hide Inactive",
+        "backToActive": "Show Active",
+        "viewInactive": "Show Inactive Items",
         "allCategories": "All Categories",
         "selectCategoryPlaceholder": "-- Select Category --",
         "uomLabel": "Unit of Measure (UoM) *",
@@ -1716,7 +1740,7 @@
       "internalAccess": "Internal Access Only",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
-      "copyright": "v1.0.0 © 2024 Cà Phê Suntime. All rights reserved.",
+      "copyright": "v1.0.0 © 2026 F&B. All rights reserved.",
       "usernameRequired": "Please enter username",
       "passwordMinLength": "Password must be at least 6 characters"
     },
@@ -1882,6 +1906,7 @@
       "ticket": "Ticket #{{index}}",
       "total": "Total",
       "checkout": "Checkout",
+      "extendSession": "Extend another 4 hours",
       "cancelOrder": "Cancel entire order",
       "cancelItemSuccess": "Item cancelled successfully",
       "status": {
@@ -1916,7 +1941,32 @@
       "items_unit": "items",
       "summary_label": "Subtotal",
       "discount_label": "Discount",
-      "noOrder": "No order yet"
+      "noOrder": "No order yet",
+      "cancelItem": {
+        "title": "Cancel Item",
+        "desc1": "You are cancelling item ",
+        "desc2": "This item has been processed by the kitchen, PLEASE ENTER REASON:",
+        "placeholder": "Enter cancel reason (Optional if pending)...",
+        "confirm": "Confirm Cancel",
+        "kitchenStatusLabel": "Actual Status in Kitchen (Important for Inventory)",
+        "statusPending": "Kitchen hasn't started",
+        "statusPendingDesc": "System will return ingredients to stock.",
+        "statusDone": "Kitchen is preparing / Done",
+        "statusDoneDesc": "Will not return stock. Recorded as wastage cost!"
+      },
+      "returnItem": {
+        "title": "Return Served/Done Item",
+        "desc1": "This action will deduct the price of ",
+        "placeholder": "Enter mandatory return reason...",
+        "confirm": "Confirm Return"
+      },
+      "cancelTicket": {
+        "title": "Cancel Request Ticket",
+        "desc1": "You are cancelling entire ticket #",
+        "desc2": " This action will cancel ALL pending items in this ticket.",
+        "placeholder": "Enter cancel reason (Optional)...",
+        "confirm": "Confirm Cancel Ticket"
+      }
     },
     "staffCalls": {
       "popoverTitle": "Staff Call Requests",
@@ -2002,8 +2052,27 @@
       "promoSuccess": "Promo applied successfully",
       "promoError": "Invalid or expired promo code",
       "btnQRDone": "Received Cash & Close Bill",
+      "btnMixedDone": "Confirm amount received",
+      "zeroOrderTitle": "0 amount order",
+      "zeroOrderDesc": "No additional payment required. Please click Confirm to complete.",
+      "mixedFullCash": "Cash amount is sufficient — No need to generate QR, please switch to Cash method",
+      "qrTotalDue": "Total amount due",
+      "mixedCashSummary": "Cash Given",
+      "mixedQrRemaining": "Remaining QR",
       "qrPrompt": "System automatically generates code for",
       "qrNotice": "(Automatic recognition, you don't need to do anything after customer scans)",
+      "qrFallbackHint": "If webhook is slow, use the button below to manually confirm.",
+      "mixedCash": "Step 1 — Cash given by customer",
+      "mixedQrStep": "Step 2 — Generate QR code for the remaining amount",
+      "mixedCreating": "Generating QR code...",
+      "mixedCreateQr": "Generate QR {{amount}}",
+      "mixedQrReady": "QR Code for transfer",
+      "mixedWaiting": "Waiting for scan — System will automatically close bill when received",
+      "qrCreating": "Generating PayOS QR code...",
+      "qrCreate": "Generate QR – {{amount}}",
+      "qrHint": "System will automatically close bill when received bank transfer.",
+      "qrScanTitle": "PayOS QR Code",
+      "qrWaiting": "Waiting for scan — System will automatically close bill when received",
       "closeAndClearTable": "Clear table after closing bill",
       "qrTitle": "Scan QR Pay",
       "perItem": "item",
@@ -2202,7 +2271,7 @@
   "customer": {
     "home": {
       "invalidTable": "Invalid table code. Please scan the QR code at your table again.",
-      "brand": "Cà Phê Suntime",
+      "brand": "F&B",
       "tableServing": "Table {{number}} — Serving",
       "slogan": "Morning sunshine flavors in every cup of coffee",
       "waitingPayment": "⏳ Waiting for payment",

@@ -33,6 +33,13 @@ export function Pagination({
     setInputPage((currentPage + 1).toString());
   }, [currentPage]);
 
+  // Auto-correct page if out of bounds (e.g. after deleting last item on a page)
+  useEffect(() => {
+    if (totalPages > 0 && currentPage >= totalPages) {
+      onPageChange(0); // Quay về trang 1 theo yêu cầu UX
+    }
+  }, [totalPages, currentPage, onPageChange]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputPage(e.target.value);
   };

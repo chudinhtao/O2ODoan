@@ -31,7 +31,7 @@ export default function VarianceReportTab() {
   const [keyword, setKeyword] = useState('')
   const [categoryId, setCategoryId] = useState<string>('')
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['admin', 'inventory', 'reports', 'variance', queryDates],
@@ -81,6 +81,7 @@ export default function VarianceReportTab() {
     {
       header: t('admin.inventory.variance.colWaste', 'SL Hủy'),
       align: 'right',
+      className: 'hidden sm:table-cell',
       cell: (item) => (
         <div className="flex flex-col items-end">
           <span className="font-bold text-orange-600 tabular-nums">{item.wasteQuantity.toLocaleString()}</span>
@@ -91,6 +92,7 @@ export default function VarianceReportTab() {
     {
       header: t('admin.inventory.variance.colAdjustment', 'SL Điều chỉnh'),
       align: 'right',
+      className: 'hidden sm:table-cell',
       cell: (item) => (
         <div className="flex flex-col items-end">
           <span className="font-bold text-blue-600 tabular-nums">{item.adjustmentQuantity.toLocaleString()}</span>
@@ -123,9 +125,9 @@ export default function VarianceReportTab() {
   ]
 
   return (
-    <div className="flex flex-col h-full space-y-6">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Action Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b border-slate-100 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <TrendingDown className="w-5 h-5 text-primary" />
@@ -136,27 +138,27 @@ export default function VarianceReportTab() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white">
-            <CalendarRange className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 rounded-xl px-2 sm:px-3 py-1.5 border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white">
+            <CalendarRange className="hidden sm:block w-4 h-4 text-slate-400" />
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-28 h-7 border-none bg-transparent p-0 text-xs font-bold focus:ring-0 outline-none"
+              className="w-[84px] sm:w-28 h-7 border-none bg-transparent p-0 text-[10px] sm:text-xs font-bold focus:ring-0 outline-none"
             />
-            <span className="text-slate-300">—</span>
+            <span className="text-slate-300 text-[10px] sm:text-xs">—</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-28 h-7 border-none bg-transparent p-0 text-xs font-bold focus:ring-0 outline-none"
+              className="w-[84px] sm:w-28 h-7 border-none bg-transparent p-0 text-[10px] sm:text-xs font-bold focus:ring-0 outline-none"
             />
           </div>
           
           <Button onClick={handleSearch} disabled={isFetching} size="sm" className="!rounded-lg">
-            <RefreshCw className={`w-4 h-4 mr-1.5 ${isFetching ? 'animate-spin' : ''}`} />
-            {t('common.refresh', 'Làm mới')}
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''} sm:mr-1.5`} />
+            <span className="hidden sm:inline">{t('common.refresh', 'Làm mới')}</span>
           </Button>
 
           <ExportButton
@@ -184,7 +186,7 @@ export default function VarianceReportTab() {
       </div>
 
       {report && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 shrink-0">
           <div className="bg-white px-4 py-3 rounded-xl border border-slate-100 flex items-center justify-between group transition-all duration-300 hover:shadow-md">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-slate-50 text-slate-600 group-hover:scale-105 transition-transform">
@@ -232,6 +234,7 @@ export default function VarianceReportTab() {
         </div>
       )}
 
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-4">
       <DataTable
         columns={columns}
         data={paginatedData.map(item => ({ ...item, id: item.itemId }))}
@@ -268,6 +271,7 @@ export default function VarianceReportTab() {
           </div>
         }
       />
+      </div>
     </div>
   )
 }

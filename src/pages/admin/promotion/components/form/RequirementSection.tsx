@@ -1,6 +1,5 @@
 import { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Select } from '@/shared/components/ui/Select'
 import { NumberInput } from '@/shared/components/ui/NumberInput'
 import type { PromotionFormValues } from '../../hooks/usePromotionForm'
 

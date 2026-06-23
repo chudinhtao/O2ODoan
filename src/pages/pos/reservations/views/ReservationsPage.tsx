@@ -123,9 +123,9 @@ export default function ReservationsPage() {
                 className="!py-2 !rounded-xl !border-slate-200/60 !shadow-sm !bg-white"
                 options={[
                   { value: "ALL", label: t('pos.reservations.status.ALL', 'Tất cả trạng thái') },
-                  { value: "PENDING", label: t('pos.reservations.status.PENDING', 'Chờ xử lý') },
-                  { value: "CONFIRMED", label: t('pos.reservations.status.CONFIRMED', 'Đã xếp bàn') },
-                  { value: "COMPLETED", label: t('pos.reservations.status.COMPLETED', 'Đã hoàn thành') },
+                  { value: "PENDING", label: t('pos.reservations.status.PENDING', 'Chờ xác nhận') },
+                  { value: "CONFIRMED", label: t('pos.reservations.status.CONFIRMED', 'Đã xác nhận') },
+                  { value: "COMPLETED", label: t('pos.reservations.status.COMPLETED', 'Đã đến') },
                   { value: "CANCELLED", label: t('pos.reservations.status.CANCELLED', 'Đã hủy') },
                   { value: "NO_SHOW", label: t('pos.reservations.status.NO_SHOW', 'Không đến') }
                 ]}

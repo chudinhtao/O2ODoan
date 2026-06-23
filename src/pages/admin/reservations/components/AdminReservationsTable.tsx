@@ -127,8 +127,8 @@ export function AdminReservationsTable({
       cell: (res: IReservation) => (
         <Badge 
           variant={
-            res.status === 'CONFIRMED' ? 'success' :
-            res.status === 'COMPLETED' ? 'info' :
+            res.status === 'COMPLETED' ? 'success' :
+            res.status === 'CONFIRMED' ? 'info' :
             res.status === 'PENDING' ? 'warning' :
             'danger'
           }

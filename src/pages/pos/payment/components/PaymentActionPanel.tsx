@@ -198,7 +198,7 @@ export function PaymentActionPanel({
               {!qrPayosUrl && (
                 <div className="space-y-4">
                   <div className="p-3 lg:p-4 rounded-lg bg-surface-container-low border border-outline-variant/30 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">Tổng cần thanh toán</span>
+                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">{t('pos.payment.qrTotalDue', 'Tổng cần thanh toán')}</span>
                     <span className="text-xl font-black text-primary tabular-nums">{formatCurrency(orderTotal)}</span>
                   </div>
                   <Button
@@ -214,7 +214,7 @@ export function PaymentActionPanel({
                     )}
                     {isCreatingQrPayos
                       ? t('pos.payment.qrCreating', 'Đang tạo mã QR PayOS...')
-                      : t('pos.payment.qrCreate', `Tạo mã QR – ${formatCurrency(orderTotal)}`)}
+                      : t('pos.payment.qrCreate', { amount: formatCurrency(orderTotal), defaultValue: `Tạo mã QR – ${formatCurrency(orderTotal)}` })}
                   </Button>
                   <p className="text-[10px] text-center text-outline-variant font-bold">
                     {t('pos.payment.qrHint', 'Hệ thống sẽ tự đóng bill khi nhận được biến động số dư từ ngân hàng.')}
@@ -292,11 +292,11 @@ export function PaymentActionPanel({
               {isMixedReady && (
                 <div className="p-3 lg:p-4 rounded-lg bg-primary/5 border border-primary/15 space-y-2 animate-in fade-in duration-300">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">Tiền mặt</span>
+                    <span className="text-[10px] font-black text-outline uppercase tracking-widest">{t('pos.payment.mixedCashSummary', 'Tiền mặt')}</span>
                     <span className="font-black text-on-surface tabular-nums">{formatCurrency(cashGiven)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Còn cần quét QR</span>
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{t('pos.payment.mixedQrRemaining', 'Còn cần quét QR')}</span>
                     <span className="font-black text-primary text-lg tabular-nums">{formatCurrency(qrAmount)}</span>
                   </div>
                 </div>
@@ -321,7 +321,7 @@ export function PaymentActionPanel({
                     )}
                     {isCreatingQr
                       ? t('pos.payment.mixedCreating', 'Đang tạo mã QR...')
-                      : t('pos.payment.mixedCreateQr', `Tạo QR ${formatCurrency(qrAmount)}`)}
+                      : t('pos.payment.mixedCreateQr', { amount: formatCurrency(qrAmount), defaultValue: `Tạo QR ${formatCurrency(qrAmount)}` })}
                   </Button>
                 </div>
               )}

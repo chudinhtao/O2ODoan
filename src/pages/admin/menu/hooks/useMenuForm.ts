@@ -23,7 +23,7 @@ export const menuSchema = z.object({
   name: z.string().min(1, 'admin.menu.validation.requiredName'),
   categoryId: z.string().min(1, 'admin.menu.validation.requiredCategory'),
   basePrice: z.preprocess((val) => (typeof val === 'number' && Number.isNaN(val)) || val === '' ? 0 : Number(val), z.number().min(0, 'admin.menu.validation.priceMinZero').optional()),
-  station: z.enum(['HOT', 'COLD', 'DRINK']),
+  station: z.enum(['HOT', 'COLD', 'DRINK', 'RETAIL']),
   description: z.string().optional(),
   isAvailable: z.boolean().default(true),
   isFeatured: z.boolean().default(false),

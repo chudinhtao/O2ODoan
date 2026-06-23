@@ -19,7 +19,7 @@ import { ExportButton } from '@/shared/components/ExportButton'
 export default function TransactionsTab({ navParams }: { navParams?: any }) {
   const { t } = useTranslation()
   const [page, setPage] = useState(0)
-  const [pageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
   const [isQuickGrnOpen, setIsQuickGrnOpen] = useState(false)
   const [isWasteOpen, setIsWasteOpen] = useState(false)
   const [typeFilter, setTypeFilter] = useState('')
@@ -49,7 +49,7 @@ export default function TransactionsTab({ navParams }: { navParams?: any }) {
   const allItems = itemsData?.content ?? []
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'inventory', 'transactions', { page, pageSize, typeFilter, itemFilter, startDate, endDate }],
+    queryKey: ['admin', 'inventory', 'transactions', { typeFilter, itemFilter, startDate, endDate, page, pageSize }],
     queryFn: () => inventoryService.getTransactions({
       page,
       size: pageSize,
@@ -60,8 +60,11 @@ export default function TransactionsTab({ navParams }: { navParams?: any }) {
     }),
   })
 
+  const allTransactions = data?.content || []
   const transactions = data?.content || []
-  const totalPages = data?.totalPages || 0
+
+  const totalElements = data?.totalElements ?? 0
+  const totalPages = data?.totalPages ?? 0
 
   const TX_TYPE_OPTIONS = useMemo(() => [
     { value: '', label: t('admin.inventory.transactions.filterAllTypes') },
@@ -175,7 +178,7 @@ export default function TransactionsTab({ navParams }: { navParams?: any }) {
         </h2>
         <div className="flex items-center gap-2">
           <ExportButton
-            data={transactions.map((tx: any) => ({
+            data={allTransactions.map((tx: any) => ({
               ...tx,
               createdAt: new Date(tx.createdAt).toLocaleString('vi-VN'),
               transactionType: t(`admin.inventory.transactions.type.${tx.transactionType}`),
@@ -267,7 +270,7 @@ export default function TransactionsTab({ navParams }: { navParams?: any }) {
           totalPages: totalPages,
           onPageChange: setPage,
           pageSize: pageSize,
-          totalElements: data?.totalElements || 0,
+          totalElements: totalElements, onPageSizeChange: (size) => { setPageSize(size); setPage(0); },
         }}
         emptyState={
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">

@@ -1,17 +1,17 @@
 import { ICartItem } from '../types/posOrder.type'
-import { Minus, Plus, Trash2, Pencil } from 'lucide-react'
+import { Trash2, Pencil } from 'lucide-react'
+import { StepperInput } from '@/shared/components/ui/StepperInput'
 import { formatCurrency } from '@/shared/utils/formatCurrency'
 import { useTranslation } from 'react-i18next'
 
 interface CartItemRowProps {
   item: ICartItem
-  onIncrease: (cartItemId: string) => void
-  onDecrease: (cartItemId: string, currentQty: number) => void
+  onUpdateQuantity: (cartItemId: string, qty: number) => void
   onRemove: (cartItemId: string) => void
   onEdit?: (item: ICartItem) => void
 }
 
-export function CartItemRow({ item, onIncrease, onDecrease, onRemove, onEdit }: CartItemRowProps) {
+export function CartItemRow({ item, onUpdateQuantity, onRemove, onEdit }: CartItemRowProps) {
   const { t } = useTranslation()
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-3 flex flex-col gap-2 hover:border-outline-variant/60 transition-colors">
@@ -54,21 +54,14 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove, onEdit }: 
 
       {/* Bottom: quantity stepper + remove */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center bg-surface-container rounded-lg overflow-hidden border border-outline-variant/30">
-          <button
-            onClick={() => onDecrease(item.cartItemId, item.quantity)}
-            className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
-          >
-            <Minus className="size-3.5 stroke-2" />
-          </button>
-          <span className="w-8 text-center text-sm font-black text-on-surface select-none">{item.quantity}</span>
-          <button
-            onClick={() => onIncrease(item.cartItemId)}
-            className="w-7 h-7 flex items-center justify-center bg-primary text-on-primary hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="size-3.5 stroke-2" />
-          </button>
-        </div>
+        <StepperInput 
+          value={item.quantity} 
+          onChange={(newVal) => onUpdateQuantity(item.cartItemId, newVal)} 
+          min={0} 
+          max={999}
+          variant="admin"
+          className="border-outline-variant/30 bg-surface-container"
+        />
 
         <button
           onClick={() => onRemove(item.cartItemId)}

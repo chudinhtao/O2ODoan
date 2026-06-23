@@ -34,13 +34,21 @@ export const StaffCallCard: React.FC<StaffCallCardProps> = ({ call }) => {
   };
 
   const pendingTimeText = formatDistance(new Date(call.createdAt), serverTime, { addSuffix: true, locale: vi });
+  const displayMessage = call.message || t(`pos.staffCalls.defaultMessage.${call.callType}`, { defaultValue: '' });
 
   return (
     <div className={`p-4 rounded-xl shadow-sm mb-4 border transition-colors ${isAcceptedByOther ? 'bg-surface-dim border-outline-variant opacity-70' : 'bg-surface-bright border-primary/20'}`}>
       <div className="flex justify-between items-start mb-3">
         <div className="min-w-0 pr-2">
           <h3 className="text-lg font-bold text-on-surface truncate">{t('server.table', { number: call.tableNumber || 'N/A' })}</h3>
-          <p className="text-primary font-medium mt-1 truncate">{call.callType}</p>
+          <p className="text-primary font-medium mt-1 truncate">
+            {t(`pos.staffCalls.type.${call.callType}`, call.callType)}
+          </p>
+          {displayMessage && (
+            <div className="text-sm text-on-surface-variant mt-1.5">
+              {displayMessage}
+            </div>
+          )}
         </div>
         <div className="text-right shrink-0">
           <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-1 rounded-md">{pendingTimeText}</span>

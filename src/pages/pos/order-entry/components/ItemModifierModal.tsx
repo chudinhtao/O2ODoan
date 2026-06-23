@@ -1,7 +1,8 @@
-import { Plus, Minus, X, Check, Flame, Snowflake, Coffee, Star, UtensilsCrossed } from 'lucide-react'
+import { Plus, Minus, X, Check, Flame, Snowflake, Coffee, Star, UtensilsCrossed, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { IMenuItem } from '@/pages/admin/menu/types/adminMenu.type'
 import { ImageWithFallback } from '@/shared/components/ImageWithFallback'
+import { StepperInput } from '@/shared/components/ui/StepperInput'
 import { Button } from '@/shared/components/ui/Button'
 import { Textarea } from '@/shared/components/ui/Textarea'
 import { useModifierSelection } from '../hooks/useModifierSelection'
@@ -29,10 +30,11 @@ export function ItemModifierModal({
     HOT:   { icon: Flame,     color: 'text-orange-500', bg: 'bg-orange-500/10', label: t('pos.menu.item.status.hot', 'Nóng') },
     COLD:  { icon: Snowflake, color: 'text-sky-500',    bg: 'bg-sky-500/10',    label: t('pos.menu.item.status.cold', 'Lạnh') },
     DRINK: { icon: Coffee,    color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: t('pos.menu.item.status.drink', 'Nước') },
+    RETAIL:{ icon: Package,   color: 'text-slate-500',  bg: 'bg-slate-500/10',  label: t('pos.menu.item.status.retail', 'Bán lẻ') },
   } as const
 
   const {
-    quantity, handleDecreaseQuantity, handleIncreaseQuantity,
+    quantity, setQuantity, handleDecreaseQuantity, handleIncreaseQuantity,
     note, setNote, selectedOptions, handleToggleOption,
     totalPrice, isValid, flatOptions
   } = useModifierSelection(item, isOpen, initialQuantity, initialNote, initialOptsArray)
@@ -223,22 +225,15 @@ export function ItemModifierModal({
             </div>
 
             <div className="p-5 flex items-center gap-4">
-            <div className="flex items-center bg-surface-container rounded-lg p-1 gap-1 ring-1 ring-outline-variant/30">
-              <button
-                onClick={handleDecreaseQuantity}
-                className="size-9 rounded-md bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
-              >
-                <Minus className="size-4 stroke-2" />
-              </button>
-              <span className="w-10 text-center font-black text-lg text-on-surface select-none">
-                {quantity}
-              </span>
-              <button
-                onClick={handleIncreaseQuantity}
-                className="size-9 rounded-md bg-surface-container-lowest hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all shadow-sm"
-              >
-                <Plus className="size-4 stroke-2" />
-              </button>
+            <div className="shrink-0">
+              <StepperInput
+                value={quantity}
+                onChange={setQuantity}
+                min={1}
+                max={999}
+                variant="admin"
+                className="bg-surface-container-lowest border-outline-variant/30 py-1.5"
+              />
             </div>
 
             <Button

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {  useState, useMemo , useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, ArrowRightLeft } from 'lucide-react'
@@ -14,20 +14,24 @@ export default function TransferTab() {
   const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(0)
-  const pageSize = 15
+  const [pageSize, setPageSize] = useState(10)
 
   const { data: locations } = useLocations()
   const getLocationName = (id?: string) => locations?.find(l => l.id === id)?.name || t('admin.inventory.transfer.systemLocation', 'Kho hệ thống')
 
   // We can query transactions of type IN_TRANSFER or OUT_TRANSFER
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory-transactions-transfers', page],
+    queryKey: ['inventory-transactions-transfers', page, pageSize],
     queryFn: () => inventoryService.getTransactions({ 
       type: 'OUT_TRANSFER',
       page, 
-      size: pageSize 
+      size: pageSize, 
     })
   })
+
+  const totalElements = data?.totalElements ?? 0
+  const totalPages = data?.totalPages ?? 0
+  const contentData = data?.content || []
 
   const columns: ColumnDef<any>[] = [
     {
@@ -94,14 +98,14 @@ export default function TransferTab() {
 
       <DataTable
         columns={columns}
-        data={data?.content || []}
+        data={contentData}
         isLoading={isLoading}
         pagination={{
           currentPage: page,
-          totalPages: data?.totalPages || 0,
+          totalPages: totalPages,
           onPageChange: setPage,
           pageSize: pageSize,
-          totalElements: data?.totalElements || 0,
+          totalElements: totalElements, onPageSizeChange: (size) => { setPageSize(size); setPage(0); },
         }}
         emptyState={
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
